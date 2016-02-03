@@ -41,5 +41,7 @@ Receiver::Receiver(std::string port)
   if (listen(sockfd, BACKLOG) == -1) {
     //fail
   }
+
+  this->port = port;
 }
 
