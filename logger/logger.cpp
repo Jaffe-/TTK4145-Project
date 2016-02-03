@@ -18,7 +18,8 @@ std::ostream& Logger::LogLine::operator<<(const T& msg)
   char formatted_time[100];
   std::strftime(formatted_time, sizeof(formatted_time), "%j/%d %H:%M:%S", std::localtime(&raw_time));
 
-  log.file << formatted_time << "  <" << level_name(level) << ">  " << file << ":" << function << ":  " << msg << std::endl;
+  if (static_cast<int>(log.include_level) >= static_cast<int>(level))
+    log.file << formatted_time << "  <" << level_name(level) << ">  " << file << ":" << function << ":  " << msg << std::endl;
   return log.file;
 }
 
@@ -34,7 +35,7 @@ std::string Logger::level_name(Logger::LogLevel level)
   }
 }
 
-Logger log("tst.txt", Logger::LogLevel::DEBUG);
+Logger log("tst.txt", Logger::LogLevel::ERROR);
 
 int main()
 {

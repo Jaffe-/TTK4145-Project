@@ -13,7 +13,7 @@
 class Logger {
 public:
   enum class LogLevel {
-    DEBUG, WARNING, ERROR
+    ERROR, WARNING, DEBUG
   };
   Logger(std::string const& filename, LogLevel level);
   ~Logger();
@@ -30,7 +30,7 @@ public:
     char const* file;
     char const* function;
   };
-  
+
 private:
   static std::string level_name(LogLevel level);
   std::ofstream file;
