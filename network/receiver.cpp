@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define BACKLOG 3
 #define MAXBUF 2048
@@ -37,7 +39,7 @@ Receiver::Receiver(std::string port)
   this->port = port;
 }
 
-std::string Receiver::receive()
+Receiver::Packet Receiver::receive()
 {
   int numbytes;
   socklen_t addr_len;
@@ -50,5 +52,28 @@ std::string Receiver::receive()
     //fail
   }
 
-  return std::string(buf);
+  char s[INET_ADDRSTRLEN];
+  inet_ntop(their_addr.ss_family, &(((struct sockaddr_in *)&their_addr)->sin_addr), s, sizeof(s));
+
+  return {(PacketType)buf[0], std::string(buf+1), std::string(s)};
+}
+
+void Receiver::run()
+{
+  Packet packet = receive();
+  switch (packet.type){
+  case PacketType::PONG:
+    break;
+  case PacketType::MSG:
+    buffer.push_back(packet.bytes);
+    break;
+  default:
+    break;
+  }
+  std::cout << "Mottok " << p.bytes << " fra " << p.ip << std::endl;
+}
+
+Receiver::~Receiver()
+{
+  close(sockfd);
 }
