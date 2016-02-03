@@ -7,6 +7,7 @@
 #include <netdb.h>
 
 #define BACKLOG 3
+#define MAXBUF 2048
 
 Receiver::Receiver(std::string port)
 {
@@ -38,10 +39,21 @@ Receiver::Receiver(std::string port)
 
   freeaddrinfo(res);
 
-  if (listen(sockfd, BACKLOG) == -1) {
-    //fail
-  }
-
   this->port = port;
 }
 
+std::string Receiver::receive()
+{
+  int numbytes;
+  socklen_t addr_len;
+  struct sockaddr_storage their_addr;
+  char buf[MAXBUF];
+  addr_len = sizeof(their_addr);
+
+  if ((numbytes = recvfrom(sockfd, buf, MAXBUF-1, 0,
+			   (struct sockaddr *)&their_addr, &addr_len)) == -1) {
+    //fail
+  }
+
+  return std::string(buf);
+}
