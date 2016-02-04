@@ -11,18 +11,6 @@ Logger::~Logger()
   file.close();
 }
 
-template<typename T>
-std::ostream& Logger::LogLine::operator<<(const T& msg)
-{
-  std::time_t raw_time = std::time(NULL);
-  char formatted_time[100];
-  std::strftime(formatted_time, sizeof(formatted_time), "%j/%d %H:%M:%S", std::localtime(&raw_time));
-
-  if (static_cast<int>(log.include_level) >= static_cast<int>(level))
-    log.file << formatted_time << "  <" << level_name(level) << ">  " << file << ":" << function << ":  " << msg << std::endl;
-  return log.file;
-}
-
 std::string Logger::level_name(Logger::LogLevel level)
 {
   switch (level) {

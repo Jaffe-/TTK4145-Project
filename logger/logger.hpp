@@ -2,9 +2,10 @@
 
 #include <iostream>
 #include <fstream>
+#include <ctime>
 
 #define LOG(Level_, Message_)					\
-  Logger::LogLine(log, Level_, __FILE__, __FUNCTION__) << Message_
+  Logger::LogLine(log, Level_, __FILE__, __FUNCTION__) << Message_ << std::endl
 
 #define LOG_DEBUG(Message_) LOG(Logger::LogLevel::DEBUG, Message_)
 #define LOG_WARNING(Message_) LOG(Logger::LogLevel::WARNING, Message_)
@@ -23,7 +24,14 @@ public:
       log(log), level(level), file(file), function(function) {};
 
     template<typename T>
-    std::ostream& operator<<(const T& rhs);
+    std::ostream& operator<<(const T& msg) {
+      std::time_t raw_time = std::time(NULL);
+      char formatted_time[100];
+      std::strftime(formatted_time, sizeof(formatted_time), "%j/%d %H:%M:%S", std::localtime(&raw_time));
+      
+      log.file << formatted_time << "  <" << level_name(level) << ">  " << file << ":" << function << ":  " << msg;
+      return log.file;
+    }
 
     Logger& log;
     LogLevel level;
@@ -37,3 +45,4 @@ private:
   LogLevel include_level;
 };
 
+extern Logger log;
