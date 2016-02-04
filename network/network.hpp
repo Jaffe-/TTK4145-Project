@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <string>
 
 namespace Network {
@@ -9,7 +10,7 @@ namespace Network {
 
   struct Packet {
     PacketType type;
-    std::string bytes;
+    std::vector<char> bytes;
     std::string ip;
   };
 
@@ -18,8 +19,9 @@ namespace Network {
     std::string data;
   };
 
-  int sockfd = 0;
-
+  extern int sockfd;
+  extern std::string port;
+  
   void start(std::string port);
   void stop();
   std::string packet_type_name(Network::PacketType packet_type);

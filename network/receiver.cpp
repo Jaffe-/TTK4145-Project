@@ -50,7 +50,9 @@ namespace Network {
     char s[INET_ADDRSTRLEN];
     inet_ntop(their_addr.ss_family, &(((struct sockaddr_in *)&their_addr)->sin_addr), s, sizeof(s));
 
-    return {(PacketType)buf[0], std::string(buf+1), std::string(s)};
+    return {(PacketType)buf[0],
+       	     std::vector<char>(buf + 1, buf + MAXBUF),
+	     std::string(s)};
   }
 
   void Receiver::run()
@@ -63,7 +65,8 @@ namespace Network {
     case PacketType::PONG:
       break;
     case PacketType::MSG:
-      buffer.push_back(packet.bytes);
+      buffer.push_back(std::string(packet.bytes.begin(),
+				   packet.bytes.end()));
       break;
     default:
       break;
