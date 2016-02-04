@@ -5,16 +5,16 @@
 #include <iostream>
 #include <vector>
 
-class Receiver {
-public:
-  Receiver(std::string port);
-  ~Receiver();
-  void run();
+namespace Network {
+  class Receiver {
+  public:
+    void run();
 
-private:
-  int sockfd;
-  std::string port;
-  std::vector <std::string> buffer;
-  bool receive();
-  Packet read();
-};
+  private:
+    std::vector <std::string> buffer;
+    Packet read();
+    bool receive();
+  };
+
+  extern Receiver receiver;
+}
