@@ -18,4 +18,6 @@ namespace Network {
     void check_timeouts();
     void send_ping();
   };
+
+  extern ConnectionController connection_controller;
 }
