@@ -2,6 +2,6 @@
 
 int main()
 {
-  Receiver res("30021");
-  res.run();
+  Network::start("30021");
+  Network::receiver.run();
 }
