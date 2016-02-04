@@ -23,13 +23,4 @@ std::string Logger::level_name(Logger::LogLevel level)
   }
 }
 
-Logger log("tst.txt", Logger::LogLevel::ERROR);
-
-int main()
-{
-  LOG_DEBUG("Added 2 to i");
-  LOG_WARNING("Fuck me, this may be wrong");
-  LOG_ERROR("ERROR! DAMN IT TO HELL");
-  std::cout << std::endl;
-  return 0;
-}
+Logger log("tst.txt", Logger::LogLevel::DEBUG);
