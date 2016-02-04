@@ -36,7 +36,31 @@ Receiver::Receiver(std::string port)
   this->port = port;
 }
 
-Receiver::Packet Receiver::receive()
+bool Receiver::receive()
+{
+  fd_set readfds;
+  struct timeval tv;
+  const int select_timeout = 10;
+
+  FD_ZERO(&readfds);
+  FD_SET(sockfd, &readfds);
+  tv.tv_sec = 0;
+  tv.tv_usec = select_timeout;
+  int rv = select(sockfd + 1, &readfds, NULL, NULL, &tv);
+
+  if (rv == -1) {
+    LOG_ERROR("select() failed.");
+  }
+  else if (rv == 0)
+    return true;
+  else
+    return false;
+}
+
+
+#define MAXBUF 2048
+
+Receiver::Packet Receiver::read()
 {
   int numbytes;
   socklen_t addr_len;
@@ -57,7 +81,10 @@ Receiver::Packet Receiver::receive()
 
 void Receiver::run()
 {
-  Packet packet = receive();
+  if (!receive())
+    return;
+
+  Packet packet = read();
   switch (packet.type){
   case PacketType::PONG:
     break;

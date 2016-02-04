@@ -1,5 +1,7 @@
 #pragma once
 
+#include "network.hpp"
+
 #include <iostream>
 #include <vector>
 
@@ -10,17 +12,9 @@ public:
   void run();
 
 private:
-  enum class PacketType {
-    PONG, MSG
-  };
-  struct Packet {
-    PacketType type;
-    std::string bytes;
-    std::string ip;
-  };
-
   int sockfd;
   std::string port;
   std::vector <std::string> buffer;
-  Packet receive();
+  bool receive();
+  Packet read();
 };
