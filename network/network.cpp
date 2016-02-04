@@ -10,10 +10,15 @@
 #include <arpa/inet.h>
 
 namespace Network {
-  void start(std::string port)
+  int sockfd;
+  std::string port;
+  
+  void start(std::string port_)
   {
     struct addrinfo hints, *res;
     int rv;
+
+    port = port_;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
