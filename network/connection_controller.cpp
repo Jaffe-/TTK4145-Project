@@ -43,4 +43,17 @@ namespace Network {
     check_timeouts();
     send_ping();
   }
+
+  std::vector<std::string> ConnectionController::get_clients()
+  {
+    std::vector<std::string> results;
+
+    for (auto& kv: connections) {
+      results.push_back(kv.first);
+    }
+
+    return results;
+  }
+
+  ConnectionController connection_controller;
 }
