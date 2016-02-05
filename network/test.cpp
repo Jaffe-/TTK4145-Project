@@ -3,5 +3,5 @@
 int main()
 {
   Network::start("30021");
-  Network::receiver.run();
+  Network::receiver->run();
 }

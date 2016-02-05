@@ -4,6 +4,9 @@
 #include <string>
 
 namespace Network {
+  class Receiver;
+  class Sender;
+
   enum class PacketType {
     PING, PONG, MSG, OK
   };
@@ -18,13 +21,13 @@ namespace Network {
     int id;
     std::string data;
   };
-
-  extern int sockfd;
-  extern std::string port;
   
   void start(std::string port);
   void stop();
   std::string packet_type_name(Network::PacketType packet_type);
+
+  extern Receiver* receiver;
+  extern Sender* sender;
 }
 
 

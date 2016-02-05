@@ -4,6 +4,7 @@
 #include <vector>
 
 namespace Network {
+
   class ConnectionController {
   public:
     void notify_pong(std::string ip);
