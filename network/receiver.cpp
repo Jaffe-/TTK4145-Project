@@ -1,5 +1,6 @@
 #include "receiver.hpp"
 #include "../logger/logger.hpp"
+#include "connection_controller.hpp"
 #include <unistd.h>
 #include <cstring>
 #include <sys/types.h>
@@ -65,6 +66,7 @@ namespace Network {
     case PacketType::PING:
       break;
     case PacketType::PONG:
+      connection_controller.notify_pong(packet.ip);
       break;
     case PacketType::MSG:
       buffer.push_back(std::string(packet.bytes.begin(),
