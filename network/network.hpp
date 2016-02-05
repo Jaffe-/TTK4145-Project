@@ -5,7 +5,7 @@
 
 namespace Network {
   enum class PacketType {
-    PONG, MSG
+    PING, PONG, MSG, OK
   };
 
   struct Packet {

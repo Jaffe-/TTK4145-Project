@@ -62,11 +62,15 @@ namespace Network {
 
     Packet packet = read();
     switch (packet.type){
+    case PacketType::PING:
+      break;
     case PacketType::PONG:
       break;
     case PacketType::MSG:
       buffer.push_back(std::string(packet.bytes.begin(),
 				   packet.bytes.end()));
+      break;
+    case PacketType::OK:
       break;
     default:
       break;
