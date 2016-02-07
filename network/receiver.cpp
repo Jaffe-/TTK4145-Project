@@ -4,8 +4,6 @@
 
 namespace Network {
 
-#define MAXBUF 2048
-
   void Receiver::run()
   {
     if (socket.empty())
