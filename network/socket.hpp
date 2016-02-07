@@ -8,6 +8,8 @@ struct Packet;
 
 namespace Network {
 
+  const int MAXBUF = 2048;
+
   /* UDP socket abstraction */
   class Socket {
   public:
@@ -21,7 +23,6 @@ namespace Network {
 
   private:
     int sockfd;
-    const int MAXBUF = 2048;
   };
 
 }
