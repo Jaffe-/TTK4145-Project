@@ -60,6 +60,8 @@ namespace Network {
 
     if (rv == -1) {
       LOG_ERROR("select() failed.");
+      // Todo: find out what to do in this case
+      return false;
     }
     else if (rv == 0)
       return false;
