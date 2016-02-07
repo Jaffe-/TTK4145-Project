@@ -20,7 +20,7 @@ namespace Network {
     static id_t id;
 
     std::vector<char> bytes;
-    for (int i = 0; i < sizeof(int); i++)
+    for (int i = 0; i < (int)sizeof(int); i++)
       bytes.push_back(id.bytes[i]);
 
     std::copy(msg.begin(), msg.end(), std::back_inserter(bytes));
