@@ -29,7 +29,7 @@ public:
       char formatted_time[100];
       std::strftime(formatted_time, sizeof(formatted_time), "%j/%d %H:%M:%S", std::localtime(&raw_time));
       
-      log.file << formatted_time << "  <" << level_name(level) << ">  " << file << ":" << function << ":  " << msg;
+      log.file << formatted_time << " <" << level_name(level) << "> " << file << ":" << function << ":  " << msg;
       return log.file;
     }
 
