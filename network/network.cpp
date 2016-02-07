@@ -17,7 +17,8 @@ namespace Network {
 
   void stop()
   {
-    
+    delete receiver;
+    delete sender;
   }
 
   std::string packet_type_name(PacketType packet_type)
