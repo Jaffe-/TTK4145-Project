@@ -20,6 +20,8 @@ std::string Logger::level_name(Logger::LogLevel level)
     return "WARNING";
   case LogLevel::ERROR:
     return "ERROR";
+  default:
+    return "<undefined>";
   }
 }
 
