@@ -17,27 +17,34 @@ namespace Network {
     struct addrinfo hints, *res;
     int rv;
 
+    operational = false;
+    
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_PASSIVE;
 
     if ((rv = getaddrinfo(NULL, port.c_str(), &hints, &res)) != 0) {
-      LOG_ERROR("getaddrinfo() failed.");    
+      LOG_ERROR("getaddrinfo() failed.");
+      return;
     }
 
     if ((sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1){
       LOG_ERROR("socket() failed");
+      return;
     }
 
     if (bind(sockfd, res->ai_addr, res->ai_addrlen) == -1) {
       close(sockfd);
       LOG_ERROR("bind() failed.");
+      return;
     }
 
     freeaddrinfo(res);
 
     LOG_DEBUG("Created new socket on port " << port);
+
+    operational = true;
   }
 
   Socket::~Socket()

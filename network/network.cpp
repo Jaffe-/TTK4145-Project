@@ -12,8 +12,15 @@ namespace Network {
   void start(std::string port)
   {
     static Socket socket(port);
-    receiver = new Receiver(socket);
-    sender = new Sender(socket);
+    if (socket.operational) {
+      receiver = new Receiver(socket);
+      sender = new Sender(socket);
+    }
+    else {
+      LOG_ERROR("Failed to create socket.");
+      // ??
+      return;
+    }
   }
 
   void stop()
