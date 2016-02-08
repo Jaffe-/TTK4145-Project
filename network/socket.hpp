@@ -16,10 +16,11 @@ namespace Network {
     Socket(std::string port);
     ~Socket();
     bool empty();
-    Packet read();
-    void write(Packet packet, std::string to_ip);
+    bool read(Packet& packet);
+    bool write(Packet& packet, std::string to_ip);
 
     std::string port;
+    bool operational;
 
   private:
     int sockfd;

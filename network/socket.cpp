@@ -68,7 +68,7 @@ namespace Network {
     if (rv == -1) {
       LOG_ERROR("select() failed.");
       // Todo: find out what to do in this case
-      return false;
+      return true;
     }
     else if (rv == 0)
       return false;
@@ -76,28 +76,30 @@ namespace Network {
       return true;
   }
 
-  Packet Socket::read()
+  bool Socket::read(Packet& packet)
   {
     int numbytes;
     socklen_t addr_len;
     struct sockaddr_storage their_addr;
-    char buf[MAXBUF];
+    char buf[MAXBUF] = {0};
     addr_len = sizeof(their_addr);
 
     if ((numbytes = recvfrom(sockfd, buf, MAXBUF-1, 0,
 			     (struct sockaddr *)&their_addr, &addr_len)) == -1) {
       LOG_ERROR("recvfrom() failed.");
+      return false;
     }
 
     char s[INET_ADDRSTRLEN];
     inet_ntop(their_addr.ss_family, &(((struct sockaddr_in *)&their_addr)->sin_addr), s, sizeof(s));
 
-    return {(PacketType)buf[0],
-       	     std::vector<char>(buf + 1, buf + MAXBUF),
-	     std::string(s)};
+    packet = {(PacketType)buf[0],
+	      std::vector<char>(buf + 1, buf + MAXBUF),
+	      std::string(s)};
+    return true;
   }
 
-  void Socket::write(Packet packet, std::string to_ip)
+  bool Socket::write(Packet& packet, std::string to_ip)
   {
     struct sockaddr_in si;
     char buf[MAXBUF];
@@ -109,7 +111,10 @@ namespace Network {
 
     std::copy(packet.bytes.begin(), packet.bytes.end(), buf);
     if (sendto(sockfd, buf, packet.bytes.size(),
-	       0, (struct sockaddr*) &si, sizeof(si)) == -1)
+	       0, (struct sockaddr*) &si, sizeof(si)) == -1) {
       LOG_ERROR("sendto() failed");
+      return false;
+    }
+    return true;
   }
 }
