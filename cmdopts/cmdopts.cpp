@@ -43,7 +43,7 @@ static bool split_options(std::vector< std::vector<char*> >& optlist,
 }
 
 bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
-		     std::vector<CmdOption> options)
+		     std::vector<CmdOption>&& options)
 {
   std::vector< std::vector<char*> > splitted;
   CmdOptions result;

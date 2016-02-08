@@ -12,4 +12,4 @@ struct CmdOption {
 using CmdOptions = std::map<std::string, std::vector<std::string> >;
 
 bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
-		     std::vector<CmdOption> options);
+		     std::vector<CmdOption>&& options);
