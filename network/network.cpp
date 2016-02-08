@@ -32,10 +32,14 @@ namespace Network {
   std::string packet_type_name(PacketType packet_type)
   {
     switch (packet_type) {
+    case Network::PacketType::PING:
+      return "PING";
     case Network::PacketType::PONG:
       return "PONG";
     case Network::PacketType::MSG:
       return "MSG";
+    case Network::PacketType::OK:
+      return "OK";
     default:
       return "Unused";
     }
