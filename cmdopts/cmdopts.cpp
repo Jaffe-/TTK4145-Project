@@ -20,7 +20,8 @@ static bool is_option(std::string s)
   return s.find(option_prefix) == 0;
 }
 
-static bool split_options(std::vector< std::vector<char*> >& optlist, char** begin, char** end)
+static bool split_options(std::vector< std::vector<char*> >& optlist,
+			  char** begin, char** end)
 {
   std::vector< std::vector<char*> > result;
   char ** itr = begin;
@@ -41,7 +42,8 @@ static bool split_options(std::vector< std::vector<char*> >& optlist, char** beg
   return true;
 }
 
-bool options_get(std::map<std::string, std::vector<std::string> >& parsed_opts, int argc, char** argv, std::vector<CmdOption> options)
+bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
+		     std::vector<CmdOption> options)
 {
   std::vector< std::vector<char*> > splitted;
   std::map<std::string, std::vector<std::string> > result;
@@ -52,18 +54,25 @@ bool options_get(std::map<std::string, std::vector<std::string> >& parsed_opts, 
   for (auto& option_list : splitted) {
     std::string option_str = option_list[0];
 
-    auto it = std::find_if(options.begin(), options.end(), [&option_str](CmdOption& c) { return c.name == option_str; });
+    option_str.erase(0, option_prefix.length());
+    auto it = std::find_if(options.begin(), options.end(),
+			   [&option_str](CmdOption& c)
+			   { return c.name == option_str; });
     if (it == options.end()) {
-      std::cout << "ERROR: Unknown option " << option_prefix << option_str << std::endl << std::endl;
+      std::cout << "ERROR: Unknown option " << option_prefix << option_str
+		<< std::endl << std::endl;
       goto fail;
     }
-    else if (it->arguments != option_list.size() - 1) {
-      std::cout << "ERROR: " << option_prefix << option_str << " takes " << it->arguments << " number of arguments" << std::endl << std::endl;
+    else if (it->arguments != (int)option_list.size() - 1) {
+      std::cout << "ERROR: " << option_prefix << option_str << " takes "
+		<< it->arguments << " number of arguments"
+		<< std::endl << std::endl;
       goto fail;
     }
     else {
       std::vector<std::string> arguments;
-      std::copy(option_list.begin() + 1, option_list.end(), std::back_inserter(arguments));
+      std::copy(option_list.begin() + 1, option_list.end(),
+		std::back_inserter(arguments));
       result[option_str] = arguments;
     }
   }
