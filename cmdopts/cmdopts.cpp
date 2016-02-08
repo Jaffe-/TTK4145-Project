@@ -32,7 +32,7 @@ static bool split_options(std::vector< std::vector<char*> >& optlist,
 
     std::vector<char*> new_option;
     do {
-      new_option.push_back(*itr++ + option_prefix.length());
+      new_option.push_back(*itr++);
     } while (itr != end && !(is_option(*itr)));
 
     result.push_back(new_option);
