@@ -9,7 +9,11 @@ namespace Network {
     if (socket.empty())
       return;
 
-    Packet packet = socket.read();
+    Packet packet;
+    if (!socket.read(packet)) {
+      LOG_ERROR("Unable to read from socket");
+      return;
+    }
     switch (packet.type){
     case PacketType::PING:
       break;
