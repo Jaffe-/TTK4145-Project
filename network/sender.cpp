@@ -27,7 +27,8 @@ namespace Network {
     Packet packet = { PacketType::MSG,
 		      bytes,
 		      std::string() };
-    
+
+    id.val++;
   }
-  
+
 }
