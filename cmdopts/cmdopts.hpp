@@ -9,4 +9,7 @@ struct CmdOption {
   std::string long_desc;
 };
 
-bool options_get(std::map<std::string, std::vector<std::string> >& parsed_opts, int argc, char** argv, std::vector<CmdOption> options);
+using CmdOptions = std::map<std::string, std::vector<std::string> >;
+
+bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
+		     std::vector<CmdOption> options);

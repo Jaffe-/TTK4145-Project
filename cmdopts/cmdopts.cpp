@@ -46,7 +46,7 @@ bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
 		     std::vector<CmdOption> options)
 {
   std::vector< std::vector<char*> > splitted;
-  std::map<std::string, std::vector<std::string> > result;
+  CmdOptions result;
 
   if (!split_options(splitted, argv + 1, argv + argc))
     goto fail;
