@@ -1,4 +1,4 @@
-#include "cmdparse.hpp"
+#include "cmdopts.hpp"
 #include <algorithm>
 
 static const std::string option_prefix = "--";
