@@ -3,16 +3,23 @@
 
 static const std::string option_prefix = "--";
 
-static void print_usage(std::string prog_name, std::vector<CmdOption> options)
+static void print_usage(std::string prog_name,
+			std::vector<CmdOptionDesc> descriptions)
 {
   std::cout << "USAGE: " << prog_name << " ";
-  for (auto& option : options)
-    std::cout << option_prefix << option.name << " " << option.short_desc << " ";
+  for (auto& option : descriptions) {
+    std::cout << option_prefix << option.name;
+    if (option.takes_arguments)
+      std::cout << " <" << option.argumentname << ">";
+    std::cout << " ";
+  }
   std::cout << std::endl << std::endl;
 
-  for (auto& option : options) {
-    std::cout << option_prefix << option.name << "\t" << option.long_desc << std::endl;
+  for (auto& option : descriptions) {
+    std::cout << option_prefix << option.name << "\t" << option.description
+	      << std::endl;
   }
+  std::cout << std::endl;
 }
 
 static bool is_option(std::string s)
@@ -56,24 +63,25 @@ bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
 
     option_str.erase(0, option_prefix.length());
     auto it = std::find_if(options.begin(), options.end(),
-			   [&option_str](CmdOption& c)
+			   [&option_str](CmdOptionDesc& c)
 			   { return c.name == option_str; });
     if (it == options.end()) {
       std::cout << "ERROR: Unknown option " << option_prefix << option_str
 		<< std::endl << std::endl;
       goto fail;
     }
-    else if (it->arguments != (int)option_list.size() - 1) {
-      std::cout << "ERROR: " << option_prefix << option_str << " takes "
-		<< it->arguments << " number of arguments"
-		<< std::endl << std::endl;
+    else if (it->takes_arguments && option_list.size() != 2) {
+      std::cout << "ERROR: " << option_prefix << option_str
+		<< " takes one argument" << std::endl << std::endl;
+      goto fail;
+    }
+    else if (!it->takes_arguments && option_list.size() > 1) {
+      std::cout << "ERROR: " << option_prefix << option_str
+		<< " does not take any argument" << std::endl << std::endl;
       goto fail;
     }
     else {
-      std::vector<std::string> arguments;
-      std::copy(option_list.begin() + 1, option_list.end(),
-		std::back_inserter(arguments));
-      result[option_str] = arguments;
+      result[option_str] = it->takes_arguments ? option_list[1] : "";
     }
   }
 
