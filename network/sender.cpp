@@ -14,6 +14,7 @@ namespace Network {
 
   void Sender::send_message(std::string msg, int queue_id) {
     message_queues[queue_id].push_back({0, {current_id, msg}});
+    LOG_DEBUG("New message with id " << current_id << " put in queue " << queue_id);
     current_id++;
   }
 
@@ -23,6 +24,7 @@ namespace Network {
       if (!message_queue.empty()
 	  && message_queue[0].msg.id == id) {
 	// event
+	LOG_DEBUG("OK received for message id " << message_queue[0].msg.id);
 	message_queue.erase(message_queue.begin());
       }
     }
@@ -31,7 +33,9 @@ namespace Network {
   int Sender::allocate_queue()
   {
     message_queues.push_back({});
-    return message_queues.size() - 1;
+    int queue_id = message_queues.size() - 1;
+    LOG_DEBUG("New queue id " << queue_id << " allocated");
+    return queue_id;
   }
 
   Packet Sender::make_packet(Message msg)
