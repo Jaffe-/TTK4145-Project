@@ -1,16 +1,21 @@
+#include "network.hpp"
 #include "connection_controller.hpp"
 #include <vector>
 #include "../logger/logger.hpp"
+#include "sender.hpp"
 
 namespace Network {
-  double ConnectionController::get_time()
-  {
-    return static_cast<double>(std::clock())/CLOCKS_PER_SEC;
-  }
 
   void ConnectionController::notify_pong(std::string ip) 
   {
     connections[ip] = get_time();
+  }
+
+  void ConnectionController::remove_clients(const std::vector<std::string> ips)
+  {
+    for (auto& ip : ips) {
+      connections.erase(ip);
+    }
   }
 
   void ConnectionController::check_timeouts()
@@ -24,16 +29,15 @@ namespace Network {
 	timed_out.push_back(kv.first);
       }
     }
-    for (auto& ip : timed_out) {
-      connections.erase(ip);
-    }
+
+    remove_clients(timed_out);
   }
 
   void ConnectionController::send_ping()
   {
     double time = get_time();
     if (time - last_ping >= ping_period) {
-      // send ping
+      sender->broadcast({PacketType::PING, {}, ""});
       last_ping = time; 
     }
   }
