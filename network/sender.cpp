@@ -45,10 +45,9 @@ namespace Network {
 
     std::vector<char> bytes;
 
-    std::copy(id_bytes, id_bytes + sizeof(id_bytes),
-	      std::back_inserter(bytes));
-    std::copy(msg.data.begin(), msg.data.end(),
-	      std::back_inserter(bytes));
+    std::copy(id_bytes, id_bytes + sizeof(id_bytes), std::back_inserter(bytes));
+    std::copy(msg.data.begin(), msg.data.end(), std::back_inserter(bytes));
+
     return { PacketType::MSG,
 	     bytes,
 	     std::string() };
