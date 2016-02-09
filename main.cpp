@@ -4,6 +4,14 @@
 
 int main(int argc, char** argv)
 {
+  std::cout << "*****************************************************" << std::endl
+	    << "*                                                   *" << std::endl
+	    << "*        Voll Electronics UltraElevator4000         *" << std::endl
+	    << "*                                                   *" << std::endl
+	    << "*****************************************************" << std::endl << std::endl
+	    << "\"Now I don't even get stuck in elevators any more!\"" << std::endl
+	    << "                                          - Anonymous" << std::endl << std::endl;
+
   CmdOptions cmd_options;
   if (!cmd_options_get(cmd_options, argc, argv,
 		       {{"port", true, false, "port", "The port used for sending and receiving"},
