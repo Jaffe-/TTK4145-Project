@@ -9,6 +9,8 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <ifaddrs.h>
+#include <algorithm>
 
 namespace Network {
 
@@ -30,14 +32,27 @@ namespace Network {
       return;
     }
 
-    if ((sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1){
-      LOG_ERROR("socket() failed");
-      return;
+    struct ifaddrs * ifAddrStruct=NULL;
+    struct ifaddrs * ifa=NULL;
+    void * tmpAddrPtr=NULL;
+
+    getifaddrs(&ifAddrStruct);
+
+    for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+        if (!ifa->ifa_addr) {
+            continue;
+        }
+        if (ifa->ifa_addr->sa_family == AF_INET) { // check it is IP4
+            // is a valid IP4 Address
+            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+            char addressBuffer[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+	    own_ips.push_back(addressBuffer);
+	}
     }
 
-    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcast,
-		   sizeof(broadcast)) == -1) {
-      LOG_ERROR("setsockopt() failed");
+    if ((sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1){
+      LOG_ERROR("socket() failed");
       return;
     }
 
@@ -46,7 +61,7 @@ namespace Network {
       LOG_ERROR("bind() failed.");
       return;
     }
-
+    
     freeaddrinfo(res);
 
     LOG_DEBUG("Created new socket on port " << port);
@@ -106,11 +121,18 @@ namespace Network {
     return true;
   }
 
-  bool Socket::write(Packet& packet, std::string to_ip)
+  bool Socket::write(Packet& packet, std::string to_ip, bool broadcast)
   {
     struct sockaddr_in si;
     char buf[MAXBUF];
 
+    int b = broadcast ? 1 : 0;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &b,
+		   sizeof(b)) == -1) {
+      LOG_ERROR("setsockopt() failed");
+      return false;
+    }
+    
     memset((char *) &si, 0, sizeof(si));
     si.sin_family = AF_INET;
     si.sin_port = htons(atoi(port.c_str()));
@@ -124,5 +146,10 @@ namespace Network {
       return false;
     }
     return true;
+  }
+
+  bool Socket::own_ip(std::string ip)
+  {
+    return std::find(own_ips.begin(), own_ips.end(), ip) != own_ips.end();
   }
 }

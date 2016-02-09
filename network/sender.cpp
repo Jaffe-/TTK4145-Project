@@ -8,7 +8,7 @@ namespace Network {
 
   void Sender::send(Packet packet, std::string ip)
   {
-    socket.write(packet, ip);
+    socket.write(packet, ip, 0);
   }
 
   void Sender::send_all(Packet packet)
@@ -20,7 +20,7 @@ namespace Network {
 
   void Sender::broadcast(Packet packet)
   {
-    send(packet, "255.255.255.255");
+    socket.write(packet, "255.255.255.255", 1);
   }
   
   void Sender::send_message(std::string msg, int queue_id)

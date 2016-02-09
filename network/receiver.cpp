@@ -16,6 +16,9 @@ namespace Network {
       return;
     }
 
+    if (socket.own_ip(packet.ip))
+      return;
+    
     switch (packet.type){
     case PacketType::PING:
       sender->send(make_pong(), packet.ip);
