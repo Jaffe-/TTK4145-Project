@@ -5,8 +5,8 @@
 #include <ctime>
 
 #define LOG(Level_, Message_)					\
-  if (log.include_level >= (Level_))					\
-    (Logger::LogLine(log, Level_, __FILE__, __FUNCTION__) << Message_ << std::endl)
+  if (log_.include_level >= (Level_))					\
+    (Logger::LogLine(log_, Level_, __FILE__, __FUNCTION__) << Message_ << std::endl)
 
 #define LOG_DEBUG(Message_) LOG(Logger::LogLevel::DEBUG, Message_)
 #define LOG_WARNING(Message_) LOG(Logger::LogLevel::WARNING, Message_)
@@ -47,4 +47,4 @@ private:
   std::ofstream file;
 };
 
-extern Logger log;
+extern Logger log_;

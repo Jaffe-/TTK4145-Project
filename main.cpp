@@ -20,10 +20,10 @@ int main(int argc, char** argv)
   }
 
   if (cmd_options.find("debug") == cmd_options.end()) {
-    log.include_level = Logger::LogLevel::WARNING;
+    log_.include_level = Logger::LogLevel::WARNING;
   }
   else {
-    log.include_level = Logger::LogLevel::DEBUG;
+    log_.include_level = Logger::LogLevel::DEBUG;
   }
   LOG_DEBUG("Log is initialized");
   Network::start(cmd_options["port"]);

@@ -25,4 +25,4 @@ std::string Logger::level_name(Logger::LogLevel level)
   }
 }
 
-Logger log("tst.txt", Logger::LogLevel::DEBUG);
+Logger log_("tst.txt", Logger::LogLevel::DEBUG);
