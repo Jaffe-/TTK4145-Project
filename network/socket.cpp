@@ -142,7 +142,7 @@ namespace Network {
 
     buf[0] = static_cast<char>(packet.type);
     std::copy(packet.bytes.begin(), packet.bytes.end(), buf + 1);
-    if (sendto(sockfd, buf, packet.bytes.size(),
+    if (sendto(sockfd, buf, packet.bytes.size() + 1,
 	       0, (struct sockaddr*) &si, sizeof(si)) == -1) {
       LOG_ERROR("sendto() failed");
       return false;
