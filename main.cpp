@@ -4,12 +4,12 @@
 
 int main(int argc, char** argv)
 {
-  std::cout << "*****************************************************" << std::endl
-	    << "*                                                   *" << std::endl
-	    << "*        Voll Electronics UltraElevator4000         *" << std::endl
-	    << "*                                                   *" << std::endl
-	    << "*****************************************************" << std::endl << std::endl
-	    << "\"Now I don't even get stuck in elevators any more!\"" << std::endl
+  std::cout << "******************************************************" << std::endl
+	    << "*                                                    *" << std::endl
+	    << "*         Voll Electronics UltraElevator4000         *" << std::endl
+	    << "*                                                    *" << std::endl
+	    << "******************************************************" << std::endl << std::endl
+	    << "\"Now I don't have to get stuck in elevators any more!\"" << std::endl
 	    << "                                          - Anonymous" << std::endl << std::endl;
 
   CmdOptions cmd_options;
