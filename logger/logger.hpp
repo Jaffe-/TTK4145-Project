@@ -5,7 +5,8 @@
 #include <ctime>
 
 #define LOG(Level_, Message_)					\
-  Logger::LogLine(log, Level_, __FILE__, __FUNCTION__) << Message_ << std::endl
+  if (log.include_level >= (Level_))					\
+    (Logger::LogLine(log, Level_, __FILE__, __FUNCTION__) << Message_ << std::endl)
 
 #define LOG_DEBUG(Message_) LOG(Logger::LogLevel::DEBUG, Message_)
 #define LOG_WARNING(Message_) LOG(Logger::LogLevel::WARNING, Message_)
@@ -39,10 +40,11 @@ public:
     char const* function;
   };
 
+  LogLevel include_level;
+
 private:
   static std::string level_name(LogLevel level);
   std::ofstream file;
-  LogLevel include_level;
 };
 
 extern Logger log;
