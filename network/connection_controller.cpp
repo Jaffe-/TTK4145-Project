@@ -21,6 +21,7 @@ namespace Network {
   void ConnectionController::remove_clients(const std::vector<std::string> ips)
   {
     for (auto& ip : ips) {
+      LOG_DEBUG("Client " << ip << " is removed");
       connections.erase(ip);
     }
   }
