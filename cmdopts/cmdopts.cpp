@@ -28,7 +28,7 @@ static void print_usage(std::string prog_name,
   std::cout << "\b]" << std::endl << std::endl;
 
   for (auto& option : descriptions) {
-    std::cout << option_prefix << option.name << "\t" << option.description
+    std::cout << option_prefix << option.name << "\t\t" << option.description
 	      << std::endl;
   }
   std::cout << std::endl;
@@ -105,8 +105,8 @@ bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
 			     { return optdesc.name == opt.first; });
       if (it == result.end()) {
 	missing_option = true;
-	std::cout << "ERROR: option " << option_prefix << optdesc.name
-		  << " is not optional" << std::endl;
+	std::cout << "ERROR: missing option " << option_prefix << optdesc.name
+		  << std::endl;
       }
     }
   }
