@@ -26,6 +26,7 @@ namespace Network {
   void stop();
   std::string packet_type_name(Network::PacketType packet_type);
   double get_time();
+  void run();
   
   extern Receiver* receiver;
   extern Sender* sender;

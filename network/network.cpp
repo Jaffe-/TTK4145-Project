@@ -50,4 +50,12 @@ namespace Network {
     return static_cast<double>(std::clock())/CLOCKS_PER_SEC;
   }
 
+  void run()
+  {
+    while (true) {
+      receiver->run();
+      sender->run();
+      connection_controller.run();
+    }
+  }
 }

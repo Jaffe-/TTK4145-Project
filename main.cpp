@@ -27,5 +27,5 @@ int main(int argc, char** argv)
   }
   LOG_DEBUG("Log is initialized");
   Network::start(cmd_options["port"]);
-  Network::receiver->run();
+  Network::run();
 }
