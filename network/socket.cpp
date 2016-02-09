@@ -16,6 +16,7 @@ namespace Network {
   {
     struct addrinfo hints, *res;
     int rv;
+    int broadcast = 1;
 
     operational = false;
     
@@ -31,6 +32,12 @@ namespace Network {
 
     if ((sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1){
       LOG_ERROR("socket() failed");
+      return;
+    }
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcast,
+		   sizeof(broadcast)) == -1) {
+      LOG_ERROR("setsockopt() failed");
       return;
     }
 
@@ -109,7 +116,8 @@ namespace Network {
     si.sin_port = htons(atoi(port.c_str()));
     inet_pton(AF_INET, to_ip.c_str(), &(si.sin_addr));
 
-    std::copy(packet.bytes.begin(), packet.bytes.end(), buf);
+    buf[0] = static_cast<char>(packet.type);
+    std::copy(packet.bytes.begin(), packet.bytes.end(), buf + 1);
     if (sendto(sockfd, buf, packet.bytes.size(),
 	       0, (struct sockaddr*) &si, sizeof(si)) == -1) {
       LOG_ERROR("sendto() failed");

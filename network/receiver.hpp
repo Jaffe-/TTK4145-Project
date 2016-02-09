@@ -16,7 +16,8 @@ namespace Network {
   private:
     std::vector <std::string> buffer;
     Packet read();
-
+    Packet make_okay(Packet packet);
+    int get_message_id(Packet packet);
     Socket& socket;
   };
 

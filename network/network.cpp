@@ -44,4 +44,10 @@ namespace Network {
       return "Unused";
     }
   }
+
+  double get_time()
+  {
+    return static_cast<double>(std::clock())/CLOCKS_PER_SEC;
+  }
+
 }

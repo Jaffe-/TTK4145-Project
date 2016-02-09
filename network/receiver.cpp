@@ -1,6 +1,7 @@
 #include "receiver.hpp"
 #include "../logger/logger.hpp"
 #include "connection_controller.hpp"
+#include "sender.hpp"
 
 namespace Network {
 
@@ -23,8 +24,10 @@ namespace Network {
     case PacketType::MSG:
       buffer.push_back(std::string(packet.bytes.begin(),
 				   packet.bytes.end()));
+      sender->send(make_okay(packet), packet.ip);
       break;
     case PacketType::OK:
+      sender->notify_okay(packet.ip, get_message_id(packet));
       break;
     default:
       break;
@@ -32,5 +35,21 @@ namespace Network {
     LOG_DEBUG("Received packet " << packet_type_name(packet.type)
 	      << " (length " << packet.bytes.size()
 	      << ") from " << packet.ip);
+  }
+    
+  Packet Receiver::make_okay(Packet packet)
+  {
+    return { PacketType::OK,
+	     std::vector<char>(packet.bytes.begin() + 1,
+			       packet.bytes.begin() + 1 + sizeof(int)),
+	""}; 
+  }
+
+  int Receiver::get_message_id(Packet packet)
+  {
+    char bytes[sizeof(int)];
+    std::copy(packet.bytes.begin(), packet.bytes.begin() + sizeof(int), bytes);
+
+    return *(int*)bytes;
   }
 }
