@@ -2,14 +2,15 @@
 #include <map>
 #include <vector>
 
-struct CmdOption {
+struct CmdOptionDesc {
   std::string name;
-  int arguments;
-  std::string short_desc;
-  std::string long_desc;
+  bool takes_arguments;
+  bool optional;
+  std::string argumentname;
+  std::string description;
 };
 
-using CmdOptions = std::map<std::string, std::vector<std::string> >;
+using CmdOptions = std::map<std::string, std::string >;
 
 bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
-		     std::vector<CmdOption>&& options);
+		     std::vector<CmdOptionDesc>&& options);
