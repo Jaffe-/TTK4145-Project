@@ -68,8 +68,10 @@ bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
   CmdOptions result;
   bool missing_option = false;
 
-  if (!split_options(splitted, argv + 1, argv + argc))
+  if (!split_options(splitted, argv + 1, argv + argc)) {
+    std::cout << "ERROR: Malformed options" << std::endl;
     goto fail;
+  }
 
   for (auto& option_list : splitted) {
     std::string option_str = option_list[0];
@@ -80,17 +82,17 @@ bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
 			   { return c.name == option_str; });
     if (it == options.end()) {
       std::cout << "ERROR: Unknown option " << option_prefix << option_str
-		<< std::endl << std::endl;
+		<< std::endl;
       goto fail;
     }
     else if (it->takes_arguments && option_list.size() != 2) {
       std::cout << "ERROR: " << option_prefix << option_str
-		<< " takes one argument" << std::endl << std::endl;
+		<< " takes one argument" << std::endl;
       goto fail;
     }
     else if (!it->takes_arguments && option_list.size() > 1) {
       std::cout << "ERROR: " << option_prefix << option_str
-		<< " does not take any argument" << std::endl << std::endl;
+		<< " does not take any argument" << std::endl;
       goto fail;
     }
     else {
@@ -111,7 +113,6 @@ bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
     }
   }
   if (missing_option) {
-    std::cout << std::endl;
     goto fail;
   }
 
@@ -119,6 +120,7 @@ bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
   return true;
 
  fail:
+  std::cout << std::endl;
   print_usage(argv[0], options);
   return false;
 }
