@@ -17,6 +17,7 @@ namespace Network {
     std::vector <std::string> buffer;
     Packet read();
     Packet make_okay(Packet packet);
+    Packet make_pong();
     int get_message_id(Packet packet);
     Socket& socket;
   };

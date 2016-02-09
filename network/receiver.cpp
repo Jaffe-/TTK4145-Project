@@ -18,6 +18,7 @@ namespace Network {
 
     switch (packet.type){
     case PacketType::PING:
+      sender->send(make_pong(), packet.ip);
       break;
     case PacketType::PONG:
       connection_controller.notify_pong(packet.ip);
@@ -46,6 +47,11 @@ namespace Network {
 	""}; 
   }
 
+  Packet Receiver::make_pong()
+  {
+    return { PacketType::PONG, {}, "" };
+  }
+  
   int Receiver::get_message_id(Packet packet)
   {
     char bytes[sizeof(int)];
