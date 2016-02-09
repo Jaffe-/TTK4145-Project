@@ -3,17 +3,29 @@
 
 static const std::string option_prefix = "--";
 
+static void print_option(CmdOptionDesc& option)
+{
+  std::cout << option_prefix << option.name;
+  if (option.takes_arguments)
+    std::cout << " <" << option.argumentname << ">";
+  std::cout << " ";
+}
+
 static void print_usage(std::string prog_name,
-			std::vector<CmdOptionDesc> descriptions)
+			std::vector<CmdOptionDesc>& descriptions)
 {
   std::cout << "USAGE: " << prog_name << " ";
   for (auto& option : descriptions) {
-    std::cout << option_prefix << option.name;
-    if (option.takes_arguments)
-      std::cout << " <" << option.argumentname << ">";
-    std::cout << " ";
+    if (!option.optional)
+      print_option(option);
   }
-  std::cout << std::endl << std::endl;
+
+  std::cout << "[";
+  for (auto& option : descriptions) {
+    if (option.optional)
+      print_option(option);
+  }
+  std::cout << "\b]" << std::endl << std::endl;
 
   for (auto& option : descriptions) {
     std::cout << option_prefix << option.name << "\t" << option.description
@@ -54,6 +66,7 @@ bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
 {
   std::vector< std::vector<char*> > splitted;
   CmdOptions result;
+  bool missing_option = false;
 
   if (!split_options(splitted, argv + 1, argv + argc))
     goto fail;
@@ -83,6 +96,23 @@ bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
     else {
       result[option_str] = it->takes_arguments ? option_list[1] : "";
     }
+  }
+
+  for (auto& optdesc : options) {
+    if (!optdesc.optional) {
+      auto it = std::find_if(result.begin(), result.end(),
+			     [&](std::pair<std::string, std::string> opt)
+			     { return optdesc.name == opt.first; });
+      if (it == result.end()) {
+	missing_option = true;
+	std::cout << "ERROR: option " << option_prefix << optdesc.name
+		  << " is not optional" << std::endl;
+      }
+    }
+  }
+  if (missing_option) {
+    std::cout << std::endl;
+    goto fail;
   }
 
   parsed_opts = result;
