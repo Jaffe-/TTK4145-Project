@@ -12,23 +12,48 @@ namespace Network {
     }
   }
 
-  void Sender::send_message(std::string msg) {
-    union id_t {
-      int val;
-      char bytes[sizeof(int)];
-    };
-    static id_t id;
-
-    std::vector<char> bytes;
-    for (int i = 0; i < (int)sizeof(int); i++)
-      bytes.push_back(id.bytes[i]);
-
-    std::copy(msg.begin(), msg.end(), std::back_inserter(bytes));
-    Packet packet = { PacketType::MSG,
-		      bytes,
-		      std::string() };
-
-    id.val++;
+  void Sender::send_message(std::string msg, int queue_id) {
+    message_queues[queue_id].push_back({0, {current_id, msg}});
+    current_id++;
   }
 
+  void Sender::notify_okay(int id)
+  {
+    for (auto &message_queue : message_queues) {
+      if (!message_queue.empty()
+	  && message_queue[0].msg.id == id) {
+	// event
+	message_queue.erase(message_queue.begin());
+      }
+    }
+  }
+
+  int Sender::allocate_queue()
+  {
+    message_queues.push_back({});
+    return message_queues.size() - 1;
+  }
+
+  Packet Sender::make_packet(Message msg)
+  {
+    char id_bytes[sizeof(int)];
+    *(int*)id_bytes = msg.id;
+
+    std::vector<char> bytes;
+
+    std::copy(id_bytes, id_bytes + sizeof(id_bytes),
+	      std::back_inserter(bytes));
+    std::copy(msg.data.begin(), msg.data.end(),
+	      std::back_inserter(bytes));
+    return { PacketType::MSG,
+	     bytes,
+	     std::string() };
+  }
+
+  void Sender::run()
+  {
+
+  }
 }
+
+
