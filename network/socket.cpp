@@ -115,6 +115,8 @@ namespace Network {
     char s[INET_ADDRSTRLEN];
     inet_ntop(their_addr.ss_family, &(((struct sockaddr_in *)&their_addr)->sin_addr), s, sizeof(s));
 
+    LOG_DEBUG("Read message " << packet_type_name((PacketType)buf[0]));
+    
     packet = {(PacketType)buf[0],
 	      std::vector<char>(buf + 1, buf + MAXBUF),
 	      std::string(s)};
@@ -145,6 +147,11 @@ namespace Network {
       LOG_ERROR("sendto() failed");
       return false;
     }
+
+    LOG_DEBUG("Sent Packet with type " << packet_type_name(packet.type)
+	      << " to " << to_ip
+	      << ", broadcast: " << broadcast);
+    
     return true;
   }
 
