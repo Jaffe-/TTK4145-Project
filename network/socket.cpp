@@ -123,7 +123,7 @@ namespace Network {
     return true;
   }
 
-  bool Socket::write(Packet& packet, std::string to_ip, bool broadcast)
+  bool Socket::write(Packet packet, std::string to_ip, bool broadcast)
   {
     struct sockaddr_in si;
     char buf[MAXBUF];
