@@ -3,11 +3,18 @@
 #include <vector>
 #include "../logger/logger.hpp"
 #include "sender.hpp"
+#include <algorithm>
 
 namespace Network {
 
   void ConnectionController::notify_pong(std::string ip) 
   {
+    if (std::find_if(connections.begin(), connections.end(),
+		     [&] (std::pair<std::string, double> p) { return p.first == ip; })
+	== connections.end()) {
+      // new client registered, send event
+      LOG_DEBUG("New client " << ip << " discovered");
+    }
     connections[ip] = get_time();
   }
 
