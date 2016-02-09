@@ -15,6 +15,7 @@ namespace Network {
       LOG_ERROR("Unable to read from socket");
       return;
     }
+
     switch (packet.type){
     case PacketType::PING:
       break;

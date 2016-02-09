@@ -78,9 +78,9 @@ namespace Network {
       return true;
     }
     else if (rv == 0)
-      return false;
-    else
       return true;
+    else
+      return false;
   }
 
   bool Socket::read(Packet& packet)
