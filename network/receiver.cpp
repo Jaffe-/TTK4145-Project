@@ -37,16 +37,13 @@ namespace Network {
     default:
       break;
     }
-    LOG_DEBUG("Received packet " << packet_type_name(packet.type)
-	      << " (length " << packet.bytes.size()
-	      << ") from " << packet.ip);
   }
     
   Packet Receiver::make_okay(Packet packet)
   {
     return { PacketType::OK,
-	     std::vector<char>(packet.bytes.begin() + 1,
-			       packet.bytes.begin() + 1 + sizeof(int)),
+	     std::vector<char>(packet.bytes.begin(),
+			       packet.bytes.begin() + sizeof(int)),
 	""}; 
   }
 
