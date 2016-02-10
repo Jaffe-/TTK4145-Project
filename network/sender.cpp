@@ -96,8 +96,12 @@ namespace Network {
 	MessageEntry& current = message_queue[0];
 	if (current.sent) {
 	  if (get_time() - current.sent_time > send_timeout) {
-	    // something failed, send event
+	    // generate event that the message was not received by
+	    // the IPs in current.recipients
+	    LOG_WARNING("Clients " << current.recipients 
+			<< " did not respond with OK for message with id" << current.msg.id);
 	    connection_controller.remove_clients(current.recipients);
+	    message_queue.erase(message_queue.begin());
 	  }
 	}
 	else {

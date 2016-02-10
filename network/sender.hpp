@@ -3,7 +3,6 @@
 #include "network.hpp"
 #include "socket.hpp"
 
-
 namespace Network {
 
   class Sender{
