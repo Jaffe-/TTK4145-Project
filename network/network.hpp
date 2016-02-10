@@ -13,14 +13,11 @@ namespace Network {
 
   struct Packet {
     PacketType type;
+    unsigned int id;
     std::vector<char> bytes;
     std::string ip;
   };
 
-  struct Message {
-    int id;
-    std::string data;
-  };
   
   void start(std::string port);
   void stop();

@@ -7,11 +7,15 @@
 
 namespace Network {
 
+  bool ConnectionController::has_client(std::string ip)
+  {
+    return std::find_if(connections.begin(), connections.end(),
+			[&] (std::pair<std::string, double> p) 
+			{ return p.first == ip; }) != connections.end();
+  }
   void ConnectionController::notify_pong(std::string ip) 
   {
-    if (std::find_if(connections.begin(), connections.end(),
-		     [&] (std::pair<std::string, double> p) { return p.first == ip; })
-	== connections.end()) {
+    if (!has_client(ip)) {
       // new client registered, send event
       LOG_DEBUG("New client " << ip << " discovered");
     }
@@ -21,8 +25,11 @@ namespace Network {
   void ConnectionController::remove_clients(const std::vector<std::string> ips)
   {
     for (auto& ip : ips) {
-      LOG_DEBUG("Client " << ip << " is removed");
-      connections.erase(ip);
+      if (has_client(ip)) {
+	// send event
+	LOG_DEBUG("Client " << ip << " is removed");
+	connections.erase(ip);
+      }
     }
   }
 
@@ -33,7 +40,6 @@ namespace Network {
       double difference = get_time() - kv.second;
       if (difference > timeout_limit) {
 	LOG_WARNING(kv.first << " stopped responding to PING");
-	// notify the callback thing
 	timed_out.push_back(kv.first);
       }
     }
@@ -45,7 +51,7 @@ namespace Network {
   {
     double time = get_time();
     if (time - last_ping >= ping_period) {
-      sender->broadcast({PacketType::PING, {}, ""});
+      sender->broadcast({PacketType::PING, 0, {}, ""});
       last_ping = time; 
     }
   }

@@ -30,9 +30,10 @@ namespace Network {
       buffer.push_back(std::string(packet.bytes.begin(),
 				   packet.bytes.end()));
       sender->send(make_okay(packet), packet.ip);
+      std::cout << buffer[buffer.size() - 1];
       break;
     case PacketType::OK:
-      sender->notify_okay(packet.ip, get_message_id(packet));
+      sender->notify_okay(packet.ip, packet.id);
       break;
     default:
       break;
@@ -41,22 +42,12 @@ namespace Network {
     
   Packet Receiver::make_okay(Packet packet)
   {
-    return { PacketType::OK,
-	     std::vector<char>(packet.bytes.begin(),
-			       packet.bytes.begin() + sizeof(int)),
-	""}; 
+    return { PacketType::OK, packet.id,{}, ""}; 
   }
 
   Packet Receiver::make_pong()
   {
-    return { PacketType::PONG, {}, "" };
+    return { PacketType::PONG, 0, {}, "" };
   }
   
-  int Receiver::get_message_id(Packet packet)
-  {
-    char bytes[sizeof(int)];
-    std::copy(packet.bytes.begin(), packet.bytes.begin() + sizeof(int), bytes);
-
-    return *(int*)bytes;
-  }
 }

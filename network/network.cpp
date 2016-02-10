@@ -52,10 +52,17 @@ namespace Network {
 
   void run()
   {
+    double t = get_time();
+    int q = sender->allocate_queue();
     while (true) {
       receiver->run();
       sender->run();
       connection_controller.run();
+
+      if (get_time() - t > 1) {
+	sender->send_message("Test!\n", q);
+	t = get_time();
+      }
     }
   }
 }

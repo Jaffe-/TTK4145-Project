@@ -114,7 +114,8 @@ namespace Network {
     char s[INET_ADDRSTRLEN];
     inet_ntop(their_addr.ss_family, &(((struct sockaddr_in *)&their_addr)->sin_addr), s, sizeof(s));
     packet = {(PacketType)buf[0],
-	      std::vector<char>(buf + 1, buf + numbytes),
+	      *(unsigned int*) (buf + 1),
+	      std::vector<char>(buf + 1 + sizeof(int), buf + numbytes),
 	      std::string(s)};
     return true;
   }
@@ -137,8 +138,9 @@ namespace Network {
     inet_pton(AF_INET, to_ip.c_str(), &(si.sin_addr));
 
     buf[0] = static_cast<char>(packet.type);
-    std::copy(packet.bytes.begin(), packet.bytes.end(), buf + 1);
-    if (sendto(sockfd, buf, packet.bytes.size() + 1,
+    *(unsigned int*) (buf + 1) = packet.id;
+    std::copy(packet.bytes.begin(), packet.bytes.end(), buf + 1 + sizeof(int));
+    if (sendto(sockfd, buf, packet.bytes.size() + 1 + sizeof(int),
 	       0, (struct sockaddr*) &si, sizeof(si)) == -1) {
       LOG_ERROR("sendto() failed");
       return false;
@@ -151,4 +153,5 @@ namespace Network {
   {
     return std::find(own_ips.begin(), own_ips.end(), ip) != own_ips.end();
   }
+
 }

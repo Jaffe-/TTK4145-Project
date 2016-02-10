@@ -39,21 +39,22 @@ namespace Network {
     if (clients.empty())
       return;
 
-    message_queues[queue_id].push_back({0, false, {current_id, msg}, clients});
+    message_queues[queue_id].push_back({current_id, 0, false, msg, clients});
     LOG_DEBUG("New message with id " << current_id 
 	      << " to " << clients
 	      << " put in queue " << queue_id);
     current_id++;
   }
 
-  void Sender::notify_okay(std::string ip, int id)
+  void Sender::notify_okay(std::string ip, unsigned int id)
   {
     for (auto &message_queue : message_queues) {
       if (!message_queue.empty()) {
 	MessageEntry& current = message_queue[0];
-	if (current.msg.id == id) {
+	if (current.id == id) {
 	  // event
-	  LOG_DEBUG("OK received for message id " << message_queue[0].msg.id);
+	  LOG_DEBUG("OK received from " << ip
+		    << " for message id " << current.id);
 
 	  auto it = std::find(current.recipients.begin(), current.recipients.end(), ip);
 	  if (it != current.recipients.end())
@@ -74,17 +75,14 @@ namespace Network {
     return queue_id;
   }
 
-  Packet Sender::make_packet(Message msg)
+  Packet Sender::make_packet(std::string msg, unsigned int id)
   {
-    char id_bytes[sizeof(int)];
-    *(int*)id_bytes = msg.id;
-
     std::vector<char> bytes;
 
-    std::copy(id_bytes, id_bytes + sizeof(id_bytes), std::back_inserter(bytes));
-    std::copy(msg.data.begin(), msg.data.end(), std::back_inserter(bytes));
+    std::copy(msg.begin(), msg.end(), std::back_inserter(bytes));
 
     return { PacketType::MSG,
+	     id,
 	     bytes,
 	     std::string() };
   }
@@ -99,13 +97,13 @@ namespace Network {
 	    // generate event that the message was not received by
 	    // the IPs in current.recipients
 	    LOG_WARNING("Clients " << current.recipients 
-			<< " did not respond with OK for message with id" << current.msg.id);
+			<< " did not respond with OK for message with id " << current.id);
 	    connection_controller.remove_clients(current.recipients);
 	    message_queue.erase(message_queue.begin());
 	  }
 	}
 	else {
-	  Packet packet = make_packet(current.msg);
+	  Packet packet = make_packet(current.msg, current.id);
 	  for (auto& ip : current.recipients) {
 	    send(packet, ip);
 	  }

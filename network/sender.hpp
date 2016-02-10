@@ -12,21 +12,22 @@ namespace Network {
     void send_all(Packet packet);
     void broadcast(Packet packet);
     void send_message(std::string msg, int queue_id);
-    void notify_okay(std::string ip, int id);
+    void notify_okay(std::string ip, unsigned int id);
     int allocate_queue();
     void run();
 
   private:
     Socket& socket;
     struct MessageEntry{
+      unsigned int id;
       double sent_time;
       bool sent;
-      Message msg;
+      std::string msg;
       std::vector<std::string> recipients;
     };
     std::vector< std::vector<MessageEntry> > message_queues;
-    int current_id;
-    Packet make_packet(Message msg);
+    unsigned int current_id;
+    Packet make_packet(std::string msg, unsigned int id);
     const double send_timeout = 1;
   };
 
