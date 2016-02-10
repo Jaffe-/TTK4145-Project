@@ -113,9 +113,8 @@ namespace Network {
 
     char s[INET_ADDRSTRLEN];
     inet_ntop(their_addr.ss_family, &(((struct sockaddr_in *)&their_addr)->sin_addr), s, sizeof(s));
-    
     packet = {(PacketType)buf[0],
-	      std::vector<char>(buf + 1, buf + MAXBUF),
+	      std::vector<char>(buf + 1, buf + numbytes),
 	      std::string(s)};
     return true;
   }
