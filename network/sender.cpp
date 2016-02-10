@@ -50,7 +50,7 @@ namespace Network {
   {
     for (auto &message_queue : message_queues) {
       if (!message_queue.empty()) {
-	MessageEntry current = message_queue[0];
+	MessageEntry& current = message_queue[0];
 	if (current.msg.id == id) {
 	  // event
 	  LOG_DEBUG("OK received for message id " << message_queue[0].msg.id);
