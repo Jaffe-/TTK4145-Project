@@ -23,11 +23,26 @@ namespace Network {
     socket.write(packet, "255.255.255.255", 1);
   }
   
+  std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& v)
+  {
+    stream << "[";
+    for (auto& s : v) {
+      stream << s << ", ";
+    }
+    stream << "\b]";
+    return stream;
+  }
+
   void Sender::send_message(std::string msg, int queue_id)
   {
-    message_queues[queue_id].push_back({0, false, {current_id, msg},
-	  connection_controller.get_clients()});
-    LOG_DEBUG("New message with id " << current_id << " put in queue " << queue_id);
+    auto clients = connection_controller.get_clients();
+    if (clients.empty())
+      return;
+
+    message_queues[queue_id].push_back({0, false, {current_id, msg}, clients});
+    LOG_DEBUG("New message with id " << current_id 
+	      << " to " << clients
+	      << " put in queue " << queue_id);
     current_id++;
   }
 
