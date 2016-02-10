@@ -1,4 +1,4 @@
-#include "network.hpp"
+#include "network_int.hpp"
 #include "receiver.hpp"
 #include "sender.hpp"
 #include "connection_controller.hpp"
@@ -29,6 +29,22 @@ namespace Network {
     delete sender;
   }
 
+  void run()
+  {
+    double t = get_time();
+    int q = sender->allocate_queue();
+    while (true) {
+      receiver->run();
+      sender->run();
+      connection_controller.run();
+
+      if (get_time() - t > 1) {
+	sender->send_message("Test!\n", q);
+	t = get_time();
+      }
+    }
+  }
+
   std::string packet_type_name(PacketType packet_type)
   {
     switch (packet_type) {
@@ -50,19 +66,4 @@ namespace Network {
     return static_cast<double>(std::clock())/CLOCKS_PER_SEC;
   }
 
-  void run()
-  {
-    double t = get_time();
-    int q = sender->allocate_queue();
-    while (true) {
-      receiver->run();
-      sender->run();
-      connection_controller.run();
-
-      if (get_time() - t > 1) {
-	sender->send_message("Test!\n", q);
-	t = get_time();
-      }
-    }
-  }
 }

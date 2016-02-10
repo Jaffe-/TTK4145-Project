@@ -1,4 +1,4 @@
-#include "network.hpp"
+#include "network_int.hpp"
 #include "../logger/logger.hpp"
 #include "socket.hpp"
 #include <unistd.h>

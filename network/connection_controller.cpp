@@ -1,4 +1,4 @@
-#include "network.hpp"
+#include "network_int.hpp"
 #include "connection_controller.hpp"
 #include <vector>
 #include "../logger/logger.hpp"
