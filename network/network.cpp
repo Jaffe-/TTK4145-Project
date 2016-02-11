@@ -6,15 +6,16 @@
 
 namespace Network {
 
+  Socket* socket;
   Receiver* receiver;
   Sender* sender;
 
   void start(std::string port)
   {
-    static Socket socket(port);
-    if (socket.operational) {
-      receiver = new Receiver(socket);
-      sender = new Sender(socket);
+    socket = new Socket(port);
+    if (socket->operational) {
+      receiver = new Receiver(*socket);
+      sender = new Sender(*socket);
     }
     else {
       LOG_ERROR("Failed to create socket.");
@@ -27,6 +28,7 @@ namespace Network {
   {
     delete receiver;
     delete sender;
+    delete socket;
   }
 
   void run()
@@ -64,6 +66,23 @@ namespace Network {
   double get_time()
   {
     return static_cast<double>(std::clock())/CLOCKS_PER_SEC;
+  }
+
+  void send(const Packet& packet, const std::string& ip)
+  {
+    socket->write(packet, ip, 0);
+  }
+
+  void send_all(const Packet& packet)
+  {
+    for (auto& ip: connection_controller.get_clients()) {
+      send(packet, ip);
+    }
+  }
+
+  void broadcast(const Packet& packet)
+  {
+    socket->write(packet, "255.255.255.255", 1);
   }
 
 }

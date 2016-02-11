@@ -20,6 +20,9 @@ namespace Network {
   };
 
   std::string packet_type_name(Network::PacketType packet_type);
+  void send(const Packet& packet, const std::string& ip);
+  void send_all(const Packet& packet);
+  void broadcast(const Packet& packet);
   double get_time();
 
   extern Receiver* receiver;

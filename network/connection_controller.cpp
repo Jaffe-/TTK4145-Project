@@ -52,7 +52,7 @@ namespace Network {
   {
     double time = get_time();
     if (time - last_ping >= ping_period) {
-      sender->broadcast({PacketType::PING, 0, {}, ""});
+      broadcast({PacketType::PING, 0, {}, ""});
       last_ping = time; 
     }
   }

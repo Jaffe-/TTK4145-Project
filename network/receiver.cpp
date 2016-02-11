@@ -18,10 +18,10 @@ namespace Network {
 
     if (socket.own_ip(packet.ip))
       return;
-    
+
     switch (packet.type){
     case PacketType::PING:
-      sender->send(make_pong(), packet.ip);
+      send(make_pong(), packet.ip);
       break;
     case PacketType::PONG:
       connection_controller.notify_pong(packet.ip);
@@ -29,7 +29,7 @@ namespace Network {
     case PacketType::MSG:
       buffer.push_back(std::string(packet.bytes.begin(),
 				   packet.bytes.end()));
-      sender->send(make_okay(packet), packet.ip);
+      send(make_okay(packet), packet.ip);
       std::cout << buffer[buffer.size() - 1];
       break;
     case PacketType::OK:

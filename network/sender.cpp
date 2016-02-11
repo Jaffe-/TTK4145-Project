@@ -5,23 +5,6 @@
 #include <algorithm>
 
 namespace Network {
-
-  void Sender::send(const Packet& packet, const std::string& ip) const
-  {
-    socket.write(packet, ip, 0);
-  }
-
-  void Sender::send_all(const Packet& packet) const
-  {
-    for (auto& ip: connection_controller.get_clients()) {
-      send(packet, ip);
-    }
-  }
-
-  void Sender::broadcast(const Packet& packet) const
-  {
-    socket.write(packet, "255.255.255.255", 1);
-  }
   
   std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& v)
   {
