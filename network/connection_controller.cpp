@@ -4,13 +4,14 @@
 #include "../logger/logger.hpp"
 #include "sender.hpp"
 #include <algorithm>
+#include <chrono>
 
 namespace Network {
 
   bool ConnectionController::has_client(const std::string& ip) const
   {
     return std::find_if(connections.begin(), connections.end(),
-			[&] (std::pair<std::string, double> p) 
+			[&] (std::pair<std::string, TimePoint> p) 
 			{ return p.first == ip; }) != connections.end();
   }
 
@@ -20,7 +21,7 @@ namespace Network {
       // new client registered, send event
       LOG_DEBUG("New client " << ip << " discovered");
     }
-    connections[ip] = get_time();
+    connections[ip] = std::chrono::system_clock::now();
   }
 
   void ConnectionController::remove_clients(const std::vector<std::string>& ips)
@@ -38,8 +39,7 @@ namespace Network {
   {
     std::vector<std::string> timed_out;
     for (auto& kv : connections) {
-      double difference = get_time() - kv.second;
-      if (difference > timeout_limit) {
+      if (std::chrono::system_clock::now() - kv.second > timeout_limit) {
 	LOG_WARNING(kv.first << " stopped responding to PING");
 	timed_out.push_back(kv.first);
       }
@@ -50,10 +50,10 @@ namespace Network {
 
   void ConnectionController::send_ping()
   {
-    double time = get_time();
-    if (time - last_ping >= ping_period) {
+    TimePoint now = std::chrono::system_clock::now();
+    if (now - last_ping >= ping_period) {
       broadcast({PacketType::PING, 0, {}, ""});
-      last_ping = time; 
+      last_ping = now; 
     }
   }
 

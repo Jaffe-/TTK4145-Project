@@ -1,7 +1,6 @@
 #include "sender.hpp"
 #include "connection_controller.hpp"
 #include "../logger/logger.hpp"
-#include <cstdlib>
 #include <algorithm>
 
 namespace Network {
@@ -24,7 +23,7 @@ namespace Network {
       return;
     }
 
-    message_queues[queue_id].push_back({current_id, 0, false, msg, clients});
+    message_queues[queue_id].push_back(MessageEntry(current_id, msg, clients));
     LOG_DEBUG("New message with id " << current_id 
 	      << " to " << clients
 	      << " put in queue " << queue_id);
@@ -78,7 +77,7 @@ namespace Network {
       if (!message_queue.empty()) {
 	MessageEntry& current = message_queue[0];
 	if (current.sent) {
-	  if (get_time() - current.sent_time > send_timeout) {
+	  if (std::chrono::system_clock::now() - current.sent_time > send_timeout) {
 	    // generate event that the message was not received by
 	    // the IPs in current.recipients
 	    LOG_WARNING("Clients " << current.recipients 
@@ -93,7 +92,7 @@ namespace Network {
 	    send(packet, ip);
 	  }
 	  current.sent = true;
-	  current.sent_time = get_time();
+	  current.sent_time = std::chrono::system_clock::now();
 	}
       }
     }
