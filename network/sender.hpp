@@ -21,7 +21,7 @@ namespace Network {
     struct MessageEntry{
       MessageEntry(unsigned int id, const std::string& msg,
 		   const std::vector<std::string>& recipients) :
-	id(id), msg(msg), recipients(recipients) {};
+	id(id), sent(false), msg(msg), recipients(recipients) {};
 
       unsigned int id;
       TimePoint sent_time;
