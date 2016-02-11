@@ -38,16 +38,15 @@ namespace Network {
     getifaddrs(&ifAddrStruct);
 
     for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
-        if (!ifa->ifa_addr) {
-            continue;
-        }
-        if (ifa->ifa_addr->sa_family == AF_INET) { // check it is IP4
-            // is a valid IP4 Address
-            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-            char addressBuffer[INET_ADDRSTRLEN];
-            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-	    own_ips.push_back(addressBuffer);
-	}
+      if (!ifa->ifa_addr) {
+	continue;
+      }
+      if (ifa->ifa_addr->sa_family == AF_INET) {
+	tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+	char addressBuffer[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+	own_ips.push_back(addressBuffer);
+      }
     }
 
     if ((sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1){
@@ -58,6 +57,12 @@ namespace Network {
     if (bind(sockfd, res->ai_addr, res->ai_addrlen) == -1) {
       close(sockfd);
       LOG_ERROR("bind() failed.");
+      return;
+    }
+
+    int b = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &b, sizeof(b)) == -1) {
+      LOG_ERROR("setsockopt() failed.");
       return;
     }
     
@@ -120,17 +125,10 @@ namespace Network {
     return true;
   }
 
-  bool Socket::write(const Packet& packet, const std::string& to_ip, bool broadcast)
+  bool Socket::write(const Packet& packet, const std::string& to_ip)
   {
     struct sockaddr_in si;
     char buf[MAXBUF];
-
-    int b = broadcast ? 1 : 0;
-    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &b,
-		   sizeof(b)) == -1) {
-      LOG_ERROR("setsockopt() failed");
-      return false;
-    }
     
     memset((char *) &si, 0, sizeof(si));
     si.sin_family = AF_INET;

@@ -17,7 +17,7 @@ namespace Network {
     ~Socket();
     bool empty();
     bool read(Packet& packet);
-    bool write(const Packet& packet, const std::string& to_ip, bool broadcast);
+    bool write(const Packet& packet, const std::string& to_ip);
     bool own_ip(const std::string& ip);
 
     std::string port;

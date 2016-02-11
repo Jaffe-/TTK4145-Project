@@ -70,7 +70,7 @@ namespace Network {
 
   void send(const Packet& packet, const std::string& ip)
   {
-    socket->write(packet, ip, 0);
+    socket->write(packet, ip);
   }
 
   void send_all(const Packet& packet)
@@ -82,7 +82,7 @@ namespace Network {
 
   void broadcast(const Packet& packet)
   {
-    socket->write(packet, "255.255.255.255", 1);
+    socket->write(packet, "255.255.255.255");
   }
 
 }
