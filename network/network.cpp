@@ -3,6 +3,7 @@
 #include "sender.hpp"
 #include "connection_controller.hpp"
 #include "../logger/logger.hpp"
+#include <chrono>
 
 namespace Network {
 
@@ -33,16 +34,18 @@ namespace Network {
 
   void run()
   {
-    double t = get_time();
+    using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
+
+    TimePoint t = std::chrono::system_clock::now();
     int q = sender->allocate_queue();
     while (true) {
       receiver->run();
       sender->run();
       connection_controller.run();
 
-      if (get_time() - t > 1) {
+      if (std::chrono::system_clock::now() - t > std::chrono::seconds(2)) {
 	sender->send_message("Test!\n", q);
-	t = get_time();
+	t = std::chrono::system_clock::now();
       }
     }
   }
