@@ -19,8 +19,10 @@ namespace Network {
   void Sender::send_message(const std::string& msg, int queue_id)
   {
     auto clients = connection_controller.get_clients();
-    if (clients.empty())
+    if (clients.empty()) {
+      LOG_DEBUG("Attempted to send message, but there are no clients.");
       return;
+    }
 
     message_queues[queue_id].push_back({current_id, 0, false, msg, clients});
     LOG_DEBUG("New message with id " << current_id 
