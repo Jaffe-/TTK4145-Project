@@ -6,19 +6,19 @@
 
 namespace Network {
 
-  void Sender::send(Packet packet, std::string ip)
+  void Sender::send(Packet packet, std::string ip) const
   {
     socket.write(packet, ip, 0);
   }
 
-  void Sender::send_all(Packet packet)
+  void Sender::send_all(Packet packet) const
   {
     for (auto& ip: connection_controller.get_clients()) {
       send(packet, ip);
     }
   }
 
-  void Sender::broadcast(Packet packet)
+  void Sender::broadcast(Packet packet) const
   {
     socket.write(packet, "255.255.255.255", 1);
   }

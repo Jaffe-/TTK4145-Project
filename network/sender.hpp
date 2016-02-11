@@ -8,9 +8,9 @@ namespace Network {
   class Sender{
   public:
     Sender(Socket& socket) : socket(socket), current_id(0) {};
-    void send(Packet packet, std::string ip);
-    void send_all(Packet packet);
-    void broadcast(Packet packet);
+    void send(Packet packet, std::string ip) const;
+    void send_all(Packet packet) const;
+    void broadcast(Packet packet) const;
     void send_message(std::string msg, int queue_id);
     void notify_okay(std::string ip, unsigned int id);
     int allocate_queue();
