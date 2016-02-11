@@ -5,14 +5,14 @@
 
 namespace Network {
 
-  class Sender{
+  class Sender {
   public:
     Sender(Socket& socket) : socket(socket), current_id(0) {};
-    void send(Packet packet, std::string ip) const;
-    void send_all(Packet packet) const;
-    void broadcast(Packet packet) const;
-    void send_message(std::string msg, int queue_id);
-    void notify_okay(std::string ip, unsigned int id);
+    void send(const Packet& packet, const std::string& ip) const;
+    void send_all(const Packet& packet) const;
+    void broadcast(const Packet& packet) const;
+    void send_message(const std::string& msg, int queue_id);
+    void notify_okay(const std::string& ip, unsigned int id);
     int allocate_queue();
     void run();
 
@@ -27,7 +27,7 @@ namespace Network {
     };
     std::vector< std::vector<MessageEntry> > message_queues;
     unsigned int current_id;
-    Packet make_packet(std::string msg, unsigned int id);
+    Packet make_packet(const std::string& msg, unsigned int id);
     const double send_timeout = 1;
   };
 

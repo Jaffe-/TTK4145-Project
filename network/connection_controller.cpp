@@ -7,13 +7,14 @@
 
 namespace Network {
 
-  bool ConnectionController::has_client(std::string ip)
+  bool ConnectionController::has_client(const std::string& ip) const
   {
     return std::find_if(connections.begin(), connections.end(),
 			[&] (std::pair<std::string, double> p) 
 			{ return p.first == ip; }) != connections.end();
   }
-  void ConnectionController::notify_pong(std::string ip) 
+
+  void ConnectionController::notify_pong(const std::string& ip)
   {
     if (!has_client(ip)) {
       // new client registered, send event
@@ -22,7 +23,7 @@ namespace Network {
     connections[ip] = get_time();
   }
 
-  void ConnectionController::remove_clients(const std::vector<std::string> ips)
+  void ConnectionController::remove_clients(const std::vector<std::string>& ips)
   {
     for (auto& ip : ips) {
       if (has_client(ip)) {
@@ -62,7 +63,7 @@ namespace Network {
     send_ping();
   }
 
-  std::vector<std::string> ConnectionController::get_clients()
+  std::vector<std::string> ConnectionController::get_clients() const
   {
     std::vector<std::string> results;
 

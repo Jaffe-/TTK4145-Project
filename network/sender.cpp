@@ -6,19 +6,19 @@
 
 namespace Network {
 
-  void Sender::send(Packet packet, std::string ip) const
+  void Sender::send(const Packet& packet, const std::string& ip) const
   {
     socket.write(packet, ip, 0);
   }
 
-  void Sender::send_all(Packet packet) const
+  void Sender::send_all(const Packet& packet) const
   {
     for (auto& ip: connection_controller.get_clients()) {
       send(packet, ip);
     }
   }
 
-  void Sender::broadcast(Packet packet) const
+  void Sender::broadcast(const Packet& packet) const
   {
     socket.write(packet, "255.255.255.255", 1);
   }
@@ -33,7 +33,7 @@ namespace Network {
     return stream;
   }
 
-  void Sender::send_message(std::string msg, int queue_id)
+  void Sender::send_message(const std::string& msg, int queue_id)
   {
     auto clients = connection_controller.get_clients();
     if (clients.empty())
@@ -46,7 +46,7 @@ namespace Network {
     current_id++;
   }
 
-  void Sender::notify_okay(std::string ip, unsigned int id)
+  void Sender::notify_okay(const std::string& ip, unsigned int id)
   {
     for (auto &message_queue : message_queues) {
       if (!message_queue.empty()) {
@@ -75,7 +75,7 @@ namespace Network {
     return queue_id;
   }
 
-  Packet Sender::make_packet(std::string msg, unsigned int id)
+  Packet Sender::make_packet(const std::string& msg, unsigned int id)
   {
     std::vector<char> bytes;
 

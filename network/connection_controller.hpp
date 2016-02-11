@@ -7,11 +7,12 @@ namespace Network {
 
   class ConnectionController {
   public:
-    void notify_pong(std::string ip);
+    void notify_pong(const std::string& ip);
+    void remove_clients(const std::vector<std::string>& ips);
+    std::vector<std::string> get_clients() const;
+    bool has_client(const std::string& ip) const;
     void run();
-    std::vector<std::string> get_clients();
-    void remove_clients(const std::vector<std::string> ips);
-    bool has_client(std::string ip);
+
   private:
     const double timeout_limit = 1;
     const double ping_period = 0.5;
