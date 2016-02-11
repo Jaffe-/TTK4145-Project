@@ -14,7 +14,7 @@
 
 namespace Network {
 
-  Socket::Socket(std::string port) : port(port)
+  Socket::Socket(const std::string& port) : port(port)
   {
     struct addrinfo hints, *res;
     int rv;
@@ -120,7 +120,7 @@ namespace Network {
     return true;
   }
 
-  bool Socket::write(Packet packet, std::string to_ip, bool broadcast)
+  bool Socket::write(const Packet& packet, const std::string& to_ip, bool broadcast)
   {
     struct sockaddr_in si;
     char buf[MAXBUF];
@@ -149,7 +149,7 @@ namespace Network {
     return true;
   }
 
-  bool Socket::own_ip(std::string ip)
+  bool Socket::own_ip(const std::string& ip)
   {
     return std::find(own_ips.begin(), own_ips.end(), ip) != own_ips.end();
   }

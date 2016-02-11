@@ -13,12 +13,12 @@ namespace Network {
   /* UDP socket abstraction */
   class Socket {
   public:
-    Socket(std::string port);
+    Socket(const std::string& port);
     ~Socket();
     bool empty();
     bool read(Packet& packet);
-    bool write(Packet packet, std::string to_ip, bool broadcast);
-    bool own_ip(std::string ip);
+    bool write(const Packet& packet, const std::string& to_ip, bool broadcast);
+    bool own_ip(const std::string& ip);
 
     std::string port;
     bool operational;
