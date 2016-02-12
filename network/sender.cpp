@@ -11,10 +11,22 @@ namespace Network {
     for (auto& s : v) {
       stream << s << ", ";
     }
-    stream << "\b]";
+    stream << "\b\b]";
     return stream;
   }
 
+  std::ostream& operator<<(std::ostream& s, const Sender::MessageEntry& msg_entry)
+  {
+    const std::string::size_type trunc_limit = 20;
+    s << "{id=" << msg_entry.id
+      << " sent=" << (msg_entry.sent ? "yes" : "no")
+      << " msg=" << msg_entry.msg.substr(0, std::min(msg_entry.msg.length(), trunc_limit))
+      << " recipients=" << msg_entry.recipients
+      << "}";
+
+    return s;
+  }
+  
   void Sender::send_message(const std::string& msg, int queue_id)
   {
     auto clients = connection_controller.get_clients();
@@ -23,9 +35,9 @@ namespace Network {
       return;
     }
 
-    message_queues[queue_id].push_back(MessageEntry(current_id, msg, clients));
-    LOG_DEBUG("New message with id " << current_id 
-	      << " to " << clients
+    auto msg_entry = MessageEntry(current_id, msg, clients);
+    message_queues[queue_id].push_back(msg_entry);
+    LOG_DEBUG("New message " << msg_entry 
 	      << " put in queue " << queue_id);
     current_id++;
   }

@@ -18,7 +18,7 @@ namespace Network {
     using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
     Socket& socket;
-    struct MessageEntry{
+    struct MessageEntry {
       MessageEntry(unsigned int id, const std::string& msg,
 		   const std::vector<std::string>& recipients) :
 	id(id), sent(false), msg(msg), recipients(recipients) {};
@@ -29,10 +29,12 @@ namespace Network {
       std::string msg;
       std::vector<std::string> recipients;
     };
+
     std::vector< std::vector<MessageEntry> > message_queues;
     unsigned int current_id;
     Packet make_packet(const std::string& msg, unsigned int id);
     const std::chrono::duration<double> send_timeout = std::chrono::seconds(1);
+    friend std::ostream& operator<<(std::ostream& s, const Sender::MessageEntry& msg_entry);
   };
 
 }
