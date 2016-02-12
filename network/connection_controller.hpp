@@ -19,8 +19,6 @@ namespace Network {
 
     const std::chrono::duration<double> timeout_limit = std::chrono::seconds(1);
     const std::chrono::duration<double> ping_period = std::chrono::milliseconds(500);
-    //    const double timeout_limit = 1;
-    //const double ping_period = 0.5;
     TimePoint last_ping;
     std::map<std::string, TimePoint> connections;
     void check_timeouts();
