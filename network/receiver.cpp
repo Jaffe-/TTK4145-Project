@@ -39,15 +39,5 @@ namespace Network {
       break;
     }
   }
-    
-  Packet Receiver::make_okay(Packet packet)
-  {
-    return { PacketType::OK, packet.id,{}, ""}; 
-  }
-
-  Packet Receiver::make_pong()
-  {
-    return { PacketType::PONG, 0, {}, "" };
-  }
-  
+      
 }

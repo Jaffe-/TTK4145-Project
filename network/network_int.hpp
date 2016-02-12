@@ -24,6 +24,11 @@ namespace Network {
   void send_all(const Packet& packet);
   void broadcast(const Packet& packet);
 
+  Packet make_okay(Packet packet);
+  Packet make_pong();
+  Packet make_ping();
+  Packet make_msg(unsigned int id, const std::vector<char>& bytes);
+
   extern Receiver* receiver;
   extern Sender* sender;
 

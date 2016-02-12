@@ -73,14 +73,9 @@ namespace Network {
 
   Packet Sender::make_packet(const std::string& msg, unsigned int id)
   {
-    std::vector<char> bytes;
+    std::vector<char> bytes(msg.begin(), msg.end());
 
-    std::copy(msg.begin(), msg.end(), std::back_inserter(bytes));
-
-    return { PacketType::MSG,
-	     id,
-	     bytes,
-	     std::string() };
+    return make_msg(id, bytes);
   }
 
   void Sender::run()

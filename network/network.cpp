@@ -82,5 +82,25 @@ namespace Network {
   {
     socket->write(packet, "255.255.255.255");
   }
-  
+
+  Packet make_okay(Packet packet)
+  {
+    return { PacketType::OK, packet.id,{}, ""}; 
+  }
+
+  Packet make_pong()
+  {
+    return { PacketType::PONG, 0, {}, "" };
+  }
+
+  Packet make_ping()
+  {
+    return { PacketType::PING, 0, {}, ""};
+  }
+
+  Packet make_msg(unsigned int id, const std::vector<char>& bytes)
+  {
+    return { PacketType::MSG, id, bytes, ""};
+  }
+
 }
