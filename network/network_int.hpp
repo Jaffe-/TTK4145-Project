@@ -23,7 +23,6 @@ namespace Network {
   void send(const Packet& packet, const std::string& ip);
   void send_all(const Packet& packet);
   void broadcast(const Packet& packet);
-  double get_time();
 
   extern Receiver* receiver;
   extern Sender* sender;

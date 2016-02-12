@@ -66,11 +66,6 @@ namespace Network {
     }
   }
 
-  double get_time()
-  {
-    return static_cast<double>(std::clock())/CLOCKS_PER_SEC;
-  }
-
   void send(const Packet& packet, const std::string& ip)
   {
     socket->write(packet, ip);
@@ -87,5 +82,5 @@ namespace Network {
   {
     socket->write(packet, "255.255.255.255");
   }
-
+  
 }
