@@ -16,7 +16,7 @@
 class Logger {
 public:
   enum class LogLevel {
-    ERROR, WARNING, DEBUG
+    ERROR, WARNING, DEBUG, DEBUG_EXTRA
   };
   Logger(std::string const& filename, LogLevel level);
   ~Logger();

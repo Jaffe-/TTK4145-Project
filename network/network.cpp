@@ -50,6 +50,16 @@ namespace Network {
     }
   }
 
+  std::ostream& operator<<(std::ostream& s, const Packet& packet)
+  {
+    s << "{" << packet_type_name(packet.type)
+      << " id=" << packet.id
+      << " length=" << packet.bytes.size()
+      << " from=" << packet.ip
+      << "}";
+    return s;
+  }
+
   std::string packet_type_name(PacketType packet_type)
   {
     switch (packet_type) {

@@ -15,12 +15,19 @@ namespace Network {
     return stream;
   }
 
+  std::string truncate(const std::string& str, const std::string::size_type trunc_limit)
+  {
+    std::string truncated = str.substr(0, std::min(str.length(), trunc_limit));
+    std::replace(truncated.begin(), truncated.end(), '\n', ' ');
+    return truncated;
+  }
+
   std::ostream& operator<<(std::ostream& s, const Sender::MessageEntry& msg_entry)
   {
     const std::string::size_type trunc_limit = 20;
     s << "{id=" << msg_entry.id
       << " sent=" << (msg_entry.sent ? "yes" : "no")
-      << " msg=" << msg_entry.msg.substr(0, std::min(msg_entry.msg.length(), trunc_limit))
+      << " msg=" << truncate(msg_entry.msg, trunc_limit)
       << " recipients=" << msg_entry.recipients
       << "}";
 
