@@ -11,28 +11,37 @@ const std::string color_off = "\x1b[0m";
 const std::string color_darkblue = "\x1b[34m";
 const std::string color_blue = "\x1b[94m";
 
+std::string line_color(Logger::LogLevel level)
+{
+  switch (level) {
+  case Logger::LogLevel::ERROR:
+    return color_red;
+  case Logger::LogLevel::WARNING:
+    return color_yellow;
+  case Logger::LogLevel::INFO:
+    return color_green;
+  default:
+    return color_off;
+  }
+}
+
 std::ostream& Logger::write(LogLevel level, char const* filename, char const* function)
 {
   std::time_t raw_time = std::time(NULL);
   char formatted_time[100];
   std::strftime(formatted_time, sizeof(formatted_time), "%m/%d %H:%M:%S", std::localtime(&raw_time));
 
-  switch (level) {
-  case LogLevel::ERROR:
-    file << color_red;
-    break;
-  case LogLevel::WARNING:
-    file << color_yellow;
-    break;
-  default:
-    file << color_green;
-    break;
-  }
-  file << formatted_time << " " << level_name(level) << " "
-       << color_darkblue << filename
+  std::string color = line_color(level);
+
+  mut.lock();
+  file << color << formatted_time << " ";
+  if (level == LogLevel::ERROR || level == LogLevel::WARNING || level == LogLevel::INFO)
+    file << level_name(level) << " ";
+  file << color_darkblue << filename
        << color_white << ":"
        << color_blue << function << ": "
-       << color_off;
+       << color;
+  mut.unlock();
   return file;
 }
 
@@ -59,14 +68,14 @@ Logger::~Logger()
 std::string Logger::level_name(Logger::LogLevel level)
 {
   switch (level) {
-  case LogLevel::DEBUG:
-    return "DEBUG";
   case LogLevel::WARNING:
     return "WARNING";
   case LogLevel::ERROR:
     return "ERROR";
+  case LogLevel::INFO:
+    return "INFO";
   default:
-    return "<undefined>";
+    return "DEBUG";
   }
 }
 

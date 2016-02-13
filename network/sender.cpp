@@ -38,7 +38,7 @@ namespace Network {
   {
     auto clients = connection_controller.get_clients();
     if (clients.empty()) {
-      LOG_DEBUG("Attempted to send message, but there are no clients.");
+      LOG_WARNING("Attempted to send message, but there are no clients.");
       return;
     }
 

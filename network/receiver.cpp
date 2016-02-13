@@ -16,7 +16,7 @@ namespace Network {
       return;
     }
 
-    LOG(Logger::LogLevel::DEBUG_EXTRA, "Received packet " << packet);
+    LOG(4, "Received packet " << packet);
 
     if (socket.own_ip(packet.ip))
       return;

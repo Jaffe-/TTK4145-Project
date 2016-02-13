@@ -19,7 +19,7 @@ namespace Network {
   {
     if (!has_client(ip)) {
       // new client registered, send event
-      LOG_DEBUG("New client " << ip << " discovered");
+      LOG_INFO("New client " << ip << " discovered");
     }
     connections[ip] = std::chrono::system_clock::now();
   }
@@ -29,7 +29,7 @@ namespace Network {
     for (auto& ip : ips) {
       if (has_client(ip)) {
 	// send event
-	LOG_DEBUG("Client " << ip << " is removed");
+	LOG_WARNING("Client " << ip << " is removed");
 	connections.erase(ip);
       }
     }

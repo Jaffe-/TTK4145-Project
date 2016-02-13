@@ -20,7 +20,7 @@ int main(int argc, char** argv)
   }
 
   if (cmd_options.find("debug") == cmd_options.end()) {
-    log_.include_level = Logger::LogLevel::WARNING;
+    log_.include_level = Logger::LogLevel::INFO;
   }
   else {
     log_.include_level = static_cast<Logger::LogLevel>(std::stoi(cmd_options["debug"]));
