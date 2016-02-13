@@ -16,10 +16,10 @@ namespace Network {
       return;
     }
 
-    LOG(4, "Received packet " << packet);
-
     if (socket.own_ip(packet.ip))
       return;
+
+    LOG(4, "Received packet " << packet);
 
     switch (packet.type){
     case PacketType::PING:
