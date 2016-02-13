@@ -1,6 +1,15 @@
 #include "logger.hpp"
 #include <ctime>
 
+const std::string color_red = "\x1b[31m";
+const std::string color_green = "\x1b[32m";
+const std::string color_yellow = "\x1b[33m";
+const std::string color_cyan = "\x1b[96m";
+const std::string color_darkcyan = "\x1b[36m";
+const std::string color_white = "\x1b[97m";
+const std::string color_off = "\x1b[0m";
+const std::string color_darkblue = "\x1b[34m";
+const std::string color_blue = "\x1b[94m";
 
 std::ostream& Logger::write(LogLevel level, char const* filename, char const* function)
 {
@@ -8,8 +17,22 @@ std::ostream& Logger::write(LogLevel level, char const* filename, char const* fu
   char formatted_time[100];
   std::strftime(formatted_time, sizeof(formatted_time), "%m/%d %H:%M:%S", std::localtime(&raw_time));
 
-  file << formatted_time << " <" << level_name(level) << "> " << filename
-       << ":" << function << ":  ";
+  switch (level) {
+  case LogLevel::ERROR:
+    file << color_red;
+    break;
+  case LogLevel::WARNING:
+    file << color_yellow;
+    break;
+  default:
+    file << color_green;
+    break;
+  }
+  file << formatted_time << " " << level_name(level) << " "
+       << color_darkblue << filename
+       << color_white << ":"
+       << color_blue << function << ": "
+       << color_off;
   return file;
 }
 

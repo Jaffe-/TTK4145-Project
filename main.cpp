@@ -15,7 +15,7 @@ int main(int argc, char** argv)
   CmdOptions cmd_options;
   if (!cmd_options_get(cmd_options, argc, argv,
 		       {{"port", true, false, "port", "The port used for sending and receiving"},
-			{"debug", false, true, "debug", "Include debug information in log"}})) {
+			{"debug", true, true, "debug", "Include debug information in log"}})) {
     return -1;
   }
 
@@ -23,7 +23,7 @@ int main(int argc, char** argv)
     log_.include_level = Logger::LogLevel::WARNING;
   }
   else {
-    log_.include_level = Logger::LogLevel::DEBUG;
+    log_.include_level = static_cast<Logger::LogLevel>(std::stoi(cmd_options["debug"]));
   }
   LOG_DEBUG("Log is initialized");
   Network::start(cmd_options["port"]);
