@@ -25,7 +25,22 @@ std::string line_color(Logger::LogLevel level)
   }
 }
 
-std::ostream& Logger::write(LogLevel level, char const* filename, char const* function, int line)
+Logger::Line::Line(Logger& parent) : parent(parent)
+{
+  parent.mut.lock();
+}
+
+Logger::Line::~Line()
+{
+  parent.mut.unlock();
+}
+
+Logger::Line Logger::new_line()
+{
+  return Line(*this);
+}
+
+std::ostream& Logger::Line::write(LogLevel level, char const* filename, char const* function, int line)
 {
   std::time_t raw_time = std::time(NULL);
   char formatted_time[100];
@@ -33,19 +48,17 @@ std::ostream& Logger::write(LogLevel level, char const* filename, char const* fu
 
   std::string color = line_color(level);
 
-  mut.lock();
-  file << color << formatted_time << " ";
+  parent.file << color << formatted_time << " ";
   if (level == LogLevel::ERROR || level == LogLevel::WARNING || level == LogLevel::INFO)
-    file << level_name(level) << " ";
-  file << color_darkblue << filename
-       << color_white << ":"
-       << color_blue << function
-       << color_white << ":"
-       << color_darkcyan << line
-       << color_white << ": "
-       << color;
-  mut.unlock();
-  return file;
+    parent.file << level_name(level) << " ";
+  parent.file << color_darkblue << filename
+	      << color_white << ":"
+	      << color_blue << function
+	      << color_white << ":"
+	      << color_darkcyan << line
+	      << color_white << ": "
+	      << color;
+  return parent.file;
 }
 
 Logger::Logger(std::string const& filename, Logger::LogLevel level) : include_level(level)

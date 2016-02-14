@@ -8,7 +8,7 @@
 
 #define LOG(Level_, Message_)		\
   if ((int)log_.include_level >= (int)(Level_))				\
-    (log_.write((Logger::LogLevel)Level_, __FILE__, __FUNCTION__, __LINE__) << Message_ << std::endl)
+    (log_.new_line().write((Logger::LogLevel)Level_, __FILE__, __FUNCTION__, __LINE__) << Message_ << std::endl)
 
 #define LOG_DEBUG(Message_) LOG(Logger::LogLevel::DEBUG, Message_)
 #define LOG_WARNING(Message_) LOG(Logger::LogLevel::WARNING, Message_)
@@ -18,12 +18,23 @@
 class Logger {
 public:
   enum class LogLevel {
-    ERROR, WARNING, INFO, DEBUG
+    ERROR, WARNING, INFO, DEBUG, DEBUG2, DEBUG3
   };
   Logger(std::string const& filename, LogLevel level);
   ~Logger();
-  std::ostream& write(LogLevel level, char const* filename, char const* function, int line);
 
+  class Line {
+  public:
+    Line(Logger& parent);
+    ~Line();
+    std::ostream& write(LogLevel level, char const* filename, char const* function, int line);
+
+  private:
+    Logger& parent;
+  };
+
+  Line new_line();
+  
   LogLevel include_level;
 
 private:
