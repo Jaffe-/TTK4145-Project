@@ -48,10 +48,8 @@ std::ostream& Logger::Line::write(LogLevel level, char const* filename, char con
 
   std::string color = line_color(level);
 
-  parent.file << color << formatted_time << " ";
-  if (level == LogLevel::ERROR || level == LogLevel::WARNING || level == LogLevel::INFO)
-    parent.file << level_name(level) << " ";
-  parent.file << color_darkblue << filename
+  parent.file << color << formatted_time << " "
+	      << color_darkblue << filename
 	      << color_white << ":"
 	      << color_blue << function
 	      << color_white << ":"
