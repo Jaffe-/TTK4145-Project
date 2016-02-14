@@ -45,16 +45,6 @@ std::ostream& Logger::write(LogLevel level, char const* filename, char const* fu
   return file;
 }
 
-bool Logger::includes_context(const std::string& ctx) const
-{
-  return std::find(contexts.begin(), contexts.end(), ctx) != contexts.end();
-}
-
-void Logger::new_context(const std::string& ctx)
-{
-  contexts.push_back(ctx);
-}
-
 Logger::Logger(std::string const& filename, Logger::LogLevel level) : include_level(level)
 {
   file.open(filename);

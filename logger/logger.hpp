@@ -23,15 +23,12 @@ public:
   Logger(std::string const& filename, LogLevel level);
   ~Logger();
   std::ostream& write(LogLevel level, char const* filename, char const* function);
-  void new_context(const std::string& ctx);
-  bool includes_context(const std::string& ctx) const;
 
   LogLevel include_level;
 
 private:
   static std::string level_name(LogLevel level);
   std::ofstream file;
-  std::vector<std::string> contexts;
   std::mutex mut;
 };
 
