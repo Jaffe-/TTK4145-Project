@@ -50,6 +50,16 @@ namespace Network {
     }
   }
 
+  std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& v)
+  {
+    stream << "[";
+    for (auto& s : v) {
+      stream << s << ", ";
+    }
+    stream << "\b\b]";
+    return stream;
+  }
+
   std::ostream& operator<<(std::ostream& s, const Packet& packet)
   {
     s << "{" << packet_type_name(packet.type)

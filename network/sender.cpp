@@ -5,16 +5,6 @@
 
 namespace Network {
   
-  std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& v)
-  {
-    stream << "[";
-    for (auto& s : v) {
-      stream << s << ", ";
-    }
-    stream << "\b\b]";
-    return stream;
-  }
-
   std::string truncate(const std::string& str, const std::string::size_type trunc_limit)
   {
     std::string truncated = str.substr(0, std::min(str.length(), trunc_limit));

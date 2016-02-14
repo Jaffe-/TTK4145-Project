@@ -20,6 +20,7 @@ namespace Network {
   };
 
   std::string packet_type_name(Network::PacketType packet_type);
+  std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& v);
   std::ostream& operator<<(std::ostream& s, const Packet& packet);
 
   void send(const Packet& packet, const std::string& ip);
