@@ -50,6 +50,16 @@ namespace Network {
     }
   }
 
+  void send_message(const std::string& msg, unsigned int queue)
+  {
+    sender->send_message(msg, queue);
+  }
+
+  unsigned int allocate_queue()
+  {
+    return sender->allocate_queue();
+  }
+
   std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& v)
   {
     stream << "[";
