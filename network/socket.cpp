@@ -20,7 +20,24 @@ namespace Network {
     int rv;
 
     operational = false;
-    
+
+    /* Find list of own IPv4 addresses */
+    struct ifaddrs * if_addrs=NULL;
+    getifaddrs(&if_addrs);
+
+    for (struct ifaddrs* ifa = if_addrs; ifa != NULL; ifa = ifa->ifa_next) {
+      if (!ifa->ifa_addr) {
+	continue;
+      }
+      if (ifa->ifa_addr->sa_family == AF_INET) {
+	char address[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr, address, INET_ADDRSTRLEN);
+	own_ips.push_back(address);
+      }
+    }
+    LOG_DEBUG("IPs of own interfaces: " << own_ips);
+
+    /* Set up UDP socket with broadcasting enabled */
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
@@ -29,24 +46,6 @@ namespace Network {
     if ((rv = getaddrinfo(NULL, port.c_str(), &hints, &res)) != 0) {
       LOG_ERROR("getaddrinfo() failed.");
       return;
-    }
-
-    struct ifaddrs * ifAddrStruct=NULL;
-    struct ifaddrs * ifa=NULL;
-    void * tmpAddrPtr=NULL;
-
-    getifaddrs(&ifAddrStruct);
-
-    for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
-      if (!ifa->ifa_addr) {
-	continue;
-      }
-      if (ifa->ifa_addr->sa_family == AF_INET) {
-	tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-	char addressBuffer[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-	own_ips.push_back(addressBuffer);
-      }
     }
 
     if ((sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1){
