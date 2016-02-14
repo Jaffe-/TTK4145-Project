@@ -25,7 +25,7 @@ std::string line_color(Logger::LogLevel level)
   }
 }
 
-std::ostream& Logger::write(LogLevel level, char const* filename, char const* function)
+std::ostream& Logger::write(LogLevel level, char const* filename, char const* function, int line)
 {
   std::time_t raw_time = std::time(NULL);
   char formatted_time[100];
@@ -39,7 +39,10 @@ std::ostream& Logger::write(LogLevel level, char const* filename, char const* fu
     file << level_name(level) << " ";
   file << color_darkblue << filename
        << color_white << ":"
-       << color_blue << function << ": "
+       << color_blue << function
+       << color_white << ":"
+       << color_darkcyan << line
+       << color_white << ": "
        << color;
   mut.unlock();
   return file;

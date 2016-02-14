@@ -8,7 +8,7 @@
 
 #define LOG(Level_, Message_)		\
   if ((int)log_.include_level >= (int)(Level_))				\
-    (log_.write((Logger::LogLevel)Level_, __FILE__, __FUNCTION__) << Message_ << std::endl)
+    (log_.write((Logger::LogLevel)Level_, __FILE__, __FUNCTION__, __LINE__) << Message_ << std::endl)
 
 #define LOG_DEBUG(Message_) LOG(Logger::LogLevel::DEBUG, Message_)
 #define LOG_WARNING(Message_) LOG(Logger::LogLevel::WARNING, Message_)
@@ -22,7 +22,7 @@ public:
   };
   Logger(std::string const& filename, LogLevel level);
   ~Logger();
-  std::ostream& write(LogLevel level, char const* filename, char const* function);
+  std::ostream& write(LogLevel level, char const* filename, char const* function, int line);
 
   LogLevel include_level;
 
