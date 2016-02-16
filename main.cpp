@@ -25,6 +25,9 @@ int main(int argc, char** argv)
     log_.include_level = static_cast<Logger::LogLevel>(std::stoi(cmd_options["debug"]));
   }
   LOG_DEBUG("Log is initialized");
-  Network::start(cmd_options["port"]);
-  Network::run();
+
+  Driver driver(cmd_options.has("simulated"));
+  driver.run();
+  //Network::start(cmd_options["port"]);
+  //Network::run();
 }
