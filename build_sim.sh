@@ -1,3 +1,3 @@
-#/bin/bash
+#!/bin/bash
 
-make -B CFLAGS+=-DUSE_SIMULATOR
+make CFLAGS+=DUSE_SIMULATOR $@
