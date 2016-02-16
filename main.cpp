@@ -1,6 +1,7 @@
 #include "cmdopts/cmdopts.hpp"
 #include "network/receiver.hpp"
 #include "logger/logger.hpp"
+#include "driver/test.hpp"
 
 int main(int argc, char** argv)
 {
