@@ -15,7 +15,7 @@ $(TARGET) : $(OBJS)
 $(SIMTARGET) : sim_backend.d timer_event.d
 	dmd sim_backend.d timer_event.d -lib -of$(SIMTARGET)
 
-%.o: %.c
+%.o: %.c io.h elev.h
 	$(CC) -c $(CFLAGS) -c $<
 
 clean:
