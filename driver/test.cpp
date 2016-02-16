@@ -1,13 +1,21 @@
 #include "hw_interface/elev.h"
 #include "test.hpp"
+#include "../logger/logger.hpp"
+
+Driver::Driver(bool use_simulator)
+{
+  std::string driver_string = use_simulator ? "simulated" : "hardware";
+  if (elev_init(use_simulator ? ET_simulation : ET_comedi)) {
+    LOG_DEBUG("Started driver (" << driver_string << ")");
+  }
+  else {
+    LOG_DEBUG("Failed to start driver (" << driver_string << ")");
+    // Exception?
+  }
+}
 
 void Driver::run()
 {
-#ifdef USE_SIMULATOR
-  elev_init(ET_simulation);
-#else
-  elev_init(ET_comedi);
-#endif
 
   elev_set_motor_direction(DIRN_UP);
   while (1) {
