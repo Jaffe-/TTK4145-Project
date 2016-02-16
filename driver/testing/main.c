@@ -4,7 +4,7 @@
 #include "../hw_interface/elev.h"
 
 int main() {
-    elev_init();
+    elev_init(ET_simulation);
 
     printf("Press STOP button to stop elevator and exit program.\n");
 
