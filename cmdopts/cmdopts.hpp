@@ -10,7 +10,13 @@ struct CmdOptionDesc {
   std::string description;
 };
 
-using CmdOptions = std::map<std::string, std::string>;
+class CmdOptions {
+public:
+  CmdOptions(int argc, char** argv, std::vector<CmdOptionDesc>&& options_descs);
 
-bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
-		     std::vector<CmdOptionDesc>&& options);
+  bool has(const std::string& name) const;
+  std::string operator[](const std::string& name);
+
+private:
+  std::map<std::string, std::string> options;
+};

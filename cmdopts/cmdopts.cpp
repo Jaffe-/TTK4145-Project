@@ -61,11 +61,10 @@ static bool split_options(std::vector< std::vector<char*> >& optlist,
   return true;
 }
 
-bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
-		     std::vector<CmdOptionDesc>&& descriptions)
+CmdOptions::CmdOptions(int argc, char** argv,
+		       std::vector<CmdOptionDesc>&& descriptions)
 {
   std::vector< std::vector<char*> > option_lists;
-  CmdOptions result;
   bool missing_option = false;
 
   if (!split_options(option_lists, argv + 1, argv + argc)) {
@@ -97,19 +96,21 @@ bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
       goto fail;
     }
     else {
-      result[option_str] = it->takes_arguments ? option_list[1] : "";
+      options[option_str] = it->takes_arguments ? option_list[1] : "";
     }
   }
 
   for (auto& option_desc : descriptions) {
-    if (!option_desc.optional) {
-      auto it = std::find_if(result.begin(), result.end(),
-			     [&](const std::pair<std::string, std::string>& opt)
-			     { return option_desc.name == opt.first; });
-      if (it == result.end()) {
+    auto it = std::find_if(options.begin(), options.end(),
+			   [&](const std::pair<std::string, std::string>& opt)
+			   { return option_desc.name == opt.first; });
+    if (it == options.end()) {
+      if (!option_desc.optional) {
 	missing_option = true;
 	std::cout << "ERROR: missing option " << option_prefix << option_desc.name
 		  << std::endl;
+      }
+      else {
       }
     }
   }
@@ -117,11 +118,23 @@ bool cmd_options_get(CmdOptions& parsed_opts, int argc, char** argv,
     goto fail;
   }
 
-  parsed_opts = result;
-  return true;
+  return;
 
  fail:
   std::cout << std::endl;
   print_usage(argv[0], descriptions);
-  return false;
+  exit(-1);
+}
+
+bool CmdOptions::has(const std::string& name) const
+{
+  return options.find(name) != options.end();
+}
+
+std::string CmdOptions::operator[](const std::string& name)
+{
+  if (has(name))
+    return options[name];
+  else
+    return "";
 }

@@ -13,14 +13,12 @@ int main(int argc, char** argv)
 	    << "\"Now I don't have to get stuck in elevators any more!\"" << std::endl
 	    << "                                          - Anonymous" << std::endl << std::endl;
 
-  CmdOptions cmd_options;
-  if (!cmd_options_get(cmd_options, argc, argv,
-		       {{"port", true, false, "port", "The port used for sending and receiving"},
-			{"debug", true, true, "debug", "Include debug information in log"}})) {
-    return -1;
-  }
+  CmdOptions cmd_options(argc, argv,
+			 {{"port", true, false, "port", "The port used for sending and receiving"},
+			  {"debug", true, true, "debug", "Include debug information in log"},
+			  {"simulated", false, true, "simulated", "Use elevator simulator instead of real hardware"}});
 
-  if (cmd_options.find("debug") == cmd_options.end()) {
+  if (!cmd_options.has("debug")) {
     log_.include_level = Logger::LogLevel::INFO;
   }
   else {
