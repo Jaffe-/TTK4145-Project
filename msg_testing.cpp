@@ -11,25 +11,26 @@ enum class TMessage {
 };
 
 /* This should contain all fields common to all kinds of messages. */
-class IMessage {
+class BaseMessage {
 public:
-  IMessage(TMessage type) : type(type) {};
+  BaseMessage(TMessage type) : type(type) {};
   TMessage type;
 };
 
+/* The concrete class for messages, where data is of type T */
 template <typename T>
-class Message : public IMessage {
+class Message : public BaseMessage {
 public:
-  Message(TMessage type, const T& data) : data(data), IMessage(type) {};
+  Message(TMessage type, const T& data) : data(data), BaseMessage(type) {};
   T data;
 };
 
 /* Wraps a handler function taking Message<T> in a lambda which takes care of
    converting the message to the correct Message<T> type. */
 template <typename T>
-std::function<void(const IMessage&)> wrap(void (*handler)(const Message<T>&))
+std::function<void(const BaseMessage&)> wrap(void (*handler)(const Message<T>&))
 {
-  return [=](const IMessage& msg) {
+  return [=](const BaseMessage& msg) {
     handler(static_cast<const Message<T>&>(msg));
   };
 }
@@ -46,9 +47,9 @@ void handler2(const Message<int>& s)
 
 int main()
 {
-  std::queue<std::shared_ptr<IMessage>> Q;
+  std::queue<std::shared_ptr<BaseMessage>> Q;
 
-  std::map<TMessage, std::function<void(const IMessage&)>> handlers = {
+  std::map<TMessage, std::function<void(const BaseMessage&)>> handlers = {
     {TMessage::NETWORK_SEND, wrap(handler1)},
     {TMessage::WHATEVER, wrap(handler2)}
   };
@@ -59,7 +60,7 @@ int main()
   Q.push(std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, "hals"));
 
   while (!Q.empty()) {
-    std::shared_ptr<IMessage> msg {std::move(Q.front())};
+    std::shared_ptr<BaseMessage> msg {std::move(Q.front())};
     handlers[msg->type](*msg);
     Q.pop();
   }
