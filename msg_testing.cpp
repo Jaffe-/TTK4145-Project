@@ -45,9 +45,37 @@ void handler2(const Message<int>& s)
   std::cout << "INT: " << s.data << std::endl;
 }
 
+class MessageQueue {
+public:
+  void push(const std::shared_ptr<BaseMessage>& msg);
+  std::shared_ptr<BaseMessage> pop();
+  bool empty() const {
+    return queue.empty();
+  };
+private:
+  std::queue<std::shared_ptr<BaseMessage>> queue;
+};
+
+void MessageQueue::push(const std::shared_ptr<BaseMessage>& msg)
+{
+  // LOCK
+  queue.push(std::move(msg));
+  // UNLOCK
+}
+
+std::shared_ptr<BaseMessage> MessageQueue::pop()
+{
+  // LOCK
+  auto msg = std::move(queue.front());
+  queue.pop();
+  return msg;
+  // UNLOCK
+}
+
 int main()
 {
-  std::queue<std::shared_ptr<BaseMessage>> Q;
+  MessageQueue Q;
+  //  std::queue<std::shared_ptr<BaseMessage>> Q;
 
   std::map<TMessage, std::function<void(const BaseMessage&)>> handlers = {
     {TMessage::NETWORK_SEND, wrap(handler1)},
@@ -60,8 +88,7 @@ int main()
   Q.push(std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, "hals"));
 
   while (!Q.empty()) {
-    std::shared_ptr<BaseMessage> msg {std::move(Q.front())};
+    std::shared_ptr<BaseMessage> msg = Q.pop();
     handlers[msg->type](*msg);
-    Q.pop();
   }
 }
