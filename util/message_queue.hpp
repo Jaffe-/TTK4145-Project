@@ -2,9 +2,11 @@
 #include <memory>
 #include <queue>
 
+
 enum class TMessage {
   NETWORK_SEND, WHATEVER, DRIVER_FLOORS
 };
+
 
 /* This should contain all fields common to all kinds of messages. */
 class BaseMessage {
@@ -12,6 +14,7 @@ public:
   BaseMessage(TMessage type) : type(type) {};
   TMessage type;
 };
+
 
 /* The concrete class for messages, where data is of type T */
 template <typename T>
@@ -21,13 +24,14 @@ public:
   T data;
 };
 
+
 class MessageQueue {
 public:
   void push(const std::shared_ptr<BaseMessage>& msg);
   std::shared_ptr<BaseMessage> pop();
-  bool empty() const {
-    return queue.empty();
-  };
+  bool empty() const;
+
 private:
   std::queue<std::shared_ptr<BaseMessage>> queue;
+  // tood: add mutex
 };

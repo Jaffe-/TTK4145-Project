@@ -15,3 +15,9 @@ std::shared_ptr<BaseMessage> MessageQueue::pop()
   return msg;
   // UNLOCK
 }
+
+bool empty() const {
+  // LOCK
+  return queue.empty();
+  // UNLOCK
+};
