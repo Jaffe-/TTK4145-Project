@@ -4,26 +4,7 @@
 #include <functional>
 #include <string>
 #include <memory>
-#include <queue>
-
-enum class TMessage {
-  NETWORK_SEND, WHATEVER, DRIVER_FLOORS
-};
-
-/* This should contain all fields common to all kinds of messages. */
-class BaseMessage {
-public:
-  BaseMessage(TMessage type) : type(type) {};
-  TMessage type;
-};
-
-/* The concrete class for messages, where data is of type T */
-template <typename T>
-class Message : public BaseMessage {
-public:
-  Message(TMessage type, const T& data) : data(data), BaseMessage(type) {};
-  T data;
-};
+#include "message_queue.hpp"
 
 /* Wraps a handler function taking Message<T> in a lambda which takes care of
    converting the message to the correct Message<T> type. */
@@ -43,33 +24,6 @@ void handler1(const Message<std::string>& s)
 void handler2(const Message<int>& s)
 {
   std::cout << "INT: " << s.data << std::endl;
-}
-
-class MessageQueue {
-public:
-  void push(const std::shared_ptr<BaseMessage>& msg);
-  std::shared_ptr<BaseMessage> pop();
-  bool empty() const {
-    return queue.empty();
-  };
-private:
-  std::queue<std::shared_ptr<BaseMessage>> queue;
-};
-
-void MessageQueue::push(const std::shared_ptr<BaseMessage>& msg)
-{
-  // LOCK
-  queue.push(std::move(msg));
-  // UNLOCK
-}
-
-std::shared_ptr<BaseMessage> MessageQueue::pop()
-{
-  // LOCK
-  auto msg = std::move(queue.front());
-  queue.pop();
-  return msg;
-  // UNLOCK
 }
 
 int main()
