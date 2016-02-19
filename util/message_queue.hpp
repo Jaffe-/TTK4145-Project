@@ -33,15 +33,15 @@ public:
 
   void push(const std::unique_lock<std::mutex>& lock, const std::shared_ptr<BaseMessage>& msg);
   void push(const std::shared_ptr<BaseMessage>& msg);
+
   std::shared_ptr<const BaseMessage> pop(const std::unique_lock<std::mutex>& lock);
   std::shared_ptr<const BaseMessage> pop();
-  bool empty(const std::unique_lock<std::mutex>& lock);
+
+  bool empty(const std::unique_lock<std::mutex>& lock) const;
   bool empty();
 
-private:
-  //  std::shared_ptr<BaseMessage> do_pop();
-  
+private:  
   std::queue<std::shared_ptr<const BaseMessage>> queue;
   std::mutex mut;
-  std::condition_variable cv;
+  std::condition_variable new_message;
 };

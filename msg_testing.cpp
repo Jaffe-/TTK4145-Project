@@ -62,8 +62,9 @@ int main()
   std::thread t2(sender2, std::ref(Q));
 
   while (true) {
-    while (!Q.empty()) {
-      std::shared_ptr<const BaseMessage> msg = Q.pop();
+    auto lock = Q.wait();
+    while (!Q.empty(lock)) {
+      std::shared_ptr<const BaseMessage> msg = Q.pop(lock);
       handlers[msg->type](*msg);
     }
   }
