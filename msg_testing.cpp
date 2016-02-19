@@ -1,6 +1,5 @@
 #include <iostream>
 #include <map>
-#include <algorithm>
 #include <functional>
 #include <string>
 #include <memory>
@@ -10,21 +9,21 @@
 
 void sender1(MessageQueue& queue)
 {
-  using namespace std::literals;
   for (int i = 0; i < 100000; i++) {
     std::string s = "1::Message number " + std::to_string(i);
     queue.push(std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, s));
-    std::this_thread::sleep_for(10ms);
   }
 }
 
 void sender2(MessageQueue& queue)
 {
-  using namespace std::literals;
-  for (int i = 0; i < 100000; i++) {
-    std::string s = "2::Message number " + std::to_string(i);
-    queue.push(std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, s));
-    std::this_thread::sleep_for(10ms);
+  while(true) {
+    auto lock = queue.acquire();
+    for (int i = 0; i < 100; i++) {
+      std::string s = "2::Message number " + std::to_string(i);
+      queue.push(lock, std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, s));
+    }
+    lock.unlock();
   }
 }
 
@@ -64,7 +63,7 @@ int main()
   while (true) {
     auto lock = Q.wait();
     while (!Q.empty(lock)) {
-      std::shared_ptr<const BaseMessage> msg = Q.pop(lock);
+      auto msg = Q.pop(lock);
       handlers[msg->type](*msg);
     }
   }
