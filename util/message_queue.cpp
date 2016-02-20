@@ -19,41 +19,23 @@ std::unique_lock<std::mutex> MessageQueue::wait()
 }
 
 
-void MessageQueue::push(const std::unique_lock<std::mutex>& lock, const std::shared_ptr<BaseMessage>& msg)
+/* Push uses acquire() to get the lock and moves its argument into the queue */
+void MessageQueue::push(const std::shared_ptr<BaseMessage>& msg)
 {
-  assert(lock && lock.mutex() == &mut);
-  queue.push(std::move(msg));
+  {
+    auto lock = acquire();
+    queue.push_back(std::move(msg));
+  }
   new_message.notify_one();
 }
 
-void MessageQueue::push(const std::shared_ptr<BaseMessage>& msg)
-{
-  push(acquire(), msg);
-}
 
-
-
-std::shared_ptr<const BaseMessage> MessageQueue::pop(const std::unique_lock<std::mutex>& lock)
+/* Use the given lock to take all current messages (move them out of the queue) */ 
+std::deque<std::shared_ptr<const BaseMessage>> MessageQueue::take_messages(std::unique_lock<std::mutex> lock)
 {
   assert(lock && lock.mutex() == &mut);
-  auto msg = std::move(queue.front());
-  queue.pop();
-  return msg;  
+  auto messages = std::move(queue);
+  queue = std::deque<std::shared_ptr<const BaseMessage>>();
+  return messages;
 }
 
-std::shared_ptr<const BaseMessage> MessageQueue::pop()
-{
-  return pop(acquire());
-}
-
-
-bool MessageQueue::empty(const std::unique_lock<std::mutex>& lock) const
-{
-  assert(lock && lock.mutex() == &mut);
-  return queue.empty();
-};
-
-bool MessageQueue::empty()
-{
-  return empty(acquire());
-}

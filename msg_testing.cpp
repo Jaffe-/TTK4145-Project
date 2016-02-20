@@ -9,21 +9,24 @@
 
 void sender1(MessageQueue& queue)
 {
-  for (int i = 0; i < 100000; i++) {
-    std::string s = "1::Message number " + std::to_string(i);
-    queue.push(std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, s));
+  unsigned int id = 0;
+  while (true) {
+    for (int i = 0; i < 20; i++) {
+      std::string s = "1::Message number " + std::to_string(id++);
+      auto msg = std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, s);
+      queue.push(std::move(msg));
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 }
 
 void sender2(MessageQueue& queue)
 {
+  unsigned int id = 0;
   while(true) {
-    auto lock = queue.acquire();
-    for (int i = 0; i < 100; i++) {
-      std::string s = "2::Message number " + std::to_string(i);
-      queue.push(lock, std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, s));
-    }
-    lock.unlock();
+    std::string s = "2::Message number " + std::to_string(id++);
+    queue.push(std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, s));
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
 }
 
@@ -61,10 +64,9 @@ int main()
   std::thread t2(sender2, std::ref(Q));
 
   while (true) {
-    auto lock = Q.wait();
-    while (!Q.empty(lock)) {
-      auto msg = Q.pop(lock);
+    for (const auto& msg : Q.take_messages(Q.wait())) {
       handlers[msg->type](*msg);
     }
   }
+
 }
