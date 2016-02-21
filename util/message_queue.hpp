@@ -29,16 +29,17 @@ public:
 
 class MessageQueue {
 public:
+  using queue_t = std::deque<std::shared_ptr<const BaseMessage>>;
 
   std::unique_lock<std::mutex> wait();
   std::unique_lock<std::mutex> acquire();
 
   void push(const std::shared_ptr<BaseMessage>& msg);
 
-  std::deque<std::shared_ptr<const BaseMessage>> take_messages(std::unique_lock<std::mutex> lock);
+  queue_t take_messages(std::unique_lock<std::mutex> lock);
 
-private:  
-  std::deque<std::shared_ptr<const BaseMessage>> queue;
+private:
+  queue_t queue;
   std::mutex mut;
   std::condition_variable new_message;
 };

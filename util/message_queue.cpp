@@ -30,11 +30,10 @@ void MessageQueue::push(const std::shared_ptr<BaseMessage>& msg)
 
 
 /* Use the given lock to take all current messages (move them out of the queue) */ 
-std::deque<std::shared_ptr<const BaseMessage>> MessageQueue::take_messages(std::unique_lock<std::mutex> lock)
+MessageQueue::queue_t MessageQueue::take_messages(std::unique_lock<std::mutex> lock)
 {
   assert(lock && lock.mutex() == &mut);
   auto messages = std::move(queue);
-  queue = std::deque<std::shared_ptr<const BaseMessage>>();
+  queue = queue_t();
   return messages;
 }
-

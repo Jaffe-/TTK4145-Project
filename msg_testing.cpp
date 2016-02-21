@@ -68,5 +68,4 @@ int main()
       handlers[msg->type](*msg);
     }
   }
-
 }
