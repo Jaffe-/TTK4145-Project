@@ -6,8 +6,7 @@
 /* Acquire immediately locks the queue */
 std::unique_lock<std::mutex> MessageQueue::acquire()
 {
-  std::unique_lock<std::mutex> lock(mut);
-  return lock;
+  return std::unique_lock<std::mutex>(mut);
 }
 
 /* Wait will suspend the thread until a new message has arrived */
