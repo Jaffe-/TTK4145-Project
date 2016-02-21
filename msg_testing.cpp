@@ -11,7 +11,7 @@ void sender1(MessageQueue& queue)
 {
   unsigned int id = 0;
   while (true) {
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 5; i++) {
       std::string s = "1::Message number " + std::to_string(id++);
       auto msg = std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, s);
       queue.push(std::move(msg));
@@ -63,9 +63,18 @@ int main()
   std::thread t1(sender1, std::ref(Q));
   std::thread t2(sender2, std::ref(Q));
 
+  /* Sleeping version */
   while (true) {
     for (const auto& msg : Q.take_messages(Q.wait())) {
       handlers[msg->type](*msg);
     }
+  }
+
+  /* Polling version */
+  while (true) {
+    for (const auto& msg : Q.take_messages(Q.acquire())) {
+      handlers[msg->type](*msg);
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
 }
