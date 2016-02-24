@@ -2,6 +2,7 @@
 #include "driver.hpp"
 #include "../logger/logger.hpp"
 #include <chrono>
+#include <iostream>
 
 bool is_internal(Button button)
 {
@@ -16,107 +17,110 @@ unsigned int internal_button_floor(Button button)
   return static_cast<int>(button);
 }
 
+std::ostream& operator<<(std::ostream& s, const DriverEvent& event) {
+  s << "{";
+  switch (event.type) {
+  case DriverEvent::BUTTON_PRESS:
+    s << "BUTTON_PRESS";
+    break;
+  case DriverEvent::FLOOR_SIGNAL:
+    s << "FLOOR_SIGNAL";
+    break;
+  default:
+    s << "CORRUPT";
+    break;
+  }
+  s << ", button=" << static_cast<int>(event.button);
+  s << ", floor=" << event.floor << "}";
+  return s;
+}
+
 Driver::Driver(bool use_simulator)
 {
   std::string driver_string = use_simulator ? "simulated" : "hardware";
-  if (elev_init(use_simulator ? ET_simulation : ET_comedi)) {
+  int rv;
+  if ((rv = elev_init(use_simulator ? ET_simulation : ET_comedi))) {
     LOG_DEBUG("Started driver (" << driver_string << ")");
   }
   else {
-    LOG_DEBUG("Failed to start driver (" << driver_string << ")");
+    LOG_DEBUG("Failed to start driver (" << driver_string << "), rv = " << rv);
     // Exception?
+    return;
   }
+  
+  int current_floor = initialize_position();
+  if (current_floor >= 0) {
+    LOG_DEBUG("Elevator is now at floor " << current_floor);
+  }
+  else {
+    LOG_DEBUG("Failed to position the elevator at a known floor.");
+    // ERROR
+  }
+  fsm.set_floor(current_floor);
+
 }
 
-bool FSM::should_stop(int floor)
-{
-  return
-    orders[floor][2] ||
-    direction == UP && orders[floor][0] || 
-    direction == DOWN && orders[floor][1];
-}
 
-void FSM::change_state(State new_state)
+void Driver::poll(int& last, int new_value, int invalid_value, DriverEvent event)
 {
-  if (new_state == STOPPED) {
-    elev_set_motor_direction(DIRN_STOP);
-    door_opened_time = std::chrono::system_clock::now();
-    door_open = true;
-  }
-  else if (new_state == MOVING) {
-    if (direction == UP)
-      elev_set_motor_direction(DIRN_UP);
-    else
-      elev_set_motor_direction(DIRN_DOWN);
-  }
-  state = new_state;
-}
-
-void FSM::update_lights()
-{
-  elev_set_floor_indicator(current_floor);
-  elev_set_door_open_lamp(door_open ? 1 : 0);
-  for (int floor = 0; floor < FLOORS; floor++) {
-    elev_set_button_lamp(BUTTON_COMMAND, floor, orders[floor][2] ? 1 : 0);
-  }
-}
-
-void FSM::notify(DriverEvent event)
-{
-  if (event.type == DriverEvent::BUTTON_PRESS) {
-    if (is_internal(event.button)) {
-      orders[internal_button_floor(event.button)][2] = 1;
+   if (new_value != last){
+    last = new_value;
+    if(new_value != invalid_value){
+      LOG_DEBUG("New event generated: " << event);
+      fsm.notify(event);
+      // Make event message :)
     }
   }
-  else if (event.type == DriverEvent::FLOOR_SIGNAL) {
-    current_floor = event.floor;
-    if (should_stop(event.floor)) {
-      change_state(STOPPED);
+}
+void Driver::event_generator()
+{
+  int floor_signal = elev_get_floor_sensor_signal();
+  poll(last_floor_signal, floor_signal, -1, {DriverEvent::FLOOR_SIGNAL, NONE, floor_signal});
+
+  for (int i = 0; i < FLOORS; i++) {
+    for (int j = 0; j <= 2; j++ ) {
+      if (i == 0 && j == 1 || i == 3 && j == 0) {
+	continue;
+      }
+      
+      int button_signal = elev_get_button_signal(static_cast<elev_button_type_t>(j), i);
+      /*
+      if (button_signal != 0) {
+	LOG_DEBUG("button_signal = " << button_signal);
+	LOG_DEBUG("last_button = " << last_button_signals[i][j]);
+      }
+      */
+      poll(last_button_signals[i][j], button_signal, 0,
+	   {DriverEvent::BUTTON_PRESS, button_list[i][j], -1});
     }
   }
-  update_lights();
 }
 
-bool FSM::floors_above()
+int Driver::initialize_position()
 {
-  for (int floor = current_floor + 1; floor < FLOORS; floor++) {
-    if (orders[floor][0] || orders[floor][2])
-      return true;
-  }
-  return false;
-}
-
-bool FSM::floors_below()
-{
-  for (int floor = current_floor - 1; floor >= 0; floor--) {
-    if (orders[floor][1] || orders[floor][2])
-      return true;
-  }
-  return false;
-}
-
-void FSM::run()
-{
-  if (state == STOPPED) {
-    if (door_open) {
-      if (std::chrono::system_clock::now() - door_opened_time > door_time) {
-	door_open = false;
+  const std::chrono::duration<double> wait_time = std::chrono::seconds(4);
+  for (elev_motor_direction_t dir : {DIRN_UP, DIRN_DOWN}) {
+    LOG_DEBUG("Trying to go " << (dir == DIRN_UP ? "up" : "down"));
+    elev_set_motor_direction(dir);
+    TimePoint start = std::chrono::system_clock::now();
+    while (std::chrono::system_clock::now() - start < wait_time) {
+      int floor_signal = elev_get_floor_sensor_signal();
+      if (floor_signal != -1) {
+	LOG_DEBUG("Stopping motor");
+	elev_set_motor_direction(DIRN_STOP);
+	return floor_signal;
       }
     }
-    else {
-      if (direction == UP && !floors_above())
-	direction = DOWN;
-      else if (direction == DOWN && !floors_below())
-	direction = UP;
-      
-      change_state(MOVING);
-    }
   }
+  return -1;
 }
 
 void Driver::run()
 {
-  
+  while (1) {
+    event_generator();
+    fsm.run();
+  }
   /*
   switch (state) {
   case FSMState::MOVING:
