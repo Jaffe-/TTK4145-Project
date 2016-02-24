@@ -2,7 +2,7 @@
 #include "receiver.hpp"
 #include "sender.hpp"
 #include "connection_controller.hpp"
-#include "../logger/logger.hpp"
+#include "../util/logger.hpp"
 #include <chrono>
 
 namespace Network {

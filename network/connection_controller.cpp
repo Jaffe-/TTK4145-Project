@@ -1,7 +1,7 @@
 #include "network_int.hpp"
 #include "connection_controller.hpp"
 #include <vector>
-#include "../logger/logger.hpp"
+#include "../util/logger.hpp"
 #include "sender.hpp"
 #include <algorithm>
 #include <chrono>

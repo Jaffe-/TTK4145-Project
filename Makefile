@@ -1,9 +1,8 @@
 TARGET=elevator
-SIMTARGET=selevator
-CC = g++
+CC = gcc
 override CFLAGS +=-Wall -Wextra -pedantic -std=c++11
-LDFLAGS = -Ldriver/hw_interface -linterface -lcomedi -lm -lsimelev -lphobos2 -lpthread
-MODULES = network logger cmdopts driver
+LDFLAGS = -lstdc++ -Ldriver/hw_interface -linterface -lcomedi -lm -lsimelev -lphobos2 -lpthread
+MODULES = network driver util
 CPPSRC = main.cpp $(foreach m, $(MODULES), $(wildcard $(m)/*.cpp))
 HEADERS = $(foreach m, $(MODULES), $(wildcard $(m)/*.hpp))
 OBJ = $(CPPSRC:.cpp=.o)

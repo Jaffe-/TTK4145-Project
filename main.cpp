@@ -1,6 +1,6 @@
-#include "cmdopts/cmdopts.hpp"
+#include "util/cmdopts.hpp"
+#include "util/logger.hpp"
 #include "network/receiver.hpp"
-#include "logger/logger.hpp"
 #include "driver/driver.hpp"
 
 int main(int argc, char** argv)
