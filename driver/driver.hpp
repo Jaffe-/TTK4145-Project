@@ -1,5 +1,7 @@
 #include <vector>
 
+#define FLOORS 4
+
 enum class Button {
   INTERNAL_1, INTERNAL_2, INTERNAL_3, INTERNAL_4,
   EXTERNAL_1U,
@@ -33,7 +35,8 @@ private:
   void notify_fsm(DriverEvent event);
   void insert_order(unsigned int floor);
 
-  std::vector<unsigned int> floors;
+  unsigned int orders[FLOORS][3];
+
   unsigned int current_floor;
   FSMState state;
   elev_motor_direction_t direction;
