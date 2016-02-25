@@ -40,20 +40,20 @@ Driver::Driver(bool use_simulator)
   std::string driver_string = use_simulator ? "simulated" : "hardware";
   int rv;
   if ((rv = elev_init(use_simulator ? ET_simulation : ET_comedi))) {
-    LOG_DEBUG("Started driver (" << driver_string << ")");
+    LOG_INFO("Started driver (" << driver_string << ")");
   }
   else {
-    LOG_DEBUG("Failed to start driver (" << driver_string << "), rv = " << rv);
+    LOG_ERROR("Failed to start driver (" << driver_string << "), rv = " << rv);
     // Exception?
     return;
   }
   
   int current_floor = initialize_position();
   if (current_floor >= 0) {
-    LOG_DEBUG("Elevator is now at floor " << current_floor);
+    LOG_INFO("Elevator is now at floor " << current_floor);
   }
   else {
-    LOG_DEBUG("Failed to position the elevator at a known floor.");
+    LOG_ERROR("Failed to position the elevator at a known floor!");
     // ERROR
   }
   fsm.set_floor(current_floor);
