@@ -2,6 +2,7 @@
 #include "util/logger.hpp"
 #include "network/receiver.hpp"
 #include "driver/driver.hpp"
+#include <thread>
 
 int main(int argc, char** argv)
 {
@@ -27,7 +28,11 @@ int main(int argc, char** argv)
   LOG_DEBUG("Log is initialized");
 
   Driver driver(cmd_options.has("simulated"));
+  Network::start(cmd_options["port"]);
   driver.run();
-  //Network::start(cmd_options["port"]);
+  std::thread driver_thread([&] { driver.run(); });
+  std::thread network_thread(Network::run);
+
+  while (1);
   //Network::run();
 }
