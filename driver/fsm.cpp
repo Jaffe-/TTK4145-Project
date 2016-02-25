@@ -14,8 +14,8 @@ bool FSM::should_stop(int floor)
 {
   return
     orders[floor][2] ||
-    direction == UP && orders[floor][0] || 
-    direction == DOWN && orders[floor][1];
+    (direction == UP && orders[floor][0]) ||
+    (direction == DOWN && orders[floor][1]);
 }
 
 void FSM::change_state(State new_state)

@@ -79,7 +79,7 @@ void Driver::event_generator()
 
   for (int i = 0; i < FLOORS; i++) {
     for (int j = 0; j <= 2; j++ ) {
-      if (i == 0 && j == 1 || i == 3 && j == 0) {
+      if ((i == 0 && j == 1) || (i == 3 && j == 0)) {
 	continue;
       }
       
