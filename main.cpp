@@ -27,10 +27,12 @@ int main(int argc, char** argv)
   }
   LOG_DEBUG("Log is initialized");
 
-  Driver driver(cmd_options.has("simulated"));
   Network::start(cmd_options["port"]);
-  driver.run();
-  std::thread driver_thread([&] { driver.run(); });
+
+  std::thread driver_thread([&] {
+      Driver driver(cmd_options.has("simulated"));
+      driver.run();
+  });
   std::thread network_thread(Network::run);
 
   while (1);
