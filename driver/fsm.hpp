@@ -23,6 +23,8 @@ private:
     UP, DOWN
   };
 
+  void clear_orders(int floor);
+  void insert_order(int floor, int type);
   bool should_stop(int floor);
   void change_state(const State& new_state);
   bool floors_below();

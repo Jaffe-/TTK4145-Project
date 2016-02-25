@@ -18,6 +18,18 @@ bool FSM::should_stop(int floor)
     (direction == DOWN && orders[floor][1]);
 }
 
+void FSM::clear_orders(int floor)
+{
+  for (int i = 0; i <= 2; i++)
+    orders[floor][i] = 0;
+}
+
+void FSM::insert_order(int floor, int type)
+{
+  LOG_DEBUG("New order: go to floor " << floor << ", type=" << type);
+  orders[floor][type] = true;
+}
+
 void FSM::change_state(const State& new_state)
 {
   if (new_state == STOPPED) {
@@ -25,8 +37,7 @@ void FSM::change_state(const State& new_state)
     elev_set_motor_direction(DIRN_STOP);
     door_opened_time = std::chrono::system_clock::now();
     door_open = true;
-    for (int i = 0; i <= 2; i++) 
-      orders[current_floor][i] = 0;
+    clear_orders(current_floor);
   }
   else if (new_state == MOVING) {
     LOG_DEBUG("Changed state to MOVING");
@@ -51,7 +62,7 @@ void FSM::notify(const DriverEvent& event)
 {
   if (event.type == DriverEvent::BUTTON_PRESS) {
     if (is_internal(event.button)) {
-      orders[internal_button_floor(event.button)][2] = 1;
+      insert_order(internal_button_floor(event.button), 2);
     }
   }
   else if (event.type == DriverEvent::FLOOR_SIGNAL) {
