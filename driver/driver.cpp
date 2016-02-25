@@ -106,7 +106,6 @@ int Driver::initialize_position()
     while (std::chrono::system_clock::now() - start < wait_time) {
       int floor_signal = elev_get_floor_sensor_signal();
       if (floor_signal != -1) {
-	LOG_DEBUG("Stopping motor");
 	elev_set_motor_direction(DIRN_STOP);
 	return floor_signal;
       }
