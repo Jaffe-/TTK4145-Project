@@ -18,7 +18,7 @@ bool FSM::should_stop(int floor)
     (direction == DOWN && orders[floor][1]);
 }
 
-void FSM::change_state(State new_state)
+void FSM::change_state(const State& new_state)
 {
   if (new_state == STOPPED) {
     LOG_DEBUG("Changed state to STOPPED");

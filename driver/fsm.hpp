@@ -24,7 +24,7 @@ private:
   };
 
   bool should_stop(int floor);
-  void change_state(State new_state);
+  void change_state(const State& new_state);
   bool floors_below();
   bool floors_above();
   void update_lights();
