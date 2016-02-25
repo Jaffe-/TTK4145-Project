@@ -48,7 +48,6 @@ public:
   void run();
   
 private:
-  void notify_fsm(DriverEvent event);
   void insert_order(unsigned int floor);
   void poll(int& last, int new_value, int invalid_value, DriverEvent event);
   void event_generator();
