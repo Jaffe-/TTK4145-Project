@@ -66,9 +66,6 @@ namespace Network {
     }
     
     freeaddrinfo(res);
-
-    LOG_DEBUG("Created new socket on port " << port);
-
     operational = true;
   }
 

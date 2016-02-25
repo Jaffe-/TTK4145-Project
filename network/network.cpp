@@ -17,9 +17,10 @@ namespace Network {
     if (socket->operational) {
       receiver = new Receiver(*socket);
       sender = new Sender(*socket);
+      LOG_INFO("Network started on port " << port);
     }
     else {
-      LOG_ERROR("Failed to create socket.");
+      LOG_ERROR("Failed to start network");
       // ??
       return;
     }
