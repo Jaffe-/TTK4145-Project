@@ -84,12 +84,6 @@ void Driver::event_generator()
       }
       
       int button_signal = elev_get_button_signal(static_cast<elev_button_type_t>(j), i);
-      /*
-      if (button_signal != 0) {
-	LOG_DEBUG("button_signal = " << button_signal);
-	LOG_DEBUG("last_button = " << last_button_signals[i][j]);
-      }
-      */
       poll(last_button_signals[i][j], button_signal, 0,
 	   {DriverEvent::BUTTON_PRESS, button_list[i][j], -1});
     }
@@ -120,15 +114,4 @@ void Driver::run()
     event_generator();
     fsm.run();
   }
-  /*
-  switch (state) {
-  case FSMState::MOVING:
-    if (elev_get_floor_sensor_signal() == floors[0]) {
-      elev_set_motor_direction(DIRN_STOP);
-      state = FSMState::STOPPED;
-    }
-  case FSMState::STOPPED:
-    
-  }
-  */
 }
