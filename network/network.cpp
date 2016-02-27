@@ -1,13 +1,12 @@
 #include <string>
 #include <iostream>
 #include "network.hpp"
-#include "receiver.hpp"
 #include "sender.hpp"
 #include "connection_controller.hpp"
 #include "../util/logger.hpp"
 #include <chrono>
 
-Network::Network(const std::string& port) : socket(port), sender(*this), receiver(*this), connection_controller(*this)
+Network::Network(const std::string& port) : socket(port), sender(*this), connection_controller(*this)
 {
   LOG_INFO("Network started on port " << port);
 }
@@ -19,7 +18,7 @@ void Network::run()
   TimePoint t = std::chrono::system_clock::now();
   int q = sender.allocate_queue();
   while (true) {
-    receiver.run();
+    receive();
     sender.run();
     connection_controller.run();
 
@@ -55,6 +54,43 @@ void Network::send_all(const Packet& packet)
 void Network::broadcast(const Packet& packet)
 {
   socket.write(packet, "255.255.255.255");
+}
+
+void Network::receive()
+{
+  if (socket.empty())
+    return;
+
+  Packet packet;
+  if (!socket.read(packet)) {
+    LOG_ERROR("Unable to read from socket");
+    return;
+  }
+
+  if (socket.own_ip(packet.ip))
+    return;
+
+  LOG(4, "Received packet " << packet);
+
+  switch (packet.type){
+  case PacketType::PING:
+    send(make_pong(), packet.ip);
+    break;
+  case PacketType::PONG:
+    connection_controller.notify_pong(packet.ip);
+    break;
+  case PacketType::MSG:
+    //    buffer.push_back(std::string(packet.bytes.begin(),
+    //				 packet.bytes.end()));
+    //network.send(make_okay(packet), packet.ip);
+    //std::cout << buffer[buffer.size() - 1];
+    break;
+  case PacketType::OK:
+    sender.notify_okay(packet.ip, packet.id);
+    break;
+  default:
+    break;
+  }
 }
 
 std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& v)
