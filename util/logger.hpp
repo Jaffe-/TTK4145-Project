@@ -21,13 +21,17 @@ public:
   enum class LogLevel {
     ERROR, WARNING, INFO, DEBUG
   };
-  Logger(std::string const& filename, LogLevel level);
-  ~Logger();
+  Logger() : include_level(LogLevel::ERROR) {};
+  Logger(std::string const& filename, Logger::LogLevel level)
+    : include_level(level), file(filename) {};
 
   class Line {
   public:
-    Line(Logger& log, std::unique_lock<std::mutex> lock) : log(log), lock(std::move(lock)) {};
+    Line(Logger& log, std::unique_lock<std::mutex> lock)
+      : log(log), lock(std::move(lock)) {};
+
     Line(Line&& line) : log(line.log), lock(std::move(line.lock)) {};
+
     std::ostream& write(LogLevel level, char const* filename, char const* function, int line);
 
   private:

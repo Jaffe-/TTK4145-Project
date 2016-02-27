@@ -49,16 +49,6 @@ std::ostream& Logger::Line::write(LogLevel level, char const* filename, char con
   return log.file;
 }
 
-Logger::Logger(std::string const& filename, Logger::LogLevel level) : include_level(level)
-{
-  file.open(filename);
-}
-
-Logger::~Logger()
-{
-  file.close();
-}
-
 std::string Logger::level_name(Logger::LogLevel level)
 {
   switch (level) {
