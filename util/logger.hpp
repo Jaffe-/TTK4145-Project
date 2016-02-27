@@ -5,6 +5,7 @@
 #include <ctime>
 #include <algorithm>
 #include <mutex>
+#include <thread>
 
 #define LOG(Level_, Message_)		\
   if ((int)log_.include_level >= (int)(Level_))				\
@@ -25,12 +26,13 @@ public:
 
   class Line {
   public:
-    Line(Logger& parent);
-    ~Line();
+    Line(Logger& log, std::unique_lock<std::mutex> lock) : log(log), lock(std::move(lock)) {};
+    Line(Line&& line) : log(line.log), lock(std::move(line.lock)) {};
     std::ostream& write(LogLevel level, char const* filename, char const* function, int line);
 
   private:
-    Logger& parent;
+    Logger& log;
+    std::unique_lock<std::mutex> lock;
   };
 
   Line new_line();

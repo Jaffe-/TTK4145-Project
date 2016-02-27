@@ -25,19 +25,9 @@ std::string line_color(Logger::LogLevel level)
   }
 }
 
-Logger::Line::Line(Logger& parent) : parent(parent)
-{
-  parent.mut.lock();
-}
-
-Logger::Line::~Line()
-{
-  parent.mut.unlock();
-}
-
 Logger::Line Logger::new_line()
 {
-  return Line(*this);
+  return Line(*this, std::unique_lock<std::mutex>(mut));
 }
 
 std::ostream& Logger::Line::write(LogLevel level, char const* filename, char const* function, int line)
@@ -48,15 +38,15 @@ std::ostream& Logger::Line::write(LogLevel level, char const* filename, char con
 
   std::string color = line_color(level);
 
-  parent.file << color << formatted_time << " "
-	      << color_darkblue << filename
-	      << color_white << ":"
-	      << color_blue << function
-	      << color_white << ":"
-	      << color_darkcyan << line
-	      << color_white << ": "
-	      << color;
-  return parent.file;
+  log.file << color << formatted_time << " "
+	   << color_darkblue << filename
+	   << color_white << ":"
+	   << color_blue << function
+	   << color_white << ":"
+	   << color_darkcyan << line
+	   << color_white << ": "
+	   << color;
+  return log.file;
 }
 
 Logger::Logger(std::string const& filename, Logger::LogLevel level) : include_level(level)
