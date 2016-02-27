@@ -6,9 +6,13 @@
   
 std::string truncate(const std::string& str, const std::string::size_type trunc_limit)
 {
-  std::string truncated = str.substr(0, std::min(str.length(), trunc_limit));
-  std::replace(truncated.begin(), truncated.end(), '\n', ' ');
-  return truncated;
+  if (str.size() <= trunc_limit)
+    return str;
+  else {
+    std::string truncated = str.substr(0, std::min(str.length(), trunc_limit));
+    std::replace(truncated.begin(), truncated.end(), '\n', ' ');
+    return truncated + " (...)";
+  }
 }
 
 std::ostream& operator<<(std::ostream& s, const Sender::MessageEntry& msg_entry)

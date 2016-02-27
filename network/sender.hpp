@@ -17,6 +17,7 @@ private:
   using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
   Network& network;
+
   struct MessageEntry {
     MessageEntry(unsigned int id, const std::string& msg,
 		 const std::vector<std::string>& recipients) :
