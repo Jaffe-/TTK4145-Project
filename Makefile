@@ -18,6 +18,6 @@ $(TARGET): $(OBJ)
 -include $(CPPSRC:%.cpp=%.d)
 
 clean:
-	rm -f $(OBJ)
+	rm -f $(OBJ) $(CPPSRC:%.cpp=%.d)
 
 .PHONY: all clean

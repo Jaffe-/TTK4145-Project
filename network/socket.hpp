@@ -4,28 +4,22 @@
 #include <iostream>
 #include <vector>
 
-struct Packet;
+const int MAXBUF = 2048;
 
-namespace Network {
+/* UDP socket abstraction */
+class Socket {
+public:
+  Socket(const std::string& port);
+  ~Socket();
+  bool empty();
+  bool read(Packet& packet);
+  bool write(const Packet& packet, const std::string& to_ip);
+  bool own_ip(const std::string& ip);
 
-  const int MAXBUF = 2048;
+  std::string port;
+  bool operational;
 
-  /* UDP socket abstraction */
-  class Socket {
-  public:
-    Socket(const std::string& port);
-    ~Socket();
-    bool empty();
-    bool read(Packet& packet);
-    bool write(const Packet& packet, const std::string& to_ip);
-    bool own_ip(const std::string& ip);
-
-    std::string port;
-    bool operational;
-
-  private:
-    int sockfd;
-    std::vector<std::string> own_ips;
-  };
-
-}
+private:
+  int sockfd;
+  std::vector<std::string> own_ips;
+};
