@@ -26,8 +26,10 @@ void FSM::clear_orders(int floor)
 
 void FSM::insert_order(int floor, int type)
 {
-  LOG_DEBUG("New order: go to floor " << floor << ", type=" << type);
-  orders[floor][type] = true;
+  if (floor != current_floor) {
+    LOG_DEBUG("New order: go to floor " << floor << ", type=" << type);
+    orders[floor][type] = true;
+  }
 }
 
 void FSM::change_state(const State& new_state)
@@ -100,6 +102,7 @@ void FSM::run()
     if (door_open) {
       if (std::chrono::system_clock::now() - door_opened_time > door_time) {
 	door_open = false;
+	update_lights();
       }
     }
     else {
