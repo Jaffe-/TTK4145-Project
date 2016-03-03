@@ -10,13 +10,20 @@ enum class TMessage {
 };
 
 
+template <typename T>
+class Message;
+
 /* This should contain all fields common to all kinds of messages. */
 class BaseMessage {
 public:
   BaseMessage(TMessage type) : type(type) {};
   TMessage type;
-};
 
+  template <typename T>
+  operator const Message<T>&() const {
+    return static_cast<const Message<T>&>(*this);
+  }
+};
 
 /* The concrete class for messages, where data is of type T */
 template <typename T>
