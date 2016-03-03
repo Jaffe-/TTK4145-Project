@@ -24,21 +24,9 @@ void sender2(MessageQueue& queue)
 {
   unsigned int id = 0;
   while(true) {
-    std::string s = "2::Message number " + std::to_string(id++);
-    queue.push(std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, s));
+    queue.push(std::make_shared<Message<int>>(TMessage::WHATEVER, id++));
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
-}
-
-
-/* Wraps a handler function taking Message<T> in a lambda which takes care of
-   converting the message to the correct Message<T> type. */
-template <typename T>
-std::function<void(const BaseMessage&)> wrap(void (*handler)(const Message<T>&))
-{
-  return [=](const BaseMessage& msg) {
-    handler(static_cast<const Message<T>&>(msg));
-  };
 }
 
 void handler1(const Message<std::string>& s)
@@ -56,8 +44,8 @@ int main()
   MessageQueue Q;
 
   std::map<TMessage, std::function<void(const BaseMessage&)>> handlers = {
-    {TMessage::NETWORK_SEND, wrap(handler1)},
-    {TMessage::WHATEVER, wrap(handler2)}
+    {TMessage::NETWORK_SEND, handler1},
+    {TMessage::WHATEVER, handler2}
   };
 
   std::thread t1(sender1, std::ref(Q));
