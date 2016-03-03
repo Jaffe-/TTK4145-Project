@@ -19,6 +19,14 @@ public:
   BaseMessage(TMessage type) : type(type) {};
   TMessage type;
 
+  /*
+    This operator allows a BaseMessage object to be automatically converted
+    to a Message<T>, where T depends on the context - i.e. when left hand side
+    in an assignment is a specific Message<T> or when a BaseMessage reference/
+    pointer is given to a function taking a specific Message<T>.
+
+    Warning: This is not type safe.
+  */
   template <typename T>
   operator const Message<T>&() const {
     return static_cast<const Message<T>&>(*this);
