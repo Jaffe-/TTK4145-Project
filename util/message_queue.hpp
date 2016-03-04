@@ -35,11 +35,6 @@ public:
   operator const Message<T>&() const {
     return static_cast<const Message<T>&>(*this);
   }
-
-  template <typename T>
-  operator const SerializableMessage<T>&() const {
-    return static_cast<const SerializableMessage<T>&>(*this);
-  }
 };
 
 /* The concrete class for messages, where data is of type T */

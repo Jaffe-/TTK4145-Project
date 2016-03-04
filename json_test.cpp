@@ -58,6 +58,4 @@ int main()
   std::cout << recv.data.c << std::endl;
 
   Message<B> btst(TMessage::NETWORK_SEND, B());
-
-  //  btst.serialize();
 }
