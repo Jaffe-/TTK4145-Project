@@ -14,8 +14,11 @@ enum class TMessage {
 template <typename T>
 class Message;
 
+template <typename T>
+class SerializableMessage;
+
 /* This should contain all fields common to all kinds of messages. */
-class BaseMessage : public Serializable {
+class BaseMessage {
 public:
   BaseMessage(TMessage type) : type(type) {};
   TMessage type;
@@ -32,21 +35,38 @@ public:
   operator const Message<T>&() const {
     return static_cast<const Message<T>&>(*this);
   }
+
+  template <typename T>
+  operator const SerializableMessage<T>&() const {
+    return static_cast<const SerializableMessage<T>&>(*this);
+  }
 };
 
 /* The concrete class for messages, where data is of type T */
 template <typename T>
 class Message : public BaseMessage {
 public:
-  Message(const json& js) : data(js["data"]), BaseMessage((TMessage)((int)js["type"])) {};
-  Message(const std::string& json_str) : Message(json::parse(json_str)) {};
   Message(TMessage type, const T& data) : data(data), BaseMessage(type) {};
   const T data;
+};
+
+template <typename T>
+class SerializableMessage : public Message<T>, public Serializable {
+public:
+  SerializableMessage(TMessage type, const T& data) : Message<T>(type, data) {};
+
+  /* Construct from JSON object */
+  SerializableMessage(const json& js)
+    : Message<T>((TMessage)((int)js["type"]), js["data"]) {};
+
+  /* Construct from JSON string */
+  SerializableMessage(const std::string& json_string)
+    : SerializableMessage(json::parse(json_string)) {};
 
   json get_json() const {
     return {
-      {"type", static_cast<int>(type)},
-      {"data", data.get_json()}
+      {"type", static_cast<int>(this->type)},
+      {"data", this->data.get_json()}
     };
   }
 };

@@ -31,7 +31,7 @@ class B {
 public:
 };
 
-void send(const BaseMessage& bm)
+void send(const Serializable& bm)
 {
   std::cout << bm.serialize() << std::endl;
 }
@@ -43,7 +43,7 @@ int main()
 	       {"c", 5.4}};
   A tst(test.dump());
 
-  Message<A> tst_msg(TMessage::NETWORK_SEND, tst);
+  SerializableMessage<A> tst_msg(TMessage::NETWORK_SEND, tst);
   
   //  std::string raw = test.dump();
   std::cout << tst.a << std::endl;
@@ -52,7 +52,7 @@ int main()
 
   send(tst_msg);
 
-  Message<A> recv(tst_msg.serialize());
+  SerializableMessage<A> recv(tst_msg.serialize());
   std::cout << recv.data.a << std::endl;
   std::cout << recv.data.b << std::endl;
   std::cout << recv.data.c << std::endl;
