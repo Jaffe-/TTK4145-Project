@@ -6,6 +6,7 @@
 #include "util/message_queue.hpp"
 #include <thread>
 #include <chrono>
+#include <cassert>
 
 void sender1(MessageQueue& queue)
 {
@@ -31,6 +32,7 @@ void sender2(MessageQueue& queue)
 
 void handler1(const Message<std::string>& s)
 {
+  assert(s.type == TMessage::NETWORK_SEND);
   std::cout << "STRING: " << s.data << std::endl;
 }
 
@@ -45,7 +47,7 @@ int main()
 
   std::map<TMessage, std::function<void(const BaseMessage&)>> handlers = {
     {TMessage::NETWORK_SEND, handler1},
-    {TMessage::WHATEVER, handler2}
+    {TMessage::WHATEVER, handler1}
   };
 
   std::thread t1(sender1, std::ref(Q));

@@ -4,6 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <iostream>
+#include "serialization.hpp"
 
 enum class TMessage {
   NETWORK_SEND, WHATEVER, DRIVER_FLOORS
@@ -14,7 +15,7 @@ template <typename T>
 class Message;
 
 /* This should contain all fields common to all kinds of messages. */
-class BaseMessage {
+class BaseMessage : public Serializable {
 public:
   BaseMessage(TMessage type) : type(type) {};
   TMessage type;
@@ -37,8 +38,17 @@ public:
 template <typename T>
 class Message : public BaseMessage {
 public:
+  Message(const json& js) : data(js["data"]), BaseMessage((TMessage)((int)js["type"])) {};
+  Message(const std::string& json_str) : Message(json::parse(json_str)) {};
   Message(TMessage type, const T& data) : data(data), BaseMessage(type) {};
-  T data;
+  const T data;
+
+  json get_json() const {
+    return {
+      {"type", static_cast<int>(type)},
+      {"data", data.get_json()}
+    };
+  }
 };
 
 

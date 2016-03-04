@@ -1,13 +1,9 @@
 #include <iostream>
 #include "util/json.hpp"
+#include "util/serialization.hpp"
+#include "util/message_queue.hpp"
 
 using json = nlohmann::json;
-
-class Serializable {
-public:
-  virtual std::string serialize() = 0;
-  virtual void deserialize(std::string s) = 0;
-};
 
 class A : public Serializable {
   //private:
@@ -15,23 +11,30 @@ public:
   int a;
   std::string b;
   double c;
-  A(std::string s) {
-    deserialize(s);
-  }
-  std::string serialize() {
-    json js = {{"a", a},
-	       {"b", b},
-	       {"c", c}};
-    return js.dump();
-  }
-
-  void deserialize(std::string s) {
-    json js = json::parse(s);
+  A(const json& js) {
     a = js["a"];
     b = js["b"];
     c = js["c"];
+  };
+
+  A(const std::string& s) : A(json::parse(s)) {};
+
+  json get_json() const {
+    return {{"a", a},
+	{"b", b},
+	{"c", c}};
   }
 };
+
+class B {
+  int a;
+public:
+};
+
+void send(const BaseMessage& bm)
+{
+  std::cout << bm.serialize() << std::endl;
+}
 
 int main()
 {
@@ -39,13 +42,22 @@ int main()
 	       {"b", "hei"},
 	       {"c", 5.4}};
   A tst(test.dump());
+
+  Message<A> tst_msg(TMessage::NETWORK_SEND, tst);
+  
   //  std::string raw = test.dump();
   std::cout << tst.a << std::endl;
   std::cout << tst.b << std::endl;
   std::cout << tst.c << std::endl;
 
-  Serializable* p = &tst;
-  
-  std::cout << p->serialize() << std::endl;
-  
+  send(tst_msg);
+
+  Message<A> recv(tst_msg.serialize());
+  std::cout << recv.data.a << std::endl;
+  std::cout << recv.data.b << std::endl;
+  std::cout << recv.data.c << std::endl;
+
+  Message<B> btst(TMessage::NETWORK_SEND, B());
+
+  //  btst.serialize();
 }
