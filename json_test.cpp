@@ -44,6 +44,9 @@ int main()
   A tst(test.dump());
 
   SerializableMessage<A> tst_msg(TMessage::NETWORK_SEND, tst);
+  std::cout << tst_msg.get_type().name() << std::endl;
+
+  const Message<A>& b = tst_msg;
   
   //  std::string raw = test.dump();
   std::cout << tst.a << std::endl;
@@ -53,6 +56,7 @@ int main()
   send(tst_msg);
 
   SerializableMessage<A> recv(tst_msg.serialize());
+  std::cout << (int)recv.type << std::endl;
   std::cout << recv.data.a << std::endl;
   std::cout << recv.data.b << std::endl;
   std::cout << recv.data.c << std::endl;

@@ -7,10 +7,9 @@
 #include "serialization.hpp"
 #include <typeinfo>
 
-enum class TMessage {
-  NETWORK_SEND, WHATEVER, DRIVER_FLOORS
-};
-
+//enum class TMessage {
+//  NETWORK_SEND, WHATEVER, DRIVER_FLOORS
+//};
 
 template <typename T>
 class Message;
@@ -21,8 +20,8 @@ class SerializableMessage;
 /* This should contain all fields common to all kinds of messages. */
 class BaseMessage {
 public:
-  BaseMessage(TMessage type) : type(type) {};
-  TMessage type;
+  //BaseMessage(TMessage type) : type(type) {};
+  //TMessage type;
 
   /*
     This operator allows a BaseMessage object to be automatically converted
@@ -49,7 +48,7 @@ public:
 template <typename T>
 class Message : public BaseMessage {
 public:
-  Message(TMessage type, const T& data) : data(data), BaseMessage(type) {};
+  Message(const T& data) : data(data) {};
   const T data;
 
   const std::type_info& get_type() const override {
@@ -60,11 +59,11 @@ public:
 template <typename T>
 class SerializableMessage : public Message<T>, public Serializable {
 public:
-  SerializableMessage(TMessage type, const T& data) : Message<T>(type, data) {};
+  SerializableMessage(const T& data) : Message<T>(data) {};
 
   /* Construct from JSON object */
   SerializableMessage(const json& js)
-    : Message<T>((TMessage)((int)js["type"]), js["data"]) {};
+    : Message<T>(js["data"]) {};
 
   /* Construct from JSON string */
   SerializableMessage(const std::string& json_string)
@@ -72,7 +71,6 @@ public:
 
   json get_json() const {
     return {
-      {"type", static_cast<int>(this->type)},
       {"data", this->data.get_json()}
     };
   }

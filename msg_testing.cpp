@@ -7,6 +7,8 @@
 #include <thread>
 #include <chrono>
 #include <cassert>
+#include <typeindex>
+#include <unordered_map>
 
 void sender1(MessageQueue& queue)
 {
@@ -14,7 +16,7 @@ void sender1(MessageQueue& queue)
   while (true) {
     for (int i = 0; i < 5; i++) {
       std::string s = "1::Message number " + std::to_string(id++);
-      auto msg = std::make_shared<Message<std::string>>(TMessage::NETWORK_SEND, s);
+      auto msg = std::make_shared<Message<std::string>>(s);
       queue.push(std::move(msg));
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -25,14 +27,13 @@ void sender2(MessageQueue& queue)
 {
   unsigned int id = 0;
   while(true) {
-    queue.push(std::make_shared<Message<int>>(TMessage::WHATEVER, id++));
+    queue.push(std::make_shared<Message<int>>(id++));
     std::this_thread::sleep_for(std::chrono::milliseconds(300));
   }
 }
 
 void handler1(const Message<std::string>& s)
 {
-  assert(s.type == TMessage::NETWORK_SEND);
   std::cout << "STRING: " << s.data << std::endl;
 }
 
@@ -45,9 +46,9 @@ int main()
 {
   MessageQueue Q;
 
-  std::map<TMessage, std::function<void(const BaseMessage&)>> handlers = {
-    {TMessage::NETWORK_SEND, handler1},
-    {TMessage::WHATEVER, handler1}
+  std::unordered_map<std::type_index, std::function<void(const BaseMessage&)>> handlers = {
+    {typeid(std::string), handler1},
+    {typeid(int), handler2}
   };
 
   std::thread t1(sender1, std::ref(Q));
@@ -56,15 +57,15 @@ int main()
   /* Sleeping version */
   while (true) {
     for (const auto& msg : Q.take_messages(Q.wait())) {
-      handlers[msg->type](*msg);
+      handlers[msg->get_type()](*msg);
     }
   }
-
-  /* Polling version */
+  /*
   while (true) {
     for (const auto& msg : Q.take_messages(Q.acquire())) {
       handlers[msg->type](*msg);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
-  }
+  }*/
+     
 }
