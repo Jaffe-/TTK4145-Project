@@ -80,8 +80,8 @@ int main()
       if (msg->serializable()) {
 	serializer(*msg);
       }
-      if (handlers.find(msg->get_type()) != handlers.end())
-	handlers.at(msg->get_type())(*msg);
+      if (handlers.find(msg->type()) != handlers.end())
+	handlers.at(msg->type())(*msg);
       else
 	std::cout << "unhandled" << std::endl;
     }

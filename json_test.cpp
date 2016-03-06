@@ -44,7 +44,6 @@ int main()
   A tst(test);
 
   SerializableMessage<A> tst_msg(tst);
-  std::cout << tst_msg.get_type().name() << std::endl;
 
   const Message<A>& b = tst_msg;
   

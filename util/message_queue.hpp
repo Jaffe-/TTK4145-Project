@@ -26,7 +26,7 @@ public:
   */
   template <typename T>
   operator const Message<T>&() const {
-    if (typeid(T) == get_type())
+    if (typeid(T) == type())
       return static_cast<const Message<T>&>(*this);
     else throw std::bad_cast();
   }
@@ -37,7 +37,7 @@ public:
 
   /* Each message will return type_info about the actual type they're
      carrying */
-  virtual const std::type_info& get_type() const = 0;
+  virtual const std::type_info& type() const = 0;
 };
 
 /* The concrete class for messages, where data is of type T */
@@ -47,7 +47,7 @@ public:
   Message(const T& data) : data(data) {};
   const T data;
 
-  const std::type_info& get_type() const override {
+  const std::type_info& type() const override {
     return typeid(T);
   }
 
