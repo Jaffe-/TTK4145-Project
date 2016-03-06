@@ -21,8 +21,8 @@ public:
 
   json get_json() const {
     return {{"a", a},
-	{"b", b},
-	{"c", c}};
+	    {"b", b},
+	    {"c", c}};
   }
 };
 
