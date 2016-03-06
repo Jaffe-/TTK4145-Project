@@ -9,6 +9,20 @@
 #include <cassert>
 #include <typeindex>
 #include <unordered_map>
+#include "util/serialization.hpp"
+
+class Dummy : public Serializable {
+public:
+  std::string s;
+
+  Dummy(const std::string& s) : s(s) {};
+
+  Dummy(const json& js) : s((std::string&)js["dummy"]) {};
+
+  json get_json() const override {
+    return {{"dummy", s}}; 
+  }
+};
 
 void sender1(MessageQueue& queue)
 {
@@ -16,7 +30,7 @@ void sender1(MessageQueue& queue)
   while (true) {
     for (int i = 0; i < 5; i++) {
       std::string s = "1::Message number " + std::to_string(id++);
-      auto msg = std::make_shared<Message<std::string>>(s);
+      auto msg = std::make_shared<SerializableMessage<Dummy>>(Dummy(s));
       queue.push(std::move(msg));
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -32,9 +46,9 @@ void sender2(MessageQueue& queue)
   }
 }
 
-void handler1(const Message<std::string>& s)
+void handler1(const Message<Dummy>& s)
 {
-  std::cout << "STRING: " << s.data << std::endl;
+  std::cout << "STRING: " << s.data.s << std::endl;
 }
 
 void handler2(const Message<int>& s)
@@ -47,7 +61,7 @@ int main()
   MessageQueue Q;
 
   std::unordered_map<std::type_index, std::function<void(const BaseMessage&)>> handlers = {
-    {typeid(std::string), handler1},
+    {typeid(Dummy), handler1},
     {typeid(int), handler2}
   };
 
@@ -57,7 +71,8 @@ int main()
   /* Sleeping version */
   while (true) {
     for (const auto& msg : Q.take_messages(Q.wait())) {
-      handlers[msg->get_type()](*msg);
+      if (handlers.find(msg->get_type()) != handlers.end())
+	handlers[msg->get_type()](*msg);
     }
   }
   /*

@@ -20,9 +20,6 @@ class SerializableMessage;
 /* This should contain all fields common to all kinds of messages. */
 class BaseMessage {
 public:
-  //BaseMessage(TMessage type) : type(type) {};
-  //TMessage type;
-
   /*
     This operator allows a BaseMessage object to be automatically converted
     to a Message<T>, where T depends on the context - i.e. when left hand side
@@ -59,16 +56,16 @@ public:
 template <typename T>
 class SerializableMessage : public Message<T>, public Serializable {
 public:
-  SerializableMessage(const T& data) : Message<T>(data) {};
+  explicit SerializableMessage(const T& data) : Message<T>(data) {};
 
   /* Construct from JSON object */
-  SerializableMessage(const json& js)
-    : Message<T>(js["data"]) {};
+  explicit SerializableMessage(const json& js)
+    : Message<T>(T(js["data"])) {};
 
   /* Construct from JSON string */
-  SerializableMessage(const std::string& json_string)
+  explicit SerializableMessage(const std::string& json_string)
     : SerializableMessage(json::parse(json_string)) {};
-
+ 
   json get_json() const {
     return {
       {"data", this->data.get_json()}
