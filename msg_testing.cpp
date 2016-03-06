@@ -47,6 +47,11 @@ void sender2(MessageQueue& queue)
   }
 }
 
+void serializer(const Serializable& s)
+{
+  std::cout << s.serialize() << std::endl;
+}
+
 void handler1(const Message<Dummy>& s)
 {
   std::cout << "STRING: " << s.data.s << std::endl;
@@ -72,6 +77,9 @@ int main()
   /* Sleeping version */
   while (true) {
     for (const auto& msg : Q.take_messages(Q.wait())) {
+      if (msg->serializable()) {
+	serializer(*msg);
+      }
       if (handlers.find(msg->get_type()) != handlers.end())
 	handlers.at(msg->get_type())(*msg);
       else

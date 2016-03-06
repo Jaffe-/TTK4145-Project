@@ -16,6 +16,10 @@ class SerializableMessage;
 /* This should contain all fields common to all kinds of messages. */
 class BaseMessage {
 public:
+  virtual bool serializable() const {
+    return false;
+  }
+
   /*
     This operator allows a BaseMessage object to be automatically converted
     to a Message<T>, where T depends on the context - i.e. when left hand side
@@ -74,6 +78,8 @@ public:
       {"data", this->data.get_json()}
     };
   }
+
+  bool serializable() const override { return true; };
 };
 
 
