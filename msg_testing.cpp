@@ -30,7 +30,8 @@ void sender1(MessageQueue& queue)
   while (true) {
     for (int i = 0; i < 5; i++) {
       std::string s = "1::Message number " + std::to_string(id++);
-      auto msg = std::make_shared<SerializableMessage<Dummy>>(Dummy(s));
+      Dummy d = s;
+      auto msg = std::make_shared<SerializableMessage<Dummy>>(d);
       queue.push(std::move(msg));
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -60,7 +61,7 @@ int main()
 {
   MessageQueue Q;
 
-  std::unordered_map<std::type_index, std::function<void(const BaseMessage&)>> handlers = {
+  const std::unordered_map<std::type_index, std::function<void(const BaseMessage&)>> handlers = {
     {typeid(Dummy), handler1},
     {typeid(int), handler2}
   };
@@ -72,7 +73,9 @@ int main()
   while (true) {
     for (const auto& msg : Q.take_messages(Q.wait())) {
       if (handlers.find(msg->get_type()) != handlers.end())
-	handlers[msg->get_type()](*msg);
+	handlers.at(msg->get_type())(*msg);
+      else
+	std::cout << "unhandled" << std::endl;
     }
   }
   /*
