@@ -53,12 +53,15 @@ int main()
   std::cout << tst.b << std::endl;
   std::cout << tst.c << std::endl;
 
-  send(tst_msg);
+  const BaseMessage& base_msg = tst_msg;
+  send(base_msg);
 
   SerializableMessage<A> recv(tst_msg.serialize());
   std::cout << recv.data.a << std::endl;
   std::cout << recv.data.b << std::endl;
   std::cout << recv.data.c << std::endl;
 
-  Message<B> btst(B());
+  Message<B> btst = B();
+  const BaseMessage& bbase = btst;
+  //const Serializable& bser = bbase;
 }

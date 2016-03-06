@@ -29,6 +29,10 @@ public:
     else throw std::bad_cast();
   }
 
+  virtual operator const Serializable&() const {
+    throw std::bad_cast();
+  };
+
   /* Each message will return type_info about the actual type they're
      carrying */
   virtual const std::type_info& get_type() const = 0;
@@ -49,6 +53,10 @@ public:
 template <typename T>
 class SerializableMessage : public Message<T>, public Serializable {
 public:
+  operator const Serializable&() const override {
+    return static_cast<const Serializable&>(*this);
+  }
+
   explicit SerializableMessage(const T& data) : Message<T>(data) {};
 
   /* Construct from JSON object */
@@ -59,7 +67,7 @@ public:
   SerializableMessage(const std::string& json_string)
     : SerializableMessage(json::parse(json_string)) {};
 
-  json get_json() const {
+  json get_json() const override {
     return {
       {"data", this->data.get_json()}
     };
