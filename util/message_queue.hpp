@@ -29,6 +29,8 @@ public:
     else throw std::bad_cast();
   }
 
+  /* Virtualizing the Serializable& conversion operator allows one to serialize
+     a message without knowing the type of the data in it. */
   virtual operator const Serializable&() const {
     throw std::bad_cast();
   };
