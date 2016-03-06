@@ -16,9 +16,7 @@ class SerializableMessage;
 /* This should contain all fields common to all kinds of messages. */
 class BaseMessage {
 public:
-  virtual bool serializable() const {
-    return false;
-  }
+  virtual bool serializable() const = 0;
 
   /*
     This operator allows a BaseMessage object to be automatically converted
@@ -35,9 +33,7 @@ public:
 
   /* Virtualizing the Serializable& conversion operator allows one to serialize
      a message without knowing the type of the data in it. */
-  virtual operator const Serializable&() const {
-    throw std::bad_cast();
-  };
+  virtual operator const Serializable&() const = 0;
 
   /* Each message will return type_info about the actual type they're
      carrying */
@@ -54,6 +50,13 @@ public:
   const std::type_info& get_type() const override {
     return typeid(T);
   }
+
+  bool serializable() const override { return false; }
+
+  operator const Serializable&() const override {
+    throw std::bad_cast();
+  };
+
 };
 
 template <typename T>

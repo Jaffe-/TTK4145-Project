@@ -63,5 +63,4 @@ int main()
 
   Message<B> btst = B();
   const BaseMessage& bbase = btst;
-  //const Serializable& bser = bbase;
 }
