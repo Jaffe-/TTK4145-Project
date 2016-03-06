@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <iostream>
 #include "serialization.hpp"
+#include <typeinfo>
 
 enum class TMessage {
   NETWORK_SEND, WHATEVER, DRIVER_FLOORS
@@ -33,8 +34,15 @@ public:
   */
   template <typename T>
   operator const Message<T>&() const {
-    return static_cast<const Message<T>&>(*this);
+    if (typeid(T) == get_type()) {
+      return static_cast<const Message<T>&>(*this);
+    }
+    else {
+      throw std::bad_cast();
+    }
   }
+
+  virtual const std::type_info& get_type() const = 0;
 };
 
 /* The concrete class for messages, where data is of type T */
@@ -43,6 +51,10 @@ class Message : public BaseMessage {
 public:
   Message(TMessage type, const T& data) : data(data), BaseMessage(type) {};
   const T data;
+
+  const std::type_info& get_type() const override {
+    return typeid(T);
+  }
 };
 
 template <typename T>
