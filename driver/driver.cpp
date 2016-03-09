@@ -30,8 +30,9 @@ std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event) {
 Driver::Driver(bool use_simulator) : fsm(message_queue)
 {
   std::string driver_string = use_simulator ? "simulated" : "hardware";
+  /*
   int rv;
-  if ((rv = elev_init(use_simulator ? ET_simulation : ET_comedi))) {
+  if ((rv = elev_init(use_simulator ? ET_Simulation : ET_Comedi))) {
     LOG_INFO("Started driver (" << driver_string << ")");
   }
   else {
@@ -39,6 +40,8 @@ Driver::Driver(bool use_simulator) : fsm(message_queue)
     // Exception?
     return;
   }
+  */
+  elev_init(use_simulator ? ET_Simulation : ET_Comedi);
   
   int current_floor = initialize_position();
   if (current_floor >= 0) {
