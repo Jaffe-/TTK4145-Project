@@ -86,7 +86,7 @@ void Network::receive()
   case PacketType::MSG:
     //    buffer.push_back(std::string(packet.bytes.begin(),
     //				 packet.bytes.end()));
-    //network.send(make_okay(packet), packet.ip);
+    send(make_okay(packet), packet.ip);
     //std::cout << buffer[buffer.size() - 1];
     break;
   case PacketType::OK:
