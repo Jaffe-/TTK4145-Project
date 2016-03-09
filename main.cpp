@@ -4,6 +4,23 @@
 #include "driver/driver.hpp"
 #include <thread>
 
+class NetworkMessage : public Serializable {
+public:
+  std::string data;
+  int id;
+
+  NetworkMessage(std::string d, int i) : data(d), id(i) {};
+  NetworkMessage(const std::string& s) {
+    //    deserialize(s);
+  }
+  
+  json_t get_json() const override {
+    return {{"id", id}, {"data", data}};
+  }
+
+  //  void deserialize(const std::string& s) override {};
+};
+
 int main(int argc, char** argv)
 {
   std::cout << "******************************************************" << std::endl
@@ -37,6 +54,13 @@ int main(int argc, char** argv)
       network.run();
   });
 
-  while (1);
+  TimePoint t = std::chrono::system_clock::now();
+  while (1) {
+    if (std::chrono::system_clock::now() - t > std::chrono::seconds(2)) {
+      NetworkMessage m {"Test!", 100};
+      network.message_queue.push(std::make_shared<SerializableMessage<NetworkMessage>>(m));
+      t = std::chrono::system_clock::now();
+    }
+  };
   //Network::run();
 }

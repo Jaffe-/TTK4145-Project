@@ -13,27 +13,21 @@ Network::Network(const std::string& port) : socket(port), sender(*this), connect
 
 void Network::run()
 {
-  TimePoint t = std::chrono::system_clock::now();
-
   while (true) {
-    /*
     for (auto& msg : message_queue.take_messages(message_queue.acquire())) {
       if (msg->serializable()) {
-	const Serializable& serializable_msg = msg;
-	std::string serialized = serializable_msg->serialize();
+	const Serializable& serializable_msg = *msg;
+	std::string serialized = serializable_msg.serialize();
+	LOG_DEBUG("Sending serializable message: " << serialized);
 	send_message(serialized);
       }
+      else
+	LOG_DEBUG("Non serializble");
     }
-    */
     
     receive();
     sender.run();
     connection_controller.run();
-
-    if (std::chrono::system_clock::now() - t > std::chrono::seconds(2)) {
-      sender.send_message("Test!\n");
-      t = std::chrono::system_clock::now();
-    }
     
   }
 }
@@ -84,10 +78,7 @@ void Network::receive()
     connection_controller.notify_pong(packet.ip);
     break;
   case PacketType::MSG:
-    //    buffer.push_back(std::string(packet.bytes.begin(),
-    //				 packet.bytes.end()));
     send(make_okay(packet), packet.ip);
-    //std::cout << buffer[buffer.size() - 1];
     break;
   case PacketType::OK:
     sender.notify_okay(packet.ip, packet.id);

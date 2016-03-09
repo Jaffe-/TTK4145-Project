@@ -70,6 +70,7 @@ Packet Sender::make_packet(const std::string& msg, unsigned int id)
 void Sender::run()
 {
   for (auto& kv : network.connections) {
+    LOG_DEBUG("ip = " << kv.first);
     const std::string& ip = kv.first;
     std::vector<MessageEntry>& message_queue = kv.second.message_queue;
     if (!message_queue.empty()) {

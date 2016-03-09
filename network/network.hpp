@@ -15,6 +15,7 @@ public:
   Network(const std::string& port);
   void run();
   void send_message(const std::string& msg);
+  MessageQueue message_queue;
 
 private:
   void send(const Packet& packet, const std::string& ip);
@@ -25,7 +26,6 @@ private:
   Socket socket;
   Sender sender;
   ConnectionController connection_controller;
-  MessageQueue message_queue;
 
   struct connection {
     TimePoint last_ping;
