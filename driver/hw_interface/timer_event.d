@@ -1,156 +1,206 @@
-module  timer_event;
-
-
-import  core.thread,
-        std.algorithm,
-        std.concurrency,
+import  std.stdio,
         std.conv,
-        std.datetime,
+        std.variant,
+        std.concurrency,
+        std.algorithm,
         std.range,
-        std.stdio,
-        std.string;
-
-//debug = timerEvent_thr;
-
-
-enum EventType {
-    oneshot,
-    periodic
+        std.typecons,
+        std.typetuple,
+        std.datetime,
+        std.traits,
+        core.time,
+        core.thread,
+        core.sync.mutex;
+    
+/+    
+struct DeleteEvent(T){
+    alias T type;
 }
-struct CancelEvent {
-}
 
-void timerEvent_thr(){
-    scope(failure){
-        writeln(__FUNCTION__, " died");
-    }
+void testThread(){
 
-try{
-
-
-    struct Event {
-        Tid         owner;
-        string      name;
-        SysTime     time;
-        Duration    period;
-
-        string toString(){
-            return "Event("
-                    ~ name  ~ ", "
-                    ~ time.to!string ~ ", "
-                    ~ period.to!string ~ ")";
-        }
-    }
-
-
-    Event[]     events;
-    Duration    timeUntilNextEvent  = 1.hours;
-    Duration    eventMinimumPeriod  = 5.msecs;
-    bool        isDone              = false;
-
-
-    void AddEvent(Tid owner, string eventName, SysTime timeOfEvent, Duration period, EventType type){
-        // If the event exists: update event.time and event.period
-        foreach(ref event; events){
-            if(owner == event.owner  &&  eventName == event.name){
-                final switch(type) with(EventType){
-                case periodic:
-                    event = Event(owner, eventName, timeOfEvent + period, period);
-                    break;
-                case oneshot:
-                    event = Event(owner, eventName, timeOfEvent, 0.msecs);
-                    break;
-                }
-                return;
-            }
-        }
-        
-        // Else: add new event
-        if(type == EventType.periodic  &&  period < eventMinimumPeriod){
-            debug writeln("Failure to add new event: Event period is too fast");
-            return;
-        }
-        final switch(type) with(EventType){
-        case periodic:
-            events ~= Event(owner, eventName, timeOfEvent + period, period);
-            break;
-        case oneshot:
-            events ~= Event(owner, eventName, timeOfEvent, 0.msecs);
-            break;
-        }
-    }
+    writeln("testThread thisTid: ", thisTid);
 
     while(true){
-        receiveTimeout( timeUntilNextEvent,
-            // in [time] timeunits (implicit oneshot)
-            (Tid owner, string eventName, Duration time){
-                AddEvent(owner, eventName, Clock.currTime + time, 0.msecs, EventType.oneshot);
-            },
-            // in [time] timeunits, with type
-            (Tid owner, string eventName, Duration time, EventType type){
-                AddEvent(owner, eventName, Clock.currTime + time, time, type);
-            },
-            // at [time] (implicit oneshot)
-            (Tid owner, string eventName, SysTime time){
-                    AddEvent(owner, eventName, time, 0.msecs, EventType.oneshot);
-            },
-            // cancel event
-            (Tid owner, string eventName, CancelEvent ce){
-                foreach(idx, event; events){
-                    if(owner == event.owner  &&  eventName == event.name){
-                        events = events.remove(idx);
-                        break;
-                    }
+        receive(
+            (int i){
+                writeln("    testThread received int: ", i);
+                if(i > 5){
+                    i = 1;
+                    addEvent(ownerTid, 50.msecs, "should not arrive");
+                    ownerTid.send(DeleteEvent!string());
                 }
+                addEvent(thisTid, i.seconds, i+1);
             },
-            (OwnerTerminated ot){
-                isDone = true;
-            },
-            (LinkTerminated lt){
-                isDone = true;
+            (string s){
+                writeln("    testThread received string: ", s);
             },
             (Variant v){
-                writeln(__FUNCTION__,":",__LINE__," Unhandled input: ", v);
+                writeln("    testThread received Variant: ", v);
             }
         );
-        
-        
-        if(isDone){
-            return;
+    }
+}
+
+void main(){
+    writeln("main thisTid: ", thisTid);
+    Clock.currTime.writeln;
+    
+    auto testTid = spawn(&testThread);
+    assert(testTid != thisTid);
+    writeln("spawned ", testTid);
+    
+    addEvent(testTid, 1.seconds, 1);
+    
+    addEvent(thisTid, 2.seconds,                500, Yes.periodic);
+    addEvent(thisTid, 2.seconds + 400.msecs,    600, Yes.periodic);
+    
+    addEvent(testTid, Clock.currTime + 2.seconds, "hello from main");
+    
+    while(true){
+        receive(
+            (int i){
+                writeln("    main received int: ", i);
+            },
+            (string s){
+                writeln("    main received string: ", s);
+            },
+            (DeleteEvent!string d){
+                deleteEvent(thisTid, typeid(string), Delete.all);
+            },
+            (Variant v){
+                writeln("    main received Variant: ", v);
+            }
+        );
+    }
+    
+}
++/
+
+void addEvent(T)(Tid receiver, SysTime time, T value){
+    //writeln("  Adding event: ", Event(receiver, Variant(value), t, false, Duration.init));
+    synchronized(events_lock){
+        events ~= Event(receiver, Variant(value), time, false, Duration.init);
+    }
+    t.send(EventsModified());
+}
+
+
+void addEvent(T)(Tid receiver, Duration dt, T value, Flag!"periodic" periodic = No.periodic){
+    //writeln("  Adding event: ", Event(receiver, Variant(value), Clock.currTime + dt, periodic, dt));
+    synchronized(events_lock){
+        events ~= Event(receiver, Variant(value), Clock.currTime + dt, periodic, dt);
+    }
+    t.send(EventsModified());
+}
+
+void deleteEvent(Tid receiver, TypeInfo type, Delete which){
+    //writeln("  Deleting event: ", receiver, " ", type, " ", which);
+    synchronized(events_lock){
+        final switch(which) with(Delete){
+        case all:
+            events = events.remove!(a => a.receiver == receiver && a.value.type == type)();
+            break;
+        case first:
+            auto idx = events.countUntil!(a => a.receiver == receiver && a.value.type == type);
+            if(idx != -1){
+                events = events.remove(idx);
+            }
+            break;
+        case last:
+            auto idx = events.length - 1 - events.retro.countUntil!(a => a.receiver == receiver && a.value.type == type);
+            if(idx != -1){
+                events = events.remove(idx);
+            }
+            break;
         }
+    }
+    t.send(EventsModified());
+}
+
+enum Delete {
+    all,
+    first,
+    last
+}
 
 
-        // Go through all events. If one has passed, send back event & update events list
-        iter:
-        events.sort!("a.time < b.time");
-        foreach(idx, ref event; events){
-            timeUntilNextEvent = event.time - Clock.currTime;
-            if(timeUntilNextEvent <= 0.msecs){
 
-                event.owner . send(thisTid, event.name);
 
-                if(event.period >= eventMinimumPeriod){
-                    event.time += event.period;
-                } else {
-                    events = events.remove(idx);
+private:
+
+shared static this(){
+    events_lock = new Mutex;
+    t = spawn(&proc);
+}
+
+
+struct Event {
+    Tid         receiver;
+    Variant     value;
+    SysTime     triggerTime;
+    bool        periodic;
+    Duration    period;
+}
+
+struct EventsModified {}
+
+
+__gshared Tid t;
+__gshared Mutex events_lock;
+__gshared Event[] events;
+
+
+
+void proc(){
+    Duration timeUntilNext = 1.hours;
+    
+    while(true){
+        //writeln("Time until next: ", timeUntilNext);
+        receiveTimeout( timeUntilNext,
+            (EventsModified n){
+            },
+            (OwnerTerminated o){
+            },
+            (Variant v){
+            }
+        );
+        timeUntilNext = 1.hours;
+        synchronized(events_lock){
+            events.sort!(q{a.triggerTime < b.triggerTime})();
+            //events.map!(a => a.to!string ~ "\n").reduce!((a, b) => a ~ b).writeln;
+            iter:
+            foreach(idx, ref item; events){
+                if(Clock.currTime >= item.triggerTime){
+                    item.receiver.send(item.value);
+                    if(item.periodic){
+                        item.triggerTime += item.period;
+                    } else {
+                        events = events.remove(idx);
+                        goto iter;
+                    }
                 }
-                goto iter;  // Do not foreach over a list that is being modified
             }
-        }
-
-
-
-        // Set the time until next event to the shortest time
-        events.sort!("a.time < b.time");
-        if(events.length > 0){
-            timeUntilNextEvent = events.front.time - Clock.currTime;
-            if(timeUntilNextEvent <= 0.msecs){
-                timeUntilNextEvent = 0.msecs;
-            }
-        } else {
-            timeUntilNextEvent = 1.hours;
+            auto now = Clock.currTime;
+            timeUntilNext = events.length ? 
+                max(events.map!(a => a.triggerTime - now).reduce!min, 0.seconds) : 
+                1.hours;
         }
     }
 }
-catch(Throwable t){ t.writeln; }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
