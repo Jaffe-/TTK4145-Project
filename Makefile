@@ -9,7 +9,7 @@ OBJ = $(CPPSRC:.cpp=.o)
 
 all: $(TARGET)
 
-$(TARGET): $(OBJ)
+$(TARGET): $(OBJ) driver/hw_interface/libinterface.a
 	$(CC) $^ $(LDFLAGS) -o $@
 
 %.o: %.cpp
