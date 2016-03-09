@@ -56,7 +56,7 @@ void FSM::update_lights()
   }
 }
 
-void FSM::notify_button(const ButtonPressEvent& event)
+void FSM::notify(const ButtonPressEvent& event)
 {
   if (is_internal(event.button)) {
     insert_order(internal_button_floor(event.button), 2);
@@ -64,7 +64,7 @@ void FSM::notify_button(const ButtonPressEvent& event)
   update_lights();
 }
 
-void FSM::notify_floor(const FloorSignalEvent& event)
+void FSM::notify(const FloorSignalEvent& event)
 {
   current_floor = event.floor;
   if (should_stop(event.floor)) {
@@ -100,14 +100,13 @@ void FSM::order_update(const OrderUpdate& order_update)
 
 void FSM::run()
 {
-  const std::unordered_map<std::type_index, std::function<void(const Message&)>> handlers = {
-    {typeid(OrderUpdate), order_update},
-    {typeid(ButtonPressEvent), notify_button},
-    {typeid(FloorSignalEvent), notify_floor}
+  std::unordered_map<std::type_index, std::function<void(const Message&)>> handlers = {
+    {typeid(OrderUpdate), [this] (const Message& m) { order_update(m); }},
+    {typeid(ButtonPressEvent), [this] (const ButtonPressEvent& m) { notify(m); }},
+    {typeid(FloorSignalEvent), [this] (const FloorSignalEvent& m) { notify(m); }}
   };
 
   for (auto& msg : message_queue.take_messages(message_queue.wait())) {
-    //const std::type_info& type = typeid(*msg);
     handlers[typeid(*msg)](*msg);
   }
   if (state == STOPPED) {

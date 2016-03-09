@@ -27,7 +27,7 @@ std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event) {
   return s;
 }
 
-Driver::Driver(bool use_simulator) : FSM(message_queue)
+Driver::Driver(bool use_simulator) : fsm(message_queue)
 {
   std::string driver_string = use_simulator ? "simulated" : "hardware";
   int rv;
@@ -49,7 +49,7 @@ Driver::Driver(bool use_simulator) : FSM(message_queue)
     // ERROR
   }
   fsm.set_floor(current_floor);
-  fsm_thread = std::thread(&fsm::run, &fsm);
+  fsm_thread = std::thread(&FSM::run, &fsm);
 }
 
 template <typename EventType>
@@ -59,8 +59,7 @@ void Driver::poll(int& last, int new_value, int invalid_value, EventType event)
     last = new_value;
     if(new_value != invalid_value){
       LOG_DEBUG("New event generated: " << event);
-      fsm.notify(event);
-      // Make event message :)
+      message_queue.push(std::make_shared<EventType>(event));
     }
   }
 }
@@ -68,7 +67,7 @@ void Driver::poll(int& last, int new_value, int invalid_value, EventType event)
 void Driver::event_generator()
 {
   int floor_signal = elev_get_floor_sensor_signal();
-  poll(last_floor_signal, floor_signal, -1, FloorSignaLevent(floor_signal));
+  poll(last_floor_signal, floor_signal, -1, FloorSignalEvent(floor_signal));
 
   for (int i = 0; i < FLOORS; i++) {
     for (int j = 0; j <= 2; j++ ) {
@@ -78,7 +77,7 @@ void Driver::event_generator()
       
       int button_signal = elev_get_button_signal(static_cast<elev_button_type_t>(j), i);
       poll(last_button_signals[i][j], button_signal, 0,
-	   ButtonPressedEvent(button_list[i][j]);
+	   ButtonPressEvent(button_list[i][j]));
     }
   }
 }
@@ -105,6 +104,5 @@ void Driver::run()
 {
   while (1) {
     event_generator();
-    fsm.run();
   }
 }

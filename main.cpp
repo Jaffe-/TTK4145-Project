@@ -51,6 +51,7 @@ int main(int argc, char** argv)
       Driver driver(cmd_options.has("simulated"));
       driver.run();
   });
+
   std::thread network_thread([&] {
       network.run();
   });
@@ -63,5 +64,4 @@ int main(int argc, char** argv)
       t = std::chrono::system_clock::now();
     }
   };
-  //Network::run();
 }

@@ -18,7 +18,6 @@ void Network::run()
       if (msg->serializable()) {
 	const Serializable& serializable_msg = *msg;
 	std::string serialized = serializable_msg.serialize();
-	LOG_DEBUG("Sending serializable message: " << serialized);
 	send_message(serialized);
       }
     }

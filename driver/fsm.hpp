@@ -36,8 +36,8 @@ private:
   bool floors_below();
   bool floors_above();
   void update_lights();
-  void notify_button(const ButtonPressEvent& event);
-  void notify_floor(const FloorSignalEvent& event);
+  void notify(const ButtonPressEvent& event);
+  void notify(const FloorSignalEvent& event);
   void order_update(const OrderUpdate& order_update);
   
   State state;

@@ -19,6 +19,20 @@ enum Button {
   NONE
 };
 
+struct ButtonPressEvent : public Message {
+  ButtonPressEvent(Button b) : button(b) {};
+  Button button;
+};
+
+struct FloorSignalEvent : public Message {
+  FloorSignalEvent(int f) : floor(f) {};
+  int floor;
+};
+
+struct OrderUpdate : public Message {
+
+};
+
 const Button button_list[FLOORS][3] = {
   { EXTERNAL_1U, NONE, INTERNAL_1},
   { EXTERNAL_2U, EXTERNAL_2D, INTERNAL_2},
@@ -29,17 +43,6 @@ const Button button_list[FLOORS][3] = {
 bool is_internal(Button button);
 unsigned int internal_button_floor(Button button);
 
-struct ButtonPressEvent : public Message {
-  Button button;
-};
-
-struct FloorSignalEvent : public Message {
-  int floor;
-};
-
-struct OrderUpdate : public Message {
-
-};
 
 std::ostream& operator<<(std::ostream& s, const ButtonPressEvent& event);
 std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event);
