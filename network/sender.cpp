@@ -3,7 +3,7 @@
 #include "connection_controller.hpp"
 #include "../util/logger.hpp"
 #include <algorithm>
-  
+
 std::string truncate(const std::string& str, const std::string::size_type trunc_limit)
 {
   if (str.size() <= trunc_limit)
@@ -15,7 +15,7 @@ std::string truncate(const std::string& str, const std::string::size_type trunc_
   }
 }
 
-std::ostream& operator<<(std::ostream& s, const Sender::MessageEntry& msg_entry)
+std::ostream& operator<<(std::ostream& s, const MessageEntry& msg_entry)
 {
   const std::string::size_type trunc_limit = 20;
   s << "{id=" << msg_entry.id
@@ -27,48 +27,37 @@ std::ostream& operator<<(std::ostream& s, const Sender::MessageEntry& msg_entry)
   return s;
 }
   
-void Sender::send_message(const std::string& msg, int queue_id)
+void Sender::send_message(const std::string& msg)
 {
   auto clients = network.connection_controller.get_clients();
   if (clients.empty()) {
     LOG_WARNING("Attempted to send message, but there are no clients.");
     return;
   }
-
+  
   auto msg_entry = MessageEntry(current_id, msg, clients);
-  message_queues[queue_id].push_back(msg_entry);
-  LOG_DEBUG("New message " << msg_entry 
-	    << " put in queue " << queue_id);
+
+  for (auto& connection : network.connections) {
+    connection.second.message_queue.push_back(msg_entry);
+  }
+
+  LOG_DEBUG("New message " << msg_entry);
   current_id++;
 }
 
 void Sender::notify_okay(const std::string& ip, unsigned int id)
 {
-  for (auto &message_queue : message_queues) {
-    if (!message_queue.empty()) {
-      MessageEntry& current = message_queue[0];
-      if (current.id == id) {
-	// event
-	LOG_DEBUG("OK received from " << ip
-		  << " for message id " << current.id);
+  std::vector<MessageEntry>& message_queue = network.connections[ip].message_queue;
+  if (!message_queue.empty()) {
+    MessageEntry& current = message_queue[0];
+    if (current.id == id) {
+      // event
+      LOG_DEBUG("OK received from " << ip
+		<< " for message id " << current.id);
 
-	auto it = std::find(current.recipients.begin(), current.recipients.end(), ip);
-	if (it != current.recipients.end())
-	  current.recipients.erase(it);
-
-	if (current.recipients.empty())
-	  message_queue.erase(message_queue.begin());
-      }
+      message_queue.erase(message_queue.begin());
     }
   }
-}
-
-int Sender::allocate_queue()
-{
-  message_queues.push_back({});
-  int queue_id = message_queues.size() - 1;
-  LOG_DEBUG("New queue id " << queue_id << " allocated");
-  return queue_id;
 }
 
 Packet Sender::make_packet(const std::string& msg, unsigned int id)
@@ -80,7 +69,9 @@ Packet Sender::make_packet(const std::string& msg, unsigned int id)
 
 void Sender::run()
 {
-  for (auto& message_queue : message_queues) {
+  for (auto& kv : network.connections) {
+    const std::string& ip = kv.first;
+    std::vector<MessageEntry>& message_queue = kv.second.message_queue;
     if (!message_queue.empty()) {
       MessageEntry& current = message_queue[0];
       if (current.sent) {
@@ -90,14 +81,11 @@ void Sender::run()
 	  LOG_WARNING("Clients " << current.recipients 
 		      << " did not respond with OK for message with id " << current.id);
 	  network.connection_controller.remove_clients(current.recipients);
-	  message_queue.erase(message_queue.begin());
 	}
       }
       else {
 	auto packet = make_packet(current.msg, current.id);
-	for (const auto& ip : current.recipients) {
-	  network.send(packet, ip);
-	}
+	network.send(packet, ip);
 	current.sent = true;
 	current.sent_time = std::chrono::system_clock::now();
       }

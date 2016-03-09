@@ -7,9 +7,9 @@
 
 bool ConnectionController::has_client(const std::string& ip) const
 {
-  return std::find_if(connections.begin(), connections.end(),
-		      [&] (std::pair<std::string, TimePoint> p) 
-		      { return p.first == ip; }) != connections.end();
+  return std::find_if(network.connections.begin(), network.connections.end(),
+		      [&] (std::pair<std::string, Network::connection> p) 
+		      { return p.first == ip; }) != network.connections.end();
 }
 
 void ConnectionController::notify_pong(const std::string& ip)
@@ -18,7 +18,7 @@ void ConnectionController::notify_pong(const std::string& ip)
     // new client registered, send event
     LOG_INFO("New client " << ip << " discovered");
   }
-  connections[ip] = std::chrono::system_clock::now();
+  network.connections[ip] = {std::chrono::system_clock::now(), {}};
 }
 
 void ConnectionController::remove_clients(const std::vector<std::string>& ips)
@@ -27,7 +27,7 @@ void ConnectionController::remove_clients(const std::vector<std::string>& ips)
     if (has_client(ip)) {
       // send event
       LOG_WARNING("Client " << ip << " is removed");
-      connections.erase(ip);
+      network.connections.erase(ip);
     }
   }
 }
@@ -35,8 +35,8 @@ void ConnectionController::remove_clients(const std::vector<std::string>& ips)
 void ConnectionController::check_timeouts()
 {
   std::vector<std::string> timed_out;
-  for (auto& kv : connections) {
-    if (std::chrono::system_clock::now() - kv.second > timeout_limit) {
+  for (auto& kv : network.connections) {
+    if (std::chrono::system_clock::now() - kv.second.last_ping > timeout_limit) {
       LOG_WARNING(kv.first << " stopped responding to PING");
       timed_out.push_back(kv.first);
     }
@@ -64,7 +64,7 @@ std::vector<std::string> ConnectionController::get_clients() const
 {
   std::vector<std::string> results;
 
-  for (auto& kv: connections) {
+  for (auto& kv: network.connections) {
     results.push_back(kv.first);
   }
 

@@ -69,14 +69,14 @@ public:
   explicit SerializableMessage(const T& data) : Message<T>(data) {};
 
   /* Construct from JSON object */
-  explicit SerializableMessage(const json& js)
-    : Message<T>(T(js["data"])) {};
+  explicit SerializableMessage(const json_t& json)
+    : Message<T>(T(json["data"])) {};
 
   /* Construct from JSON string */
   SerializableMessage(const std::string& json_string)
-    : SerializableMessage(json::parse(json_string)) {};
+    : SerializableMessage(json_t::parse(json_string)) {};
 
-  json get_json() const override {
+  json_t get_json() const override {
     return {
       {"data", this->data.get_json()}
     };

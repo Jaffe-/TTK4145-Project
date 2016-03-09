@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 #include <chrono>
+#include "network.hpp"
 
 class Network;
 
@@ -17,11 +18,10 @@ public:
 
 private:
   using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
-
+  
   const std::chrono::duration<double> timeout_limit = std::chrono::seconds(1);
   const std::chrono::duration<double> ping_period = std::chrono::milliseconds(500);
   TimePoint last_ping;
-  std::map<std::string, TimePoint> connections;
   Network& network;
   
   void check_timeouts();

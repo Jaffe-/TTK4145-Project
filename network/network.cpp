@@ -13,30 +13,34 @@ Network::Network(const std::string& port) : socket(port), sender(*this), connect
 
 void Network::run()
 {
-  using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
-
   TimePoint t = std::chrono::system_clock::now();
-  int q = sender.allocate_queue();
+
   while (true) {
+    /*
+    for (auto& msg : message_queue.take_messages(message_queue.acquire())) {
+      if (msg->serializable()) {
+	const Serializable& serializable_msg = msg;
+	std::string serialized = serializable_msg->serialize();
+	send_message(serialized);
+      }
+    }
+    */
+    
     receive();
     sender.run();
     connection_controller.run();
 
     if (std::chrono::system_clock::now() - t > std::chrono::seconds(2)) {
-      sender.send_message("Test!\n", q);
+      sender.send_message("Test!\n");
       t = std::chrono::system_clock::now();
     }
+    
   }
 }
 
-void Network::send_message(const std::string& msg, unsigned int queue)
+void Network::send_message(const std::string& msg)
 {
-  sender.send_message(msg, queue);
-}
-
-unsigned int Network::allocate_queue()
-{
-  return sender.allocate_queue();
+  sender.send_message(msg);
 }
 
 void Network::send(const Packet& packet, const std::string& ip)
