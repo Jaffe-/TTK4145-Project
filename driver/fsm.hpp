@@ -3,6 +3,8 @@
 #include <chrono>
 #include "../util/message_queue.hpp"
 #include <thread>
+#include <typeindex>
+#include <unordered_map>
 
 #define FLOORS 4
 
@@ -38,7 +40,14 @@ private:
   void update_lights();
   void notify(const ButtonPressEvent& event);
   void notify(const FloorSignalEvent& event);
+  void notify(const OrderUpdate& event);
   void order_update(const OrderUpdate& order_update);
+
+  template <typename T>
+  std::pair<std::type_index, std::function<void(const Message&)>> handler(void(FSM::*f)(const T&))
+  {
+    return { typeid(T), [this, f] (const T& m) { (*this.*f)(m);}};
+  }
   
   State state;
   int current_floor;

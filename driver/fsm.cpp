@@ -73,6 +73,10 @@ void FSM::notify(const FloorSignalEvent& event)
   update_lights();
 }
 
+void FSM::notify(const OrderUpdate& event)
+{
+}
+
 bool FSM::floors_above()
 {
   for (int floor = current_floor + 1; floor < FLOORS; floor++) {
@@ -100,10 +104,11 @@ void FSM::order_update(const OrderUpdate& order_update)
 
 void FSM::run()
 {
+
   std::unordered_map<std::type_index, std::function<void(const Message&)>> handlers = {
-    {typeid(OrderUpdate), [this] (const Message& m) { order_update(m); }},
-    {typeid(ButtonPressEvent), [this] (const ButtonPressEvent& m) { notify(m); }},
-    {typeid(FloorSignalEvent), [this] (const FloorSignalEvent& m) { notify(m); }}
+    handler<OrderUpdate>(&FSM::order_update),
+    handler<ButtonPressEvent>(&FSM::notify),
+    handler<FloorSignalEvent>(&FSM::notify)
   };
 
   while (true) {
