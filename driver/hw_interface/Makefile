@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -Wall -Wextra
+CFLAGS = -std=gnu99 -g -Wall -Wextra
 AR = ar
 TARGET = libinterface.a
 SRC = elev.c io.c
