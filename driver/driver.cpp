@@ -17,25 +17,17 @@ unsigned int internal_button_floor(Button button)
   return static_cast<int>(button);
 }
 
-std::ostream& operator<<(std::ostream& s, const DriverEvent& event) {
-  s << "{";
-  switch (event.type) {
-  case DriverEvent::BUTTON_PRESS:
-    s << "BUTTON_PRESS";
-    break;
-  case DriverEvent::FLOOR_SIGNAL:
-    s << "FLOOR_SIGNAL";
-    break;
-  default:
-    s << "CORRUPT";
-    break;
-  }
-  s << ", button=" << static_cast<int>(event.button);
-  s << ", floor=" << event.floor << "}";
+std::ostream& operator<<(std::ostream& s, const ButtonPressEvent& event) {
+  s << "{ button=" << static_cast<int>(event.button) << "}";
   return s;
 }
 
-Driver::Driver(bool use_simulator)
+std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event) {
+  s << "{ floor=" << event.floor << "}";
+  return s;
+}
+
+Driver::Driver(bool use_simulator) : FSM(message_queue)
 {
   std::string driver_string = use_simulator ? "simulated" : "hardware";
   int rv;
@@ -57,11 +49,11 @@ Driver::Driver(bool use_simulator)
     // ERROR
   }
   fsm.set_floor(current_floor);
-
+  fsm_thread = std::thread(&fsm::run, &fsm);
 }
 
-
-void Driver::poll(int& last, int new_value, int invalid_value, DriverEvent event)
+template <typename EventType>
+void Driver::poll(int& last, int new_value, int invalid_value, EventType event)
 {
    if (new_value != last){
     last = new_value;
@@ -72,10 +64,11 @@ void Driver::poll(int& last, int new_value, int invalid_value, DriverEvent event
     }
   }
 }
+
 void Driver::event_generator()
 {
   int floor_signal = elev_get_floor_sensor_signal();
-  poll(last_floor_signal, floor_signal, -1, {DriverEvent::FLOOR_SIGNAL, NONE, floor_signal});
+  poll(last_floor_signal, floor_signal, -1, FloorSignaLevent(floor_signal));
 
   for (int i = 0; i < FLOORS; i++) {
     for (int j = 0; j <= 2; j++ ) {
@@ -85,7 +78,7 @@ void Driver::event_generator()
       
       int button_signal = elev_get_button_signal(static_cast<elev_button_type_t>(j), i);
       poll(last_button_signals[i][j], button_signal, 0,
-	   {DriverEvent::BUTTON_PRESS, button_list[i][j], -1});
+	   ButtonPressedEvent(button_list[i][j]);
     }
   }
 }

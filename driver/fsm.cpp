@@ -2,13 +2,9 @@
 #include "fsm.hpp"
 #include "driver.hpp"
 #include "../util/logger.hpp"
-
-FSM::FSM()
-{
-  state = STOPPED;
-  door_open = false;
-  direction = UP;
-}
+#include <typeinfo>
+#include <typeindex>
+#include <unordered_map>
 
 bool FSM::should_stop(int floor)
 {
@@ -60,18 +56,19 @@ void FSM::update_lights()
   }
 }
 
-void FSM::notify(const DriverEvent& event)
+void FSM::notify_button(const ButtonPressEvent& event)
 {
-  if (event.type == DriverEvent::BUTTON_PRESS) {
-    if (is_internal(event.button)) {
-      insert_order(internal_button_floor(event.button), 2);
-    }
+  if (is_internal(event.button)) {
+    insert_order(internal_button_floor(event.button), 2);
   }
-  else if (event.type == DriverEvent::FLOOR_SIGNAL) {
-    current_floor = event.floor;
-    if (should_stop(event.floor)) {
-      change_state(STOPPED);
-    }
+  update_lights();
+}
+
+void FSM::notify_floor(const FloorSignalEvent& event)
+{
+  current_floor = event.floor;
+  if (should_stop(event.floor)) {
+    change_state(STOPPED);
   }
   update_lights();
 }
@@ -96,8 +93,23 @@ bool FSM::floors_below()
   return false;
 }
 
+void FSM::order_update(const OrderUpdate& order_update)
+{
+  // todo
+}
+
 void FSM::run()
 {
+  const std::unordered_map<std::type_index, std::function<void(const Message&)>> handlers = {
+    {typeid(OrderUpdate), order_update},
+    {typeid(ButtonPressEvent), notify_button},
+    {typeid(FloorSignalEvent), notify_floor}
+  };
+
+  for (auto& msg : message_queue.take_messages(message_queue.wait())) {
+    //const std::type_info& type = typeid(*msg);
+    handlers[typeid(*msg)](*msg);
+  }
   if (state == STOPPED) {
     if (door_open) {
       if (std::chrono::system_clock::now() - door_opened_time > door_time) {

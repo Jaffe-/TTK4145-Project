@@ -1,17 +1,23 @@
 #pragma once
 
 #include <chrono>
+#include "../util/message_queue.hpp"
+#include <thread>
 
 #define FLOORS 4
 
-class DriverEvent;
+class ButtonPressEvent;
+class FloorSignalEvent;
+class OrderUpdate;
 
 class FSM {
 public:
-  FSM();
-  void notify(const DriverEvent& event);
+  FSM(MessageQueue& msg_queue)
+    : message_queue(msg_queue), state(STOPPED), direction(UP), door_open(false) {};
   void run();
   void set_floor(int floor) { current_floor = floor; };
+
+  MessageQueue& message_queue;
 
 private:
   using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
@@ -30,6 +36,9 @@ private:
   bool floors_below();
   bool floors_above();
   void update_lights();
+  void notify_button(const ButtonPressEvent& event);
+  void notify_floor(const FloorSignalEvent& event);
+  void order_update(const OrderUpdate& order_update);
   
   State state;
   int current_floor;
@@ -38,4 +47,5 @@ private:
   bool door_open;
   const std::chrono::duration<double> door_time = std::chrono::seconds(3);
   TimePoint door_opened_time;
+
 };

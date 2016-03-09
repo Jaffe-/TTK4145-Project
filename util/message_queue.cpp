@@ -19,7 +19,7 @@ std::unique_lock<std::mutex> MessageQueue::wait()
 
 
 /* Push uses acquire() to get the lock and moves its argument into the queue */
-void MessageQueue::push(const std::shared_ptr<BaseMessage>& msg)
+void MessageQueue::push(const std::shared_ptr<Message>& msg)
 {
   {
     auto lock = acquire();

@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iostream>
 #include "fsm.hpp"
+#include "../util/message_queue.hpp"
 
 #define FLOORS 4
 
@@ -28,32 +29,37 @@ const Button button_list[FLOORS][3] = {
 bool is_internal(Button button);
 unsigned int internal_button_floor(Button button);
 
-struct DriverEvent {
-
-  enum Type {
-    BUTTON_PRESS, FLOOR_SIGNAL
-  };
-
-  Type type;
+struct ButtonPressEvent : public Message {
   Button button;
+};
+
+struct FloorSignalEvent : public Message {
   int floor;
 };
 
-std::ostream& operator<<(std::ostream& s, const DriverEvent& event);
+struct OrderUpdate : public Message {
+
+};
+
+std::ostream& operator<<(std::ostream& s, const ButtonPressEvent& event);
+std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event);
+
 class Driver {
 public:
   Driver(bool use_simulator);
-  
-  void update_floors(std::vector<unsigned int> new_floors);
   void run();
+
+  MessageQueue message_queue;
   
 private:
   void insert_order(unsigned int floor);
-  void poll(int& last, int new_value, int invalid_value, DriverEvent event);
+  template <typename EventType>
+  void poll(int& last, int new_value, int invalid_value, EventType event);
   void event_generator();
   int initialize_position();
 
   FSM fsm;
+  std::thread fsm_thread;
   int last_floor_signal = -1;
   int last_button_signals[FLOORS][3] {};
 };

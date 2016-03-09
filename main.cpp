@@ -4,8 +4,9 @@
 #include "driver/driver.hpp"
 #include <thread>
 
-class NetworkMessage : public Serializable {
+class NetworkMessage : public Message, public Serializable {
 public:
+  bool serializable() const override { return true; };
   std::string data;
   int id;
 
@@ -58,7 +59,7 @@ int main(int argc, char** argv)
   while (1) {
     if (std::chrono::system_clock::now() - t > std::chrono::seconds(2)) {
       NetworkMessage m {"Test!", 100};
-      network.message_queue.push(std::make_shared<SerializableMessage<NetworkMessage>>(m));
+      network.message_queue.push(std::make_shared<NetworkMessage>(m));
       t = std::chrono::system_clock::now();
     }
   };

@@ -7,16 +7,12 @@
 #include "serialization.hpp"
 #include <typeinfo>
 
-template <typename T>
-class Message;
-
-template <typename T>
-class SerializableMessage;
-
 /* This should contain all fields common to all kinds of messages. */
-class BaseMessage {
+class Message {
 public:
-  virtual bool serializable() const = 0;
+  virtual bool serializable() const {
+    return false;
+  };
 
   /*
     This operator allows a BaseMessage object to be automatically converted
@@ -25,75 +21,27 @@ public:
     pointer is given to a function taking a specific Message<T>.
   */
   template <typename T>
-  operator const Message<T>&() const {
-    if (typeid(T) == type())
-      return static_cast<const Message<T>&>(*this);
+  operator const T&() const {
+    if (typeid(T) == typeid(*this))
+      return static_cast<const T&>(*this);
     else throw std::bad_cast();
   }
 
   /* Virtualizing the Serializable& conversion operator allows one to serialize
      a message without knowing the type of the data in it. */
-  virtual operator const Serializable&() const = 0;
-
-  /* Each message will return type_info about the actual type they're
-     carrying */
-  virtual const std::type_info& type() const = 0;
-};
-
-/* The concrete class for messages, where data is of type T */
-template <typename T>
-class Message : public BaseMessage {
-public:
-  Message(const T& data) : data(data) {};
-  const T data;
-
-  const std::type_info& type() const override {
-    return typeid(T);
-  }
-
-  bool serializable() const override { return false; }
-
-  operator const Serializable&() const override {
-    throw std::bad_cast();
+  operator const Serializable&() const {
+    return dynamic_cast<const Serializable&>(*this);
   };
-
 };
-
-template <typename T>
-class SerializableMessage : public Message<T>, public Serializable {
-public:
-  operator const Serializable&() const override {
-    return static_cast<const Serializable&>(*this);
-  }
-
-  explicit SerializableMessage(const T& data) : Message<T>(data) {};
-
-  /* Construct from JSON object */
-  explicit SerializableMessage(const json_t& json)
-    : Message<T>(T(json["data"])) {};
-
-  /* Construct from JSON string */
-  SerializableMessage(const std::string& json_string)
-    : SerializableMessage(json_t::parse(json_string)) {};
-
-  json_t get_json() const override {
-    return {
-      {"data", this->data.get_json()}
-    };
-  }
-
-  bool serializable() const override { return true; };
-};
-
 
 class MessageQueue {
 public:
-  using queue_t = std::deque<std::shared_ptr<const BaseMessage>>;
+  using queue_t = std::deque<std::shared_ptr<const Message>>;
 
   std::unique_lock<std::mutex> wait();
   std::unique_lock<std::mutex> acquire();
 
-  void push(const std::shared_ptr<BaseMessage>& msg);
+  void push(const std::shared_ptr<Message>& msg);
 
   queue_t take_messages(std::unique_lock<std::mutex> lock);
 

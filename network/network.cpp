@@ -21,10 +21,8 @@ void Network::run()
 	LOG_DEBUG("Sending serializable message: " << serialized);
 	send_message(serialized);
       }
-      else
-	LOG_DEBUG("Non serializble");
     }
-    
+
     receive();
     sender.run();
     connection_controller.run();
