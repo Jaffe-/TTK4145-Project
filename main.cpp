@@ -46,9 +46,9 @@ int main(int argc, char** argv)
   LOG_DEBUG("Log is initialized");
 
   Network network(cmd_options["port"]);
+  Driver driver(cmd_options.has("simulated"));
 
   std::thread driver_thread([&] {
-      Driver driver(cmd_options.has("simulated"));
       driver.run();
   });
 
