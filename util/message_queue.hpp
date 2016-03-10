@@ -58,10 +58,16 @@ public:
   queue_t take_messages(std::unique_lock<std::mutex> lock);
 
 
-  /* Add message handler function */
+  /* Add a message handler function */
   template <typename T>
   void add_handler(std::function<void(const T&)> handler) {
     handlers[typeid(T)] = handler;
+  }
+
+  /* Add a member function of a class as a message handler */
+  template <typename T, typename Class>
+  void add_handler(Class* instance, void(Class::*f)(const T&)) {
+    add_handler<T>([instance, f] (const T& m) { (*instance.*f)(m); });
   }
 
   /* Call the right message handlers for the messages in the given queue */

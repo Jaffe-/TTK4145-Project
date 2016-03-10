@@ -104,9 +104,9 @@ void FSM::order_update(const OrderUpdate& order_update)
 
 void FSM::run()
 {
-  message_queue.add_handler<OrderUpdate>([=] (const OrderUpdate& m) { order_update(m); });
-  message_queue.add_handler<ButtonPressEvent>([=] (const ButtonPressEvent& m) { notify(m); });
-  message_queue.add_handler<FloorSignalEvent>([=] (const FloorSignalEvent& m) { notify(m); });
+  message_queue.add_handler<OrderUpdate>(this, &FSM::order_update);
+  message_queue.add_handler<ButtonPressEvent>(this, &FSM::notify);
+  message_queue.add_handler<FloorSignalEvent>(this, &FSM::notify);
 
   while (true) {
     message_queue.handle_messages(message_queue.wait());
