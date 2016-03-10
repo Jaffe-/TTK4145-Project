@@ -62,7 +62,7 @@ void Driver::poll(int& last, int new_value, int invalid_value, EventType event)
     last = new_value;
     if(new_value != invalid_value){
       LOG_DEBUG("New event generated: " << event);
-      message_queue.push(std::make_shared<EventType>(event));
+      message_queue.push(event);
     }
   }
 }
