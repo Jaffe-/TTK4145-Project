@@ -104,18 +104,13 @@ void FSM::order_update(const OrderUpdate& order_update)
 
 void FSM::run()
 {
-
-  std::unordered_map<std::type_index, std::function<void(const Message&)>> handlers = {
-    handler<OrderUpdate>(&FSM::order_update),
-    handler<ButtonPressEvent>(&FSM::notify),
-    handler<FloorSignalEvent>(&FSM::notify)
-  };
+  message_queue.add_handler<OrderUpdate>([=] (const OrderUpdate& m) { order_update(m); });
+  message_queue.add_handler<ButtonPressEvent>([=] (const ButtonPressEvent& m) { notify(m); });
+  message_queue.add_handler<FloorSignalEvent>([=] (const FloorSignalEvent& m) { notify(m); });
 
   while (true) {
-    for (auto& msg : message_queue.take_messages(message_queue.wait())) {
-      LOG_DEBUG("Received new event");
-      handlers[typeid(*msg)](*msg);
-    }
+    message_queue.handle_messages(message_queue.wait());
+
     if (state == STOPPED) {
       if (door_open) {
 	if (std::chrono::system_clock::now() - door_opened_time > door_time) {
