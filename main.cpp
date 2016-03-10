@@ -60,7 +60,7 @@ int main(int argc, char** argv)
   while (1) {
     if (std::chrono::system_clock::now() - t > std::chrono::seconds(2)) {
       NetworkMessage m {"Test!", 100};
-      network.message_queue.push(std::make_shared<NetworkMessage>(m));
+      network.message_queue.push(m);
       t = std::chrono::system_clock::now();
     }
   };
