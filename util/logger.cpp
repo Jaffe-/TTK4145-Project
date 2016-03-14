@@ -63,4 +63,7 @@ std::string Logger::level_name(Logger::LogLevel level)
   }
 }
 
-Logger log_("tst.txt", Logger::LogLevel::DEBUG);
+Logger& get_logger() {
+  static Logger logger("log.txt");
+  return logger;
+}

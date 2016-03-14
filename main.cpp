@@ -38,10 +38,10 @@ int main(int argc, char** argv)
 			  {"simulated", false, true, "simulated", "Use elevator simulator instead of real hardware"}});
 
   if (!cmd_options.has("debug")) {
-    log_.include_level = Logger::LogLevel::INFO;
+    get_logger().set_level(Logger::LogLevel::INFO);
   }
   else {
-    log_.include_level = static_cast<Logger::LogLevel>(std::stoi(cmd_options["debug"]));
+    get_logger().set_level(static_cast<Logger::LogLevel>(std::stoi(cmd_options["debug"])));
   }
   LOG_DEBUG("Log is initialized");
 

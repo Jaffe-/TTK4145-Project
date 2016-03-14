@@ -8,8 +8,8 @@
 #include <thread>
 
 #define LOG(Level_, Message_)		\
-  if ((int)log_.include_level >= (int)(Level_))				\
-    (log_.new_line().write((Logger::LogLevel)Level_, __FILE__, __FUNCTION__, __LINE__) << Message_ << std::endl)
+  if ((int)get_logger().include_level >= (int)(Level_))			\
+    (get_logger().new_line().write((Logger::LogLevel)Level_, __FILE__, __FUNCTION__, __LINE__) << Message_ << std::endl)
 
 #define LOG_DEBUG(Message_) LOG(Logger::LogLevel::DEBUG, Message_)
 #define LOG_WARNING(Message_) LOG(Logger::LogLevel::WARNING, Message_)
@@ -22,15 +22,17 @@ public:
     ERROR, WARNING, INFO, DEBUG
   };
   Logger() : include_level(LogLevel::ERROR) {};
-  Logger(std::string const& filename, Logger::LogLevel level)
-    : include_level(level), file(filename) {};
+  Logger(std::string const& filename) : include_level(LogLevel::ERROR),
+					file(filename) {};
 
   class Line {
   public:
     Line(Logger& log, std::unique_lock<std::mutex> lock)
-      : log(log), lock(std::move(lock)) {};
+      : log(log),
+	lock(std::move(lock)) {};
 
-    Line(Line&& line) : log(line.log), lock(std::move(line.lock)) {};
+    Line(Line&& line) : log(line.log),
+			lock(std::move(line.lock)) {};
 
     std::ostream& write(LogLevel level, char const* filename, char const* function, int line);
 
@@ -41,12 +43,15 @@ public:
 
   Line new_line();
   
-  LogLevel include_level;
+  void set_level(LogLevel level) {
+    include_level = level;
+  }
 
+  LogLevel include_level;
 private:
   static std::string level_name(LogLevel level);
   std::ofstream file;
   std::mutex mut;
 };
 
-extern Logger log_;
+Logger& get_logger();
