@@ -34,15 +34,17 @@ int main(int argc, char** argv)
 
   CmdOptions cmd_options(argc, argv,
 			 {{"port", true, false, "port", "The port used for sending and receiving"},
-			  {"debug", true, true, "debug", "Include debug information in log"},
+			  {"stdout", true, true, "level", "Print log messages up to the given level to stdout"},
+			  {"log-level", true, true, "level", "Explicitly set level to include in log (default is all levels)"},
 			  {"simulated", false, true, "simulated", "Use elevator simulator instead of real hardware"}});
 
-  if (!cmd_options.has("debug")) {
-    get_logger().set_level(Logger::LogLevel::INFO);
-  }
-  else {
-    get_logger().set_level(static_cast<Logger::LogLevel>(std::stoi(cmd_options["debug"])));
-  }
+  get_logger().use_stdout = cmd_options.has("stdout");
+  if (get_logger().use_stdout)
+    get_logger().stdout_level = string_to_loglevel(cmd_options["stdout"]);
+
+  if (cmd_options.has("log-level"))
+    get_logger().log_level = string_to_loglevel(cmd_options["log-level"]);
+
   LOG_DEBUG("Log is initialized");
 
   Network network(cmd_options["port"]);
