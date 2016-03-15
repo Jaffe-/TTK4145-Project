@@ -9,7 +9,7 @@
 #include <sstream>
 
 #define LOG(Level_, Message_)		\
-  get_logger().new_line().write((Logger::LogLevel)Level_, __FILE__, __FUNCTION__, __LINE__) << Message_ << std::endl
+  Logger::Line(get_logger()).write((Logger::LogLevel)Level_, __FILE__, __FUNCTION__, __LINE__) << Message_ << std::endl
 
 #define LOG_DEBUG(Message_) LOG(Logger::LogLevel::DEBUG, Message_)
 #define LOG_WARNING(Message_) LOG(Logger::LogLevel::WARNING, Message_)
@@ -26,7 +26,6 @@ public:
   class Line {
   public:
     Line(Logger& p) : parent(p) {};
-    Line(Line&& l) : parent(l.parent), ss(std::move(l.ss)) {};
     ~Line();
     std::ostream& write(LogLevel level, char const* filename, char const* function, int line);
 

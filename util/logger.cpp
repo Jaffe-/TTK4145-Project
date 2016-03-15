@@ -25,11 +25,6 @@ std::string line_color(Logger::LogLevel level)
   }
 }
 
-Logger::Line Logger::new_line()
-{
-  return Line(*this);
-}
-
 Logger::Line::~Line()
 {
   parent.write(level, ss.str());
