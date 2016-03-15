@@ -21,8 +21,7 @@ public:
   enum class LogLevel {
     ERROR, WARNING, INFO, DEBUG, DEBUG2, DEBUG3
   };
-  Logger(std::string const& filename) : log_level(LogLevel::DEBUG3),
-					file(filename) {};
+  Logger(std::string const& filename) : file(filename) {};
 
   class Line {
   public:
@@ -41,7 +40,7 @@ public:
 
   void write(LogLevel level, const std::string& logline);
 
-  LogLevel log_level;
+  LogLevel log_level = LogLevel::DEBUG;
   LogLevel stdout_level;
   bool use_stdout;
 
