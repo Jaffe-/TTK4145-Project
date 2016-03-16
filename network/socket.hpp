@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-const int MAXBUF = 2048;
+constexpr int MAXBUF = 20000;
 
 /* UDP socket abstraction */
 class Socket {
