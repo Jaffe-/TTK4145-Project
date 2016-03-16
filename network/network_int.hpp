@@ -34,7 +34,7 @@ std::string packet_type_name(PacketType packet_type);
 std::ostream& operator<<(std::ostream& stream, const std::vector<std::string>& v);
 std::ostream& operator<<(std::ostream& s, const Packet& packet);
 
-Packet make_okay(Packet packet);
+Packet make_okay(const Packet& packet);
 Packet make_pong();
 Packet make_ping();
 Packet make_msg(unsigned int id, const std::vector<char>& bytes);

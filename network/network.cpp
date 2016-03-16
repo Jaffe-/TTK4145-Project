@@ -65,7 +65,7 @@ void Network::receive()
   if (socket.own_ip(packet.ip))
     return;
 
-  LOG(4, "Received packet " << packet);
+  LOG(Logger::LogLevel::DEBUG2, "Received packet " << packet);
 
   switch (packet.type){
   case PacketType::PING:
@@ -121,7 +121,7 @@ std::string packet_type_name(PacketType packet_type)
   }
 }
 
-Packet make_okay(Packet packet)
+Packet make_okay(const Packet& packet)
 {
   return { PacketType::OK, packet.id,{}, ""}; 
 }

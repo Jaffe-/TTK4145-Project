@@ -2,10 +2,7 @@
 
 #include <chrono>
 #include "../util/message_queue.hpp"
-#include <thread>
-#include <typeindex>
-#include <unordered_map>
-
+#include "driver_events.hpp"
 #define FLOORS 4
 
 class ButtonPressEvent;
@@ -51,3 +48,6 @@ private:
   TimePoint door_opened_time;
 
 };
+
+bool is_internal(Button button);
+unsigned int internal_button_floor(Button button);

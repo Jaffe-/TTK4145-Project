@@ -1,10 +1,6 @@
 #include "hw_interface/elev.h"
 #include "fsm.hpp"
-#include "driver.hpp"
 #include "../util/logger.hpp"
-#include <typeinfo>
-#include <typeindex>
-#include <unordered_map>
 
 FSM::FSM(MessageQueue& msg_queue) : message_queue(msg_queue),
 			       state(STOPPED),
@@ -144,4 +140,17 @@ void FSM::run()
       }
     }
   }
+}
+
+bool is_internal(Button button)
+{
+  return button == Button::INTERNAL_1 ||
+    button == Button::INTERNAL_2 ||
+    button == Button::INTERNAL_3 ||
+    button == Button::INTERNAL_4;
+}
+
+unsigned int internal_button_floor(Button button)
+{
+  return static_cast<int>(button);
 }

@@ -4,18 +4,7 @@
 #include <chrono>
 #include <iostream>
 
-bool is_internal(Button button)
-{
-  return button == Button::INTERNAL_1 ||
-    button == Button::INTERNAL_2 ||
-    button == Button::INTERNAL_3 ||
-    button == Button::INTERNAL_4;
-}
-
-unsigned int internal_button_floor(Button button)
-{
-  return static_cast<int>(button);
-}
+using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
 std::ostream& operator<<(std::ostream& s, const ButtonPressEvent& event) {
   s << "{ButtonPressEvent button=" << static_cast<int>(event.button) << "}";
