@@ -18,7 +18,7 @@ void Network::run()
       if (msg->serializable()) {
 	const Serializable& serializable_msg = *msg;
 	std::string serialized = serializable_msg.serialize();
-	send_message(serialized);
+	sender.send_message(serialized);
       }
     }
 
@@ -27,11 +27,6 @@ void Network::run()
     connection_controller.run();
     
   }
-}
-
-void Network::send_message(const std::string& msg)
-{
-  sender.send_message(msg);
 }
 
 void Network::send(const Packet& packet, const std::string& ip)

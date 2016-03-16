@@ -14,7 +14,6 @@ class Network {
 public:
   Network(const std::string& port);
   void run();
-  void send_message(const std::string& msg);
   MessageQueue message_queue;
 
 private:
