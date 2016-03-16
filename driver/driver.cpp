@@ -18,12 +18,12 @@ unsigned int internal_button_floor(Button button)
 }
 
 std::ostream& operator<<(std::ostream& s, const ButtonPressEvent& event) {
-  s << "{ button=" << static_cast<int>(event.button) << "}";
+  s << "{ButtonPressEvent button=" << static_cast<int>(event.button) << "}";
   return s;
 }
 
 std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event) {
-  s << "{ floor=" << event.floor << "}";
+  s << "{FloorSignalEvent floor=" << event.floor << "}";
   return s;
 }
 
