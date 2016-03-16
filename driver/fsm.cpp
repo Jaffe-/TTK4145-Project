@@ -6,6 +6,16 @@
 #include <typeindex>
 #include <unordered_map>
 
+FSM::FSM(MessageQueue& msg_queue) : message_queue(msg_queue),
+			       state(STOPPED),
+			       direction(UP),
+			       door_open(false)
+{
+  message_queue.add_handler<OrderUpdate>(this, &FSM::order_update);
+  message_queue.add_handler<ButtonPressEvent>(this, &FSM::notify);
+  message_queue.add_handler<FloorSignalEvent>(this, &FSM::notify);
+}
+
 bool FSM::should_stop(int floor)
 {
   return
@@ -104,38 +114,32 @@ void FSM::order_update(const OrderUpdate& order_update)
 
 void FSM::run()
 {
-  message_queue.add_handler<OrderUpdate>(this, &FSM::order_update);
-  message_queue.add_handler<ButtonPressEvent>(this, &FSM::notify);
-  message_queue.add_handler<FloorSignalEvent>(this, &FSM::notify);
+  message_queue.handle_messages(message_queue.acquire());
 
-  while (true) {
-    message_queue.handle_messages(message_queue.wait());
-
-    if (state == STOPPED) {
-      if (door_open) {
-	if (std::chrono::system_clock::now() - door_opened_time > door_time) {
-	  door_open = false;
-	  update_lights();
+  if (state == STOPPED) {
+    if (door_open) {
+      if (std::chrono::system_clock::now() - door_opened_time > door_time) {
+	door_open = false;
+	update_lights();
+      }
+    }
+    else {
+      if (direction == UP) {
+	if (floors_above()) {
+	  change_state(MOVING);
+	}
+	else if (floors_below()) {
+	  direction = DOWN;
+	  change_state(MOVING);
 	}
       }
-      else {
-	if (direction == UP) {
-	  if (floors_above()) {
-	    change_state(MOVING);
-	  }
-	  else if (floors_below()) {
-	    direction = DOWN;
-	    change_state(MOVING);
-	  }
+      else if (direction == DOWN) {
+	if (floors_below()) {
+	  change_state(MOVING);
 	}
-	else if (direction == DOWN) {
-	  if (floors_below()) {
-	    change_state(MOVING);
-	  }
-	  else if (floors_above()) {
-	    direction = UP;
-	    change_state(MOVING);
-	  }
+	else if (floors_above()) {
+	  direction = UP;
+	  change_state(MOVING);
 	}
       }
     }

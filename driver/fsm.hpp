@@ -14,8 +14,7 @@ class OrderUpdate;
 
 class FSM {
 public:
-  FSM(MessageQueue& msg_queue)
-    : message_queue(msg_queue), state(STOPPED), direction(UP), door_open(false) {};
+  FSM(MessageQueue& msg_queue);
   void run();
   void set_floor(int floor) { current_floor = floor; };
 

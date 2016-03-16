@@ -52,7 +52,6 @@ Driver::Driver(bool use_simulator) : fsm(message_queue)
     // ERROR
   }
   fsm.set_floor(current_floor);
-  fsm_thread = std::thread(&FSM::run, &fsm);
 }
 
 template <typename EventType>
@@ -106,6 +105,7 @@ int Driver::initialize_position()
 void Driver::run()
 {
   while (1) {
+    fsm.run();
     event_generator();
   }
 }
