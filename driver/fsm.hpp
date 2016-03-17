@@ -34,10 +34,9 @@ private:
   bool floors_below();
   bool floors_above();
   void update_lights();
-  void notify(const ButtonPressEvent& event);
+  void notify(const InternalButtonEvent& event);
   void notify(const FloorSignalEvent& event);
-  void notify(const OrderUpdate& event);
-  void order_update(const OrderUpdate& order_update);
+  void notify(const OrderUpdateEvent& event);
   
   State state;
   int current_floor;
@@ -50,4 +49,3 @@ private:
 };
 
 bool is_internal(Button button);
-unsigned int internal_button_floor(Button button);

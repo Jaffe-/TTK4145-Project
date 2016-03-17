@@ -5,6 +5,7 @@
 #include "connection_controller.hpp"
 #include "../util/logger.hpp"
 #include <chrono>
+#include "network_events.hpp"
 
 Network::Network(MessageQueue& logic_queue, const std::string& port) : logic_queue(logic_queue),
 								       socket(port),
@@ -34,7 +35,10 @@ void Network::run()
 
 void Network::send(const Packet& packet, const std::string& ip)
 {
-  socket.write(packet, ip);
+  if (!socket.write(packet, ip)) {
+    LOG_ERROR("Failed to write to socket");
+    logic_queue.push(LostNetworkEvent());
+  }
 }
 
 void Network::send_all(const Packet& packet)
@@ -57,6 +61,7 @@ void Network::receive()
   Packet packet;
   if (!socket.read(packet)) {
     LOG_ERROR("Unable to read from socket");
+    logic_queue.push(LostNetworkEvent());
     return;
   }
 

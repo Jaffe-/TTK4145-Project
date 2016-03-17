@@ -22,8 +22,13 @@ const Button button_list[FLOORS][3] = {
 };
 
 /* Events */
-struct ButtonPressEvent : public Message {
-  ButtonPressEvent(Button b) : button(b) {};
+struct ExternalButtonEvent : public Message {
+  ExternalButtonEvent(Button b) : button(b) {};
+  Button button;
+};
+
+struct InternalButtonEvent : public Message {
+  InternalButtonEvent(Button b) : button(b) {};
   Button button;
 };
 
@@ -32,10 +37,16 @@ struct FloorSignalEvent : public Message {
   int floor;
 };
 
-struct OrderUpdate : public Message {
-
+struct OrderUpdateEvent : public Message {
+  OrderUpdateEvent(int floor, int direction) : floor(floor), direction(direction) {};
+  int floor;
+  int direction;
 };
 
 /* Convenient overloads for writing events to log etc. */
-std::ostream& operator<<(std::ostream& s, const ButtonPressEvent& event);
+std::ostream& operator<<(std::ostream& s, const InternalButtonEvent& event);
+std::ostream& operator<<(std::ostream& s, const ExternalButtonEvent& event);
 std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event);
+
+int button_floor(Button button);
+int button_type(Button button);

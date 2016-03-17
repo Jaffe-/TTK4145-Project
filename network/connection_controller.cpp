@@ -4,6 +4,7 @@
 #include "../util/logger.hpp"
 #include <algorithm>
 #include <chrono>
+#include "network_events.hpp"
 
 bool ConnectionController::has_client(const std::string& ip) const
 {
@@ -15,7 +16,7 @@ bool ConnectionController::has_client(const std::string& ip) const
 void ConnectionController::notify_pong(const std::string& ip)
 {
   if (!has_client(ip)) {
-    // new client registered, send event
+    network.logic_queue.push(NewConnectionEvent(ip));
     LOG_INFO("New client " << ip << " discovered");
   }
   network.connections[ip] = {std::chrono::system_clock::now(), {}};
@@ -25,7 +26,7 @@ void ConnectionController::remove_clients(const std::vector<std::string>& ips)
 {
   for (auto& ip : ips) {
     if (has_client(ip)) {
-      // send event
+      network.logic_queue.push(LostConnectionEvent(ip));
       LOG_WARNING("Client " << ip << " is removed");
       network.connections.erase(ip);
     }

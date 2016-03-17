@@ -51,7 +51,6 @@ void Sender::notify_okay(const std::string& ip, unsigned int id)
   if (!message_queue.empty()) {
     MessageEntry& current = message_queue[0];
     if (current.id == id) {
-      // event
       LOG_DEBUG("OK received from " << ip
 		<< " for message id " << current.id);
 

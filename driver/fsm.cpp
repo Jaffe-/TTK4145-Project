@@ -7,8 +7,8 @@ FSM::FSM(MessageQueue& msg_queue) : message_queue(msg_queue),
 			       direction(UP),
 			       door_open(false)
 {
-  message_queue.add_handler<OrderUpdate>(this, &FSM::order_update);
-  message_queue.add_handler<ButtonPressEvent>(this, &FSM::notify);
+  message_queue.add_handler<OrderUpdateEvent>(this, &FSM::notify);
+  message_queue.add_handler<InternalButtonEvent>(this, &FSM::notify);
   message_queue.add_handler<FloorSignalEvent>(this, &FSM::notify);
 }
 
@@ -16,8 +16,8 @@ bool FSM::should_stop(int floor)
 {
   return
     orders[floor][2] ||
-    (direction == UP && orders[floor][0]) ||
-    (direction == DOWN && orders[floor][1]);
+    (direction == UP && (orders[floor][0]) || (orders[floor][1] && !floors_above())) ||
+    (direction == DOWN && (orders[floor][1] || (orders[floor][0] && !floors_below())));
 }
 
 void FSM::clear_orders(int floor)
@@ -62,11 +62,9 @@ void FSM::update_lights()
   }
 }
 
-void FSM::notify(const ButtonPressEvent& event)
+void FSM::notify(const InternalButtonEvent& event)
 {
-  if (is_internal(event.button)) {
-    insert_order(internal_button_floor(event.button), 2);
-  }
+  insert_order(button_floor(event.button), 2);
   update_lights();
 }
 
@@ -79,14 +77,16 @@ void FSM::notify(const FloorSignalEvent& event)
   update_lights();
 }
 
-void FSM::notify(const OrderUpdate& event)
+void FSM::notify(const OrderUpdateEvent& event)
 {
+  insert_order(event.floor, event.direction);
+  update_lights();
 }
 
 bool FSM::floors_above()
 {
   for (int floor = current_floor + 1; floor < FLOORS; floor++) {
-    if (orders[floor][0] || orders[floor][2]) {
+    if (orders[floor][0] || orders[floor][1] || orders[floor][2]) {
       return true;
     }
   }
@@ -96,16 +96,11 @@ bool FSM::floors_above()
 bool FSM::floors_below()
 {
   for (int floor = current_floor - 1; floor >= 0; floor--) {
-    if (orders[floor][1] || orders[floor][2]) {
+    if (orders[floor][0] || orders[floor][1] || orders[floor][2]) {
       return true;
     }
   }
   return false;
-}
-
-void FSM::order_update(const OrderUpdate& order_update)
-{
-  // todo
 }
 
 void FSM::run()
@@ -150,7 +145,47 @@ bool is_internal(Button button)
     button == Button::INTERNAL_4;
 }
 
-unsigned int internal_button_floor(Button button)
-{
-  return static_cast<int>(button);
+int button_floor(Button button) {
+  switch (button) {
+  case INTERNAL_1:
+  case EXTERNAL_1U:
+    return 0;
+  case INTERNAL_2:
+  case EXTERNAL_2D:
+  case EXTERNAL_2U:
+    return 1;
+  case INTERNAL_3:
+  case EXTERNAL_3D:
+  case EXTERNAL_3U:
+    return 2;
+  case INTERNAL_4:
+  case EXTERNAL_4D:
+    return 3;
+  case NONE:
+  default:
+    return -1;
+  }
 }
+
+int button_type(Button button)
+{
+  switch (button) {
+  case EXTERNAL_1U:
+  case EXTERNAL_2U:
+  case EXTERNAL_3U:
+    return 0;
+  case EXTERNAL_2D:
+  case EXTERNAL_3D:
+  case EXTERNAL_4D:
+    return 1;
+  case INTERNAL_1:
+  case INTERNAL_2:
+  case INTERNAL_3:
+  case INTERNAL_4:
+    return 2;
+  case NONE:
+  default:
+    return -1;
+  }
+}
+ 
