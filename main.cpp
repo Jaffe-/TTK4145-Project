@@ -1,7 +1,6 @@
 #include "util/cmdopts.hpp"
 #include "util/logger.hpp"
-#include "network/network.hpp"
-#include "driver/driver.hpp"
+#include "logic/logic.hpp"
 #include <thread>
 
 class NetworkMessage : public Message, public Serializable {
@@ -47,23 +46,7 @@ int main(int argc, char** argv)
 
   LOG_DEBUG("Log is initialized");
 
-  Network network(cmd_options["port"]);
-  Driver driver(cmd_options.has("simulated"));
+  Logic logic(cmd_options.has("simulated"), cmd_options["port"]);
 
-  std::thread driver_thread([&] {
-      driver.run();
-  });
-
-  std::thread network_thread([&] {
-      network.run();
-  });
-
-  TimePoint t = std::chrono::system_clock::now();
-  while (1) {
-    if (std::chrono::system_clock::now() - t > std::chrono::seconds(2)) {
-      NetworkMessage m {"Test!", 100};
-      network.message_queue.push(m);
-      t = std::chrono::system_clock::now();
-    }
-  };
+  logic.run();
 }

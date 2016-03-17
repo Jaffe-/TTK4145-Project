@@ -12,9 +12,10 @@ class Network {
   friend class ConnectionController;
 
 public:
-  Network(const std::string& port);
+  Network(MessageQueue& logic_queue, const std::string& port);
   void run();
   MessageQueue message_queue;
+  MessageQueue& logic_queue;
 
 private:
   void send(const Packet& packet, const std::string& ip);

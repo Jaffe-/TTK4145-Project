@@ -2,7 +2,7 @@ TARGET=elevator
 CC = g++
 CFLAGS +=-Wall -Wextra -pedantic -std=c++11 -MD -MP
 LDFLAGS = -Ldriver/hw_interface -linterface -lcomedi -lpthread
-MODULES = network driver util
+MODULES = network driver util logic
 CPPSRC = main.cpp $(foreach m, $(MODULES), $(wildcard $(m)/*.cpp))
 HEADERS = $(foreach m, $(MODULES), $(wildcard $(m)/*.hpp))
 OBJ = $(CPPSRC:.cpp=.o)

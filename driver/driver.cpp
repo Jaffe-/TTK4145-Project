@@ -16,7 +16,7 @@ std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event) {
   return s;
 }
 
-Driver::Driver(bool use_simulator) : fsm(message_queue)
+Driver::Driver(MessageQueue& logic_queue, bool use_simulator) : logic_queue(logic_queue), fsm(message_queue)
 {
   std::string driver_string = use_simulator ? "simulated" : "hardware";
   /*

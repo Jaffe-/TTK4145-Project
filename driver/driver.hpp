@@ -6,10 +6,11 @@
 
 class Driver {
 public:
-  Driver(bool use_simulator);
+  Driver(MessageQueue& logic_queue, bool use_simulator);
   void run();
 
   MessageQueue message_queue;
+  MessageQueue& logic_queue;
   
 private:
   void insert_order(unsigned int floor);
