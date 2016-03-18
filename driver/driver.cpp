@@ -39,21 +39,25 @@ void Driver::poll(int& last, int new_value, int invalid_value, EventType event)
 
 void Driver::event_generator()
 {
+  /* Poll for floor signal */
   int floor_signal = elev_get_floor_sensor_signal();
   poll(last_floor_signal, floor_signal, -1, FloorSignalEvent(floor_signal));
 
   for (int i = 0; i < FLOORS; i++) {
+    /* Go through external up and external down (0 and 1) buttons */
     for (int j = 0; j <= 1; j++ ) {
       if ((i == 0 && j == 1) || (i == 3 && j == 0)) {
+	/* first floor doesn't have a down button and top floor doesn't have an up
+	   button */
 	continue;
       }
-      
+
       int button_signal = elev_get_button_signal(static_cast<elev_button_type_t>(j), i);
       poll(last_button_signals[i][j], button_signal, 0,
 	   ExternalButtonEvent(button_list[i][j]));
     }
 
-    // Internal buttons:
+    /* Internal buttons: */
     int button_signal = elev_get_button_signal(BUTTON_COMMAND, i);
     poll(last_button_signals[i][2], button_signal, 0,
 	 InternalButtonEvent(button_list[i][2]));
