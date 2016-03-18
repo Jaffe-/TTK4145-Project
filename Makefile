@@ -1,23 +1,27 @@
 TARGET=elevator
-CC = g++
-CFLAGS +=-Wall -Wextra -pedantic -std=c++11 -MD -MP
-LDFLAGS = -Ldriver/hw_interface -linterface -lcomedi -lpthread
-MODULES = network driver util logic
-CPPSRC = main.cpp $(foreach m, $(MODULES), $(wildcard $(m)/*.cpp))
-HEADERS = $(foreach m, $(MODULES), $(wildcard $(m)/*.hpp))
-OBJ = $(CPPSRC:.cpp=.o)
+CC = gcc
+COMMONFLAGS += -Wall -Wextra -pedantic -MD -MP
+CPPFLAGS = $(COMMONFLAGS) -std=c++11
+CFLAGS = $(COMMONFLAGS) -std=gnu99
+LDFLAGS = -lstdc++ -lcomedi -lpthread -lm
+MODULES = network driver driver/hw_interface logic util
+SRC = main.cpp $(foreach m, $(MODULES), $(wildcard $(m)/*.cpp)) $(foreach m, $(MODULES), $(wildcard $(m)/*.c))
+OBJ = $(SRC:.cpp=.o) $(SRC:.c=.o)
 
 all: $(TARGET)
 
-$(TARGET): $(OBJ) driver/hw_interface/libinterface.a
+$(TARGET): $(OBJ)
 	$(CC) $^ $(LDFLAGS) -o $@
 
 %.o: %.cpp
+	$(CC) $(CPPFLAGS) -c $< -o $@
+
+%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
--include $(CPPSRC:%.cpp=%.d)
+-include $(CPPSRC:%.cpp=%.d) $(CSRC:%.c=%.d)
 
 clean:
-	rm -f $(OBJ) $(CPPSRC:%.cpp=%.d)
+	rm -f $(OBJ) $(SRC:%.cpp=%.d)
 
 .PHONY: all clean
