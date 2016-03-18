@@ -47,5 +47,3 @@ private:
   TimePoint door_opened_time;
 
 };
-
-bool is_internal(Button button);
