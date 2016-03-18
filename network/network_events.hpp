@@ -17,3 +17,6 @@ struct LostNetworkEvent : public Message {
   LostNetworkEvent() {};
 };
 
+std::ostream& operator<<(std::ostream& os, const NewConnectionEvent& event);
+std::ostream& operator<<(std::ostream& os, const LostNetworkEvent& event);
+std::ostream& operator<<(std::ostream& os, const LostConnectionEvent& event);

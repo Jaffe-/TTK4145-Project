@@ -143,3 +143,18 @@ Packet make_msg(unsigned int id, const std::vector<char>& bytes)
 {
   return { PacketType::MSG, id, bytes, ""};
 }
+
+std::ostream& operator<<(std::ostream& os, const NewConnectionEvent& event)
+{
+  return os << "{NewConnectionEvent " << event.ip << "}";
+}
+
+std::ostream& operator<<(std::ostream& os, const LostConnectionEvent& event)
+{
+  return os << "{LostConnectionEvent " << event.ip << "}";
+}
+
+std::ostream& operator<<(std::ostream& os, const LostNetworkEvent& event)
+{
+  return os << "{LostNetworkEvent}";
+}
