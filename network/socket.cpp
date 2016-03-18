@@ -14,22 +14,22 @@
 
 Socket::Socket(const std::string& port) : port(port)
 {
-  struct addrinfo hints, *res;
+  addrinfo hints, *res;
   int rv;
 
   operational = false;
 
   /* Find list of own IPv4 addresses */
-  struct ifaddrs * if_addrs=NULL;
+  ifaddrs * if_addrs=NULL;
   getifaddrs(&if_addrs);
 
-  for (struct ifaddrs* ifa = if_addrs; ifa != NULL; ifa = ifa->ifa_next) {
+  for (ifaddrs* ifa = if_addrs; ifa != NULL; ifa = ifa->ifa_next) {
     if (!ifa->ifa_addr) {
       continue;
     }
     if (ifa->ifa_addr->sa_family == AF_INET) {
       char address[INET_ADDRSTRLEN];
-      inet_ntop(AF_INET, &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr, address, INET_ADDRSTRLEN);
+      inet_ntop(AF_INET, &((sockaddr_in*)ifa->ifa_addr)->sin_addr, address, INET_ADDRSTRLEN);
       own_ips.push_back(address);
     }
   }
@@ -76,7 +76,7 @@ Socket::~Socket()
 bool Socket::empty()
 {
   fd_set readfds;
-  struct timeval tv;
+  timeval tv;
   const int select_timeout = 10;
 
   FD_ZERO(&readfds);
@@ -100,18 +100,18 @@ bool Socket::read(Packet& packet)
 {
   int numbytes;
   socklen_t addr_len;
-  struct sockaddr_storage their_addr;
+  sockaddr_storage their_addr;
   char buf[MAXBUF] = {0};
   addr_len = sizeof(their_addr);
 
   if ((numbytes = recvfrom(sockfd, buf, MAXBUF-1, 0,
-			   (struct sockaddr *)&their_addr, &addr_len)) == -1) {
+			   (sockaddr*)&their_addr, &addr_len)) == -1) {
     LOG_ERROR("recvfrom() failed.");
     return false;
   }
 
   char s[INET_ADDRSTRLEN];
-  inet_ntop(their_addr.ss_family, &(((struct sockaddr_in *)&their_addr)->sin_addr), s, sizeof(s));
+  inet_ntop(their_addr.ss_family, &(((sockaddr_in *)&their_addr)->sin_addr), s, sizeof(s));
   packet = {(PacketType)buf[0],
 	    *(unsigned int*) (buf + 1),
 	    std::vector<char>(buf + 1 + sizeof(int), buf + numbytes),
@@ -121,9 +121,9 @@ bool Socket::read(Packet& packet)
 
 bool Socket::write(const Packet& packet, const std::string& to_ip)
 {
-  struct sockaddr_in si;
+  sockaddr_in si;
   char buf[MAXBUF];
-    
+
   memset((char *) &si, 0, sizeof(si));
   si.sin_family = AF_INET;
   si.sin_port = htons(atoi(port.c_str()));
@@ -133,11 +133,11 @@ bool Socket::write(const Packet& packet, const std::string& to_ip)
   *(unsigned int*) (buf + 1) = packet.id;
   std::copy(packet.bytes.begin(), packet.bytes.end(), buf + 1 + sizeof(int));
   if (sendto(sockfd, buf, packet.bytes.size() + 1 + sizeof(int),
-	     0, (struct sockaddr*) &si, sizeof(si)) == -1) {
+	     0, (sockaddr*) &si, sizeof(si)) == -1) {
     LOG_ERROR("sendto() failed");
     return false;
   }
-    
+
   return true;
 }
 
@@ -145,4 +145,3 @@ bool Socket::own_ip(const std::string& ip)
 {
   return std::find(own_ips.begin(), own_ips.end(), ip) != own_ips.end();
 }
-
