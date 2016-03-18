@@ -3,9 +3,9 @@
 #include "../util/logger.hpp"
 
 FSM::FSM()
-  : state(STOPPED)
-  , direction(UP)
-  , door_open(false)
+  : state(STOPPED),
+    direction(UP),
+    door_open(false)
 {
   message_queue.add_handler<OrderUpdateEvent>(this, &FSM::notify);
   message_queue.add_handler<InternalButtonEvent>(this, &FSM::notify);

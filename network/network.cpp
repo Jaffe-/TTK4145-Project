@@ -7,10 +7,11 @@
 #include <chrono>
 #include "network_events.hpp"
 
-Network::Network(MessageQueue& logic_queue, const std::string& port) : logic_queue(logic_queue),
-								       socket(port),
-								       sender(*this),
-								       connection_controller(*this)
+Network::Network(MessageQueue& logic_queue, const std::string& port)
+  : logic_queue(logic_queue),
+    socket(port),
+    sender(*this),
+    connection_controller(*this)
 {
   LOG_INFO("Network started on port " << port);
 }

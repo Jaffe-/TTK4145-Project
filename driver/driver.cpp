@@ -7,8 +7,8 @@
 using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
 Driver::Driver(MessageQueue& logic_queue, bool use_simulator)
-  : logic_queue(logic_queue)
-  , message_queue(fsm.message_queue)
+  : logic_queue(logic_queue),
+    message_queue(fsm.message_queue)
 {
   std::string driver_string = use_simulator ? "simulated" : "hardware";
   elev_init(use_simulator ? ET_Simulation : ET_Comedi);
