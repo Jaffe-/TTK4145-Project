@@ -6,9 +6,9 @@
 
 using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
-Driver::Driver(MessageQueue& logic_queue, bool use_simulator)
+Driver::Driver(EventQueue& logic_queue, bool use_simulator)
   : logic_queue(logic_queue),
-    message_queue(fsm.message_queue)
+    event_queue(fsm.event_queue)
 {
   std::string driver_string = use_simulator ? "simulated" : "hardware";
   elev_init(use_simulator ? ET_Simulation : ET_Comedi);
@@ -34,7 +34,7 @@ void Driver::poll(int& last, int new_value, int invalid_value, EventType event)
     last = new_value;
     if(new_value != invalid_value){
       LOG_DEBUG("New event generated: " << event);
-      fsm.message_queue.push(event);
+      fsm.event_queue.push(event);
       logic_queue.push(event);
     }
   }

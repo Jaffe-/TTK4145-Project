@@ -10,13 +10,13 @@
 #include <unordered_map>
 
 
-class Message {
+class Event {
 public:
   virtual bool serializable() const {
     return false;
   };
 
-  /* Used to cast a Message to its concrete derived type */
+  /* Used to cast an event to its concrete derived type */
   template <typename T>
   operator const T&() const {
     if (typeid(T) == typeid(*this))
@@ -25,17 +25,17 @@ public:
   }
 
   /* Used to cast itself to Serializable. Must be dynamic cast since
-     Message doesn't itself derive from Serializable. */
+     Event doesn't itself derive from Serializable. */
   operator const Serializable&() const {
     return dynamic_cast<const Serializable&>(*this);
   };
 };
 
 
-class MessageQueue {
+class EventQueue {
 public:
-  using queue_t = std::deque<std::shared_ptr<const Message>>;
-  using map_t = std::unordered_map<std::type_index, std::function<void(const Message&)>>;
+  using queue_t = std::deque<std::shared_ptr<const Event>>;
+  using map_t = std::unordered_map<std::type_index, std::function<void(const Event&)>>;
 
   /* Acquire immediately locks the queue */
   std::unique_lock<std::mutex> wait();
@@ -44,18 +44,18 @@ public:
   std::unique_lock<std::mutex> acquire();
 
   /* Push any given message into the queue. The message object must be copy
-     constructible and derive from Message */
+     constructible and derive from Event */
   template <typename T>
   void push(const T& msg) {
     {
       auto lock = acquire();
       queue.push_back(std::make_shared<T>(msg));
     }
-    new_message.notify_one();
+    new_event.notify_one();
   }
 
   /* Use the given lock to take all current messages (move them out of the queue) */
-  queue_t take_messages(std::unique_lock<std::mutex> lock);
+  queue_t take_events(std::unique_lock<std::mutex> lock);
 
 
   /* Add a message handler function */
@@ -71,17 +71,17 @@ public:
   }
 
   /* Call the right message handlers for the messages in the given queue */
-  void handle_messages(const queue_t& queue);
+  void handle_events(const queue_t& queue);
 
   /* A practical overload */
-  void handle_messages(std::unique_lock<std::mutex> lock) {
-    handle_messages(take_messages(std::move(lock)));
+  void handle_events(std::unique_lock<std::mutex> lock) {
+    handle_events(take_events(std::move(lock)));
   }
 
 private:
   queue_t queue;
   std::mutex mut;
-  std::condition_variable new_message;
+  std::condition_variable new_event;
 
   map_t handlers;
 };

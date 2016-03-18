@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& s, const MessageEntry& msg_entry)
 
   return s;
 }
-  
+
 void Sender::send_message(const std::string& msg)
 {
   auto clients = network.connection_controller.get_clients();
@@ -34,7 +34,7 @@ void Sender::send_message(const std::string& msg)
     LOG_WARNING("Attempted to send message, but there are no clients.");
     return;
   }
-  
+
   auto msg_entry = MessageEntry(current_id, msg, clients);
 
   for (auto& connection : network.connections) {
@@ -77,7 +77,7 @@ void Sender::run()
 	if (std::chrono::system_clock::now() - current.sent_time > send_timeout) {
 	  // generate event that the message was not received by
 	  // the IPs in current.recipients
-	  LOG_WARNING("Clients " << current.recipients 
+	  LOG_WARNING("Clients " << current.recipients
 		      << " did not respond with OK for message with id " << current.id);
 	  network.connection_controller.remove_clients(current.recipients);
 	}

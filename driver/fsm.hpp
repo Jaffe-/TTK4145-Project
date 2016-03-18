@@ -1,7 +1,7 @@
 #pragma once
 
 #include <chrono>
-#include "../util/message_queue.hpp"
+#include "../util/event_queue.hpp"
 #include "driver_events.hpp"
 #define FLOORS 4
 
@@ -15,7 +15,7 @@ public:
   void run();
   void set_floor(int floor) { current_floor = floor; };
 
-  MessageQueue message_queue;
+  EventQueue event_queue;
 
 private:
   using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
@@ -37,7 +37,7 @@ private:
   void notify(const InternalButtonEvent& event);
   void notify(const FloorSignalEvent& event);
   void notify(const OrderUpdateEvent& event);
-  
+
   State state;
   int current_floor;
   Direction direction;

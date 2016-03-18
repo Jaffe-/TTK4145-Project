@@ -2,15 +2,15 @@
 
 #include <iostream>
 #include "fsm.hpp"
-#include "../util/message_queue.hpp"
+#include "../util/event_queue.hpp"
 
 class Driver {
 public:
-  Driver(MessageQueue& logic_queue, bool use_simulator);
+  Driver(EventQueue& logic_queue, bool use_simulator);
   void run();
 
-  MessageQueue& logic_queue;
-  MessageQueue& message_queue;
+  EventQueue& logic_queue;
+  EventQueue& event_queue;
 
 private:
   void insert_order(unsigned int floor);

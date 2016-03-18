@@ -7,7 +7,7 @@
 #include <chrono>
 #include "network_events.hpp"
 
-Network::Network(MessageQueue& logic_queue, const std::string& port)
+Network::Network(EventQueue& logic_queue, const std::string& port)
   : logic_queue(logic_queue),
     socket(port),
     sender(*this),
@@ -19,7 +19,7 @@ Network::Network(MessageQueue& logic_queue, const std::string& port)
 void Network::run()
 {
   while (true) {
-    for (auto& msg : message_queue.take_messages(message_queue.acquire())) {
+    for (auto& msg : event_queue.take_events(event_queue.acquire())) {
       if (msg->serializable()) {
 	const Serializable& serializable_msg = *msg;
 	std::string serialized = serializable_msg.serialize();
@@ -30,7 +30,7 @@ void Network::run()
     receive();
     sender.run();
     connection_controller.run();
-    
+
   }
 }
 
@@ -127,7 +127,7 @@ std::string packet_type_name(PacketType packet_type)
 
 Packet make_okay(const Packet& packet)
 {
-  return { PacketType::OK, packet.id,{}, ""}; 
+  return { PacketType::OK, packet.id,{}, ""};
 }
 
 Packet make_pong()

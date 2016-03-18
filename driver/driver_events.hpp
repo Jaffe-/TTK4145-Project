@@ -22,22 +22,22 @@ const Button button_list[FLOORS][3] = {
 };
 
 /* Events */
-struct ExternalButtonEvent : public Message {
+struct ExternalButtonEvent : public Event {
   ExternalButtonEvent(Button b) : button(b) {};
   Button button;
 };
 
-struct InternalButtonEvent : public Message {
+struct InternalButtonEvent : public Event {
   InternalButtonEvent(Button b) : button(b) {};
   Button button;
 };
 
-struct FloorSignalEvent : public Message {
+struct FloorSignalEvent : public Event {
   FloorSignalEvent(int f) : floor(f) {};
   int floor;
 };
 
-struct OrderUpdateEvent : public Message {
+struct OrderUpdateEvent : public Event {
   OrderUpdateEvent(int floor, int direction) : floor(floor), direction(direction) {};
   int floor;
   int direction;

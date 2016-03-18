@@ -1,5 +1,5 @@
 #pragma once
-#include "../util/message_queue.hpp"
+#include "../util/event_queue.hpp"
 #include "../driver/driver.hpp"
 #include "../network/network.hpp"
 #include <thread>
@@ -10,7 +10,7 @@ public:
   void run();
 
 private:
-  MessageQueue message_queue;
+  EventQueue event_queue;
   Driver driver;
   Network network;
 

@@ -3,7 +3,7 @@
 #include "logic/logic.hpp"
 #include <thread>
 
-class NetworkMessage : public Message, public Serializable {
+class NetworkMessage : public Event, public Serializable {
 public:
   bool serializable() const override { return true; };
   std::string data;
@@ -13,7 +13,7 @@ public:
   NetworkMessage(const std::string& s) {
     //    deserialize(s);
   }
-  
+
   json_t get_json() const override {
     return {{"id", id}, {"data", data}};
   }

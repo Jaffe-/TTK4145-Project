@@ -1,19 +1,19 @@
 #pragma once
 
 #include <string>
-#include "../util/message_queue.hpp"
+#include "../util/event_queue.hpp"
 
-struct NewConnectionEvent : public Message {
+struct NewConnectionEvent : public Event {
   NewConnectionEvent(const std::string& ip) : ip(ip) {};
   std::string ip;
 };
 
-struct LostConnectionEvent : public Message {
+struct LostConnectionEvent : public Event {
   LostConnectionEvent(const std::string& ip) : ip(ip) {};
   std::string ip;
 };
 
-struct LostNetworkEvent : public Message {
+struct LostNetworkEvent : public Event {
   LostNetworkEvent() {};
 };
 

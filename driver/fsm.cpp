@@ -7,9 +7,9 @@ FSM::FSM()
     direction(UP),
     door_open(false)
 {
-  message_queue.add_handler<OrderUpdateEvent>(this, &FSM::notify);
-  message_queue.add_handler<InternalButtonEvent>(this, &FSM::notify);
-  message_queue.add_handler<FloorSignalEvent>(this, &FSM::notify);
+  event_queue.add_handler<OrderUpdateEvent>(this, &FSM::notify);
+  event_queue.add_handler<InternalButtonEvent>(this, &FSM::notify);
+  event_queue.add_handler<FloorSignalEvent>(this, &FSM::notify);
 }
 
 bool FSM::should_stop(int floor)
@@ -105,7 +105,7 @@ bool FSM::floors_below()
 
 void FSM::run()
 {
-  message_queue.handle_messages(message_queue.acquire());
+  event_queue.handle_events(event_queue.acquire());
 
   if (state == STOPPED) {
     if (door_open) {
