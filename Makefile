@@ -5,8 +5,9 @@ CPPFLAGS = $(COMMONFLAGS) -std=c++11
 CFLAGS = $(COMMONFLAGS) -std=gnu99
 LDFLAGS = -lstdc++ -lcomedi -lpthread -lm
 MODULES = network driver driver/hw_interface logic util
-SRC = main.cpp $(foreach m, $(MODULES), $(wildcard $(m)/*.cpp)) $(foreach m, $(MODULES), $(wildcard $(m)/*.c))
-OBJ = $(SRC:.cpp=.o) $(SRC:.c=.o)
+CPPSRC = main.cpp $(foreach m, $(MODULES), $(wildcard $(m)/*.cpp))
+CSRC = $(foreach m, $(MODULES), $(wildcard $(m)/*.c))
+OBJ = $(CPPSRC:%.cpp=%.o) $(CSRC:%.c=%.o)
 
 all: $(TARGET)
 
@@ -22,6 +23,6 @@ $(TARGET): $(OBJ)
 -include $(CPPSRC:%.cpp=%.d) $(CSRC:%.c=%.d)
 
 clean:
-	rm -f $(OBJ) $(SRC:%.cpp=%.d)
+	rm -f $(OBJ) $(CPPSRC:%.cpp=%.d) $(CSRC:%.c=%.d)
 
 .PHONY: all clean
