@@ -11,11 +11,11 @@ class OrderUpdate;
 
 class FSM {
 public:
-  FSM(MessageQueue& msg_queue);
+  FSM();
   void run();
   void set_floor(int floor) { current_floor = floor; };
 
-  MessageQueue& message_queue;
+  MessageQueue message_queue;
 
 private:
   using TimePoint = std::chrono::time_point<std::chrono::system_clock>;

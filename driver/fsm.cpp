@@ -2,10 +2,10 @@
 #include "fsm.hpp"
 #include "../util/logger.hpp"
 
-FSM::FSM(MessageQueue& msg_queue) : message_queue(msg_queue),
-			       state(STOPPED),
-			       direction(UP),
-			       door_open(false)
+FSM::FSM()
+  : state(STOPPED)
+  , direction(UP)
+  , door_open(false)
 {
   message_queue.add_handler<OrderUpdateEvent>(this, &FSM::notify);
   message_queue.add_handler<InternalButtonEvent>(this, &FSM::notify);
