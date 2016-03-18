@@ -6,37 +6,13 @@
 
 using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
-std::ostream& operator<<(std::ostream& s, const InternalButtonEvent& event) {
-  s << "{InternalButtonEvent button=" << static_cast<int>(event.button) << "}";
-  return s;
-}
-
-std::ostream& operator<<(std::ostream& s, const ExternalButtonEvent& event) {
-  s << "{ExternalButtonEvent button=" << static_cast<int>(event.button) << "}";
-  return s;
-}
-
-std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event) {
-  s << "{FloorSignalEvent floor=" << event.floor << "}";
-  return s;
-}
-
 Driver::Driver(MessageQueue& logic_queue, bool use_simulator) : logic_queue(logic_queue), fsm(message_queue)
 {
   std::string driver_string = use_simulator ? "simulated" : "hardware";
-  /*
-  int rv;
-  if ((rv = elev_init(use_simulator ? ET_Simulation : ET_Comedi))) {
-    LOG_INFO("Started driver (" << driver_string << ")");
-  }
-  else {
-    LOG_ERROR("Failed to start driver (" << driver_string << "), rv = " << rv);
-    // Exception?
-    return;
-  }
-  */
   elev_init(use_simulator ? ET_Simulation : ET_Comedi);
-  
+
+  LOG_INFO("Driver started (" << driver_string << ")");
+
   int current_floor = initialize_position();
   if (current_floor >= 0) {
     LOG_INFO("Elevator is now at floor " << current_floor);
@@ -108,4 +84,19 @@ void Driver::run()
     fsm.run();
     event_generator();
   }
+}
+
+std::ostream& operator<<(std::ostream& s, const InternalButtonEvent& event) {
+  s << "{InternalButtonEvent button=" << static_cast<int>(event.button) << "}";
+  return s;
+}
+
+std::ostream& operator<<(std::ostream& s, const ExternalButtonEvent& event) {
+  s << "{ExternalButtonEvent button=" << static_cast<int>(event.button) << "}";
+  return s;
+}
+
+std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event) {
+  s << "{FloorSignalEvent floor=" << event.floor << "}";
+  return s;
 }
