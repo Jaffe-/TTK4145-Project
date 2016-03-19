@@ -19,4 +19,4 @@ struct LostNetworkEvent : public Event {
 
 std::ostream& operator<<(std::ostream& os, const NewConnectionEvent& event);
 std::ostream& operator<<(std::ostream& os, const LostNetworkEvent& event);
-std::ostream& operator<<(std::ostream& os, const LostConnectionEvent& event);
+std::ostream& operator<<(std::ostream& os, const LostConnectionEvent&);
