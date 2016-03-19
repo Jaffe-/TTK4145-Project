@@ -155,7 +155,7 @@ std::ostream& operator<<(std::ostream& os, const LostConnectionEvent& event)
   return os << "{LostConnectionEvent " << event.ip << "}";
 }
 
-std::ostream& operator<<(std::ostream& os, const LostNetworkEvent& event)
+std::ostream& operator<<(std::ostream& os, const LostNetworkEvent&)
 {
   return os << "{LostNetworkEvent}";
 }
