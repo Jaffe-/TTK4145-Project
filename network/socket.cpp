@@ -33,6 +33,13 @@ Socket::Socket(const std::string& port) : port(port)
       own_ips.push_back(address);
     }
   }
+  if (if_addrs != NULL)
+    freeifaddrs(if_addrs);
+  else {
+    LOG_ERROR("getifaddrs() failed");
+    return;
+  };
+
   LOG_DEBUG("IPs of own interfaces: " << own_ips);
 
   /* Set up UDP socket with broadcasting enabled */
@@ -62,7 +69,7 @@ Socket::Socket(const std::string& port) : port(port)
     LOG_ERROR("setsockopt() failed.");
     return;
   }
-    
+
   freeaddrinfo(res);
   operational = true;
 }
