@@ -10,9 +10,6 @@ public:
   int id;
 
   NetworkMessage(std::string d, int i) : data(d), id(i) {};
-  NetworkMessage(const std::string& s) {
-    //    deserialize(s);
-  }
 
   json_t get_json() const override {
     return {{"id", id}, {"data", data}};
