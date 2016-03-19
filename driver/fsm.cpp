@@ -15,9 +15,9 @@ FSM::FSM()
 bool FSM::should_stop(int floor)
 {
   return
-    orders[floor][2] ||
-    (direction == UP && (orders[floor][0]) || (orders[floor][1] && !floors_above())) ||
-    (direction == DOWN && (orders[floor][1] || (orders[floor][0] && !floors_below())));
+    orders[floor][2]
+    || (direction == UP && (orders[floor][0] || (orders[floor][1] && !floors_above())))
+    || (direction == DOWN && (orders[floor][1] || (orders[floor][0] && !floors_below())));
 }
 
 void FSM::clear_orders(int floor)
