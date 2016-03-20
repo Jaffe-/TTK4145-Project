@@ -50,6 +50,9 @@ struct ExternalButtonEvent : public Event, public Serializable {
   virtual json_t get_json() const override {
     return {{"button", int(button)}};
   }
+
+  virtual bool serializable() const override { return true; }
+
   Button button;
 };
 
