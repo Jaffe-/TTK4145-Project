@@ -2,6 +2,7 @@
 #include "../util/event_queue.hpp"
 #include "../driver/driver.hpp"
 #include "../network/network.hpp"
+#include "../network/network_events.hpp"
 #include <thread>
 
 class Logic {
@@ -10,10 +11,17 @@ public:
   void run();
 
 private:
+  void notify(const StateUpdateEvent& event);
+  void notify(const NetworkReceiveStateEvent& event);
+  void notify(const NetworkReceiveButtonEvent& event);
+  void notify(const LostConnectionEvent& event);
+  
   EventQueue event_queue;
   Driver driver;
   Network network;
 
+  std::map<std::string, State> elevator_states;
+  
   std::thread driver_thread;
   std::thread network_thread;
 };

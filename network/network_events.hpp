@@ -26,6 +26,14 @@ struct NetworkReceiveStateEvent : public Event {
   StateUpdateEvent update_event;
 };
 
+struct NetworkReceiveButtonEvent : public Event {
+  NetworkReceiveButtonEvent(const std::string& ip, const ExternalButtonEvent& button_event)
+    : ip(ip),
+      button_event(button_event) {};
+  std::string ip;
+  ExternalButtonEvent button_event;
+};
+
 std::ostream& operator<<(std::ostream& os, const NewConnectionEvent& event);
 std::ostream& operator<<(std::ostream& os, const LostNetworkEvent& event);
 std::ostream& operator<<(std::ostream& os, const LostConnectionEvent&);

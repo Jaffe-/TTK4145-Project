@@ -40,8 +40,16 @@ struct State {
 };
 
 /* Events */
-struct ExternalButtonEvent : public Event {
+struct ExternalButtonEvent : public Event, public Serializable {
   ExternalButtonEvent(Button b) : button(b) {};
+  ExternalButtonEvent(const std::string& s) {
+    json_t json = json_t::parse(s);
+    button = Button(int(json["button"]));
+  }
+
+  virtual json_t get_json() const override {
+    return {{"button", int(button)}};
+  }
   Button button;
 };
 

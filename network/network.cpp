@@ -22,8 +22,10 @@ void Network::run()
     for (auto& msg : event_queue.take_events(event_queue.acquire())) {
       if (msg->serializable()) {
 	const Serializable& serializable_msg = *msg;
-	std::string serialized = serializable_msg.serialize();
-	sender.send_message(serialized);
+	json_t json;
+	json["type"] = typeid(*msg).name();
+	json["data"] = serializable_msg.get_json();
+	sender.send_message(json.dump());
       }
     }
 
@@ -58,8 +60,12 @@ void Network::make_receive_event(const Packet& packet)
 {
   std::string serialized(packet.bytes.begin(), packet.bytes.end());
 
-  auto event = NetworkReceiveStateEvent{packet.ip, StateUpdateEvent(serialized)};
-  logic_queue.push(event);
+  json_t json = json_t::parse(serialized);
+  std::string data = json["data"];
+  if (json["type"] == typeid(NetworkReceiveStateEvent).name())
+    logic_queue.push(NetworkReceiveStateEvent{packet.ip, StateUpdateEvent(data)});
+  else if (json["type"] == typeid(NetworkReceiveButtonEvent).name())
+    logic_queue.push(NetworkReceiveButtonEvent{packet.ip, ExternalButtonEvent(data)});
 }
 
 void Network::receive()
