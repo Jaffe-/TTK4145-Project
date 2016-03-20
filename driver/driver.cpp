@@ -8,7 +8,8 @@ using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
 Driver::Driver(EventQueue& logic_queue, bool use_simulator)
   : logic_queue(logic_queue),
-    event_queue(fsm.event_queue)
+    event_queue(fsm.event_queue),
+    fsm(logic_queue)
 {
   std::string driver_string = use_simulator ? "simulated" : "hardware";
   elev_init(use_simulator ? ET_Simulation : ET_Comedi);
@@ -94,16 +95,17 @@ void Driver::run()
 }
 
 std::ostream& operator<<(std::ostream& s, const InternalButtonEvent& event) {
-  s << "{InternalButtonEvent button=" << static_cast<int>(event.button) << "}";
-  return s;
+  return s << "{InternalButtonEvent button=" << static_cast<int>(event.button) << "}";
 }
 
 std::ostream& operator<<(std::ostream& s, const ExternalButtonEvent& event) {
-  s << "{ExternalButtonEvent button=" << static_cast<int>(event.button) << "}";
-  return s;
+  return s << "{ExternalButtonEvent button=" << static_cast<int>(event.button) << "}";
 }
 
 std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event) {
-  s << "{FloorSignalEvent floor=" << event.floor << "}";
-  return s;
+  return s << "{FloorSignalEvent floor=" << event.floor << "}";
+}
+
+std::ostream& operator<<(std::ostream& s, const StateUpdateEvent& event) {
+  return s << "{StateUpdateEvent current_floor=" << event.state.current_floor << "}";
 }

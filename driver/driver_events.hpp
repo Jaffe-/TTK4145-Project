@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ostream>
-
+#include "../util/serialization.hpp"
 #define FLOORS 4
 
 enum Button {
@@ -19,6 +19,24 @@ const Button button_list[FLOORS][3] = {
   { EXTERNAL_2U, EXTERNAL_2D, INTERNAL_2},
   { EXTERNAL_3U, EXTERNAL_3D, INTERNAL_3},
   { NONE, EXTERNAL_4D, INTERNAL_4}
+};
+
+using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
+
+enum StateID {
+  MOVING, STOPPED
+};
+enum Direction {
+  UP, DOWN
+};
+
+struct State {
+  int current_floor = 0;
+  Direction direction = UP;
+  std::vector<std::vector<bool>> orders = {{0,0,0},{0,0,0},{0,0,0},{0,0,0}};
+  bool door_open = false;
+  TimePoint door_opened_time;
+  StateID state_id = STOPPED;
 };
 
 /* Events */
@@ -43,10 +61,34 @@ struct OrderUpdateEvent : public Event {
   int direction;
 };
 
+struct StateUpdateEvent : public Event, public Serializable {
+  StateUpdateEvent(State s) : state(s) {};
+  StateUpdateEvent(const std::string& serialized) {
+    json_t json = json_t::parse(serialized);
+    state.current_floor = json["current_floor"];
+    state.direction = Direction(int(json["direction"]));
+    state.orders = json["orders"].get<std::vector<std::vector<bool>>>();
+    state.door_open = json["door_open"];
+    state.state_id = StateID(int(json["state_id"]));
+  };
+  State state;
+
+  virtual json_t get_json() const override {
+    json_t json;
+    json["current_floor"] = state.current_floor;
+    json["direction"] = int(state.direction);
+    json["orders"] = state.orders;
+    json["door_open"] = state.door_open;
+    json["state_id"] = int(state.state_id);
+    return json;
+  }
+};
+
 /* Convenient overloads for writing events to log etc. */
 std::ostream& operator<<(std::ostream& s, const InternalButtonEvent& event);
 std::ostream& operator<<(std::ostream& s, const ExternalButtonEvent& event);
 std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event);
+std::ostream& operator<<(std::ostream& s, const StateUpdateEvent& event);
 
 int button_floor(Button button);
 int button_type(Button button);

@@ -1,6 +1,7 @@
 #include "logic.hpp"
 #include "../util/logger.hpp"
 #include "../driver/driver_events.hpp"
+#include "../network/network_events.hpp"
 
 Logic::Logic(bool use_simulator, const std::string& port)
   : driver(event_queue, use_simulator),
@@ -17,6 +18,15 @@ Logic::Logic(bool use_simulator, const std::string& port)
 
 						 });
 
+  event_queue.add_handler<StateUpdateEvent>([this]
+					    (const StateUpdateEvent& e) {
+					      network.event_queue.push(e);
+					    });
+
+  event_queue.add_handler<NetworkReceiveStateEvent>([this]
+						     (const NetworkReceiveStateEvent& e) {
+						       LOG_DEBUG("Received from " << e.ip << ": " << e.update_event);
+						     });
 }
 
 void Logic::run()

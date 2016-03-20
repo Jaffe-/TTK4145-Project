@@ -22,6 +22,7 @@ private:
   void send_all(const Packet& packet);
   void broadcast(const Packet& packet);
   void receive();
+  void make_receive_event(const Packet& packet);
 
   Socket socket;
   Sender sender;

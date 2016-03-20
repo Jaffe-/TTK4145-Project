@@ -54,6 +54,14 @@ void Network::broadcast(const Packet& packet)
   socket.write(packet, "255.255.255.255");
 }
 
+void Network::make_receive_event(const Packet& packet)
+{
+  std::string serialized(packet.bytes.begin(), packet.bytes.end());
+
+  auto event = NetworkReceiveStateEvent{packet.ip, StateUpdateEvent(serialized)};
+  logic_queue.push(event);
+}
+
 void Network::receive()
 {
   if (socket.empty())
@@ -80,6 +88,7 @@ void Network::receive()
     break;
   case PacketType::MSG:
     send(make_okay(packet), packet.ip);
+    make_receive_event(packet);
     break;
   case PacketType::OK:
     sender.notify_okay(packet.ip, packet.id);
@@ -158,4 +167,9 @@ std::ostream& operator<<(std::ostream& os, const LostConnectionEvent& event)
 std::ostream& operator<<(std::ostream& os, const LostNetworkEvent&)
 {
   return os << "{LostNetworkEvent}";
+}
+
+std::ostream& operator<<(std::ostream& os, const NetworkReceiveStateEvent& event)
+{
+  return os << "{NetworkReceiveEvent ip=" << event.ip << ", data=" << event.update_event << "}";
 }

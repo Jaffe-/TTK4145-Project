@@ -2,10 +2,7 @@
 #include "fsm.hpp"
 #include "../util/logger.hpp"
 
-FSM::FSM()
-  : state(STOPPED),
-    direction(UP),
-    door_open(false)
+FSM::FSM(EventQueue& logic_queue) : logic_queue(logic_queue)
 {
   event_queue.add_handler<OrderUpdateEvent>(this, &FSM::notify);
   event_queue.add_handler<InternalButtonEvent>(this, &FSM::notify);
@@ -15,50 +12,50 @@ FSM::FSM()
 bool FSM::should_stop(int floor)
 {
   return
-    orders[floor][2]
-    || (direction == UP && (orders[floor][0] || (orders[floor][1] && !floors_above())))
-    || (direction == DOWN && (orders[floor][1] || (orders[floor][0] && !floors_below())));
+    state.orders[floor][2]
+    || (state.direction == UP && (state.orders[floor][0] || (state.orders[floor][1] && !floors_above())))
+    || (state.direction == DOWN && (state.orders[floor][1] || (state.orders[floor][0] && !floors_below())));
 }
 
 void FSM::clear_orders(int floor)
 {
   for (int i = 0; i <= 2; i++)
-    orders[floor][i] = 0;
+    state.orders[floor][i] = 0;
 }
 
 void FSM::insert_order(int floor, int type)
 {
-  if (floor != current_floor) {
+  if (floor != state.current_floor) {
     LOG_DEBUG("New order: go to floor " << floor << ", type=" << type);
-    orders[floor][type] = true;
+    state.orders[floor][type] = true;
   }
 }
 
-void FSM::change_state(const State& new_state)
+void FSM::change_state(const StateID& new_state)
 {
   if (new_state == STOPPED) {
     LOG_DEBUG("Changed state to STOPPED");
     elev_set_motor_direction(DIRN_STOP);
-    door_opened_time = std::chrono::system_clock::now();
-    door_open = true;
-    clear_orders(current_floor);
+    state.door_opened_time = std::chrono::system_clock::now();
+    state.door_open = true;
+    clear_orders(state.current_floor);
   }
   else if (new_state == MOVING) {
     LOG_DEBUG("Changed state to MOVING");
-    if (direction == UP)
+    if (state.direction == UP)
       elev_set_motor_direction(DIRN_UP);
     else
       elev_set_motor_direction(DIRN_DOWN);
   }
-  state = new_state;
+  state.state_id = new_state;
 }
 
 void FSM::update_lights()
 {
-  elev_set_floor_indicator(current_floor);
-  elev_set_door_open_lamp(door_open ? 1 : 0);
+  elev_set_floor_indicator(state.current_floor);
+  elev_set_door_open_lamp(state.door_open ? 1 : 0);
   for (int floor = 0; floor < FLOORS; floor++) {
-    elev_set_button_lamp(BUTTON_COMMAND, floor, orders[floor][2] ? 1 : 0);
+    elev_set_button_lamp(BUTTON_COMMAND, floor, state.orders[floor][2] ? 1 : 0);
   }
 }
 
@@ -66,27 +63,30 @@ void FSM::notify(const InternalButtonEvent& event)
 {
   insert_order(button_floor(event.button), 2);
   update_lights();
+  send_state();
 }
 
 void FSM::notify(const FloorSignalEvent& event)
 {
-  current_floor = event.floor;
+  state.current_floor = event.floor;
   if (should_stop(event.floor)) {
     change_state(STOPPED);
   }
   update_lights();
+  send_state();
 }
 
 void FSM::notify(const OrderUpdateEvent& event)
 {
   insert_order(event.floor, event.direction);
   update_lights();
+  send_state();
 }
 
 bool FSM::floors_above()
 {
-  for (int floor = current_floor + 1; floor < FLOORS; floor++) {
-    if (orders[floor][0] || orders[floor][1] || orders[floor][2]) {
+  for (int floor = state.current_floor + 1; floor < FLOORS; floor++) {
+    if (state.orders[floor][0] || state.orders[floor][1] || state.orders[floor][2]) {
       return true;
     }
   }
@@ -95,8 +95,8 @@ bool FSM::floors_above()
 
 bool FSM::floors_below()
 {
-  for (int floor = current_floor - 1; floor >= 0; floor--) {
-    if (orders[floor][0] || orders[floor][1] || orders[floor][2]) {
+  for (int floor = state.current_floor - 1; floor >= 0; floor--) {
+    if (state.orders[floor][0] || state.orders[floor][1] || state.orders[floor][2]) {
       return true;
     }
   }
@@ -107,34 +107,44 @@ void FSM::run()
 {
   event_queue.handle_events(event_queue.acquire());
 
-  if (state == STOPPED) {
-    if (door_open) {
-      if (std::chrono::system_clock::now() - door_opened_time > door_time) {
-	door_open = false;
+  if (state.state_id == STOPPED) {
+    if (state.door_open) {
+      if (std::chrono::system_clock::now() - state.door_opened_time > door_time) {
+	state.door_open = false;
 	update_lights();
+	send_state();
       }
     }
     else {
-      if (direction == UP) {
+      if (state.direction == UP) {
 	if (floors_above()) {
 	  change_state(MOVING);
+	  send_state();
 	}
 	else if (floors_below()) {
-	  direction = DOWN;
+	  state.direction = DOWN;
 	  change_state(MOVING);
+	  send_state();
 	}
       }
-      else if (direction == DOWN) {
+      else if (state.direction == DOWN) {
 	if (floors_below()) {
 	  change_state(MOVING);
+	  send_state();
 	}
 	else if (floors_above()) {
-	  direction = UP;
+	  state.direction = UP;
 	  change_state(MOVING);
+	  send_state();
 	}
       }
     }
   }
+}
+
+void FSM::send_state()
+{
+  logic_queue.push(StateUpdateEvent(state));
 }
 
 bool is_internal(Button button)
