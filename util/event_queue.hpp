@@ -9,7 +9,6 @@
 #include <typeindex>
 #include <unordered_map>
 
-
 class Event {
 public:
   virtual bool serializable() const {
@@ -31,6 +30,13 @@ public:
   };
 };
 
+class SerializableEvent : public Event,
+			  public Serializable {
+public:
+  virtual bool serializable() const override {
+    return true;
+  }
+};
 
 class EventQueue {
 public:
@@ -40,10 +46,10 @@ public:
   /* Acquire immediately locks the queue */
   std::unique_lock<std::mutex> wait();
 
-  /* Wait will suspend the thread until a new message has arrived */
+  /* Wait will suspend the thread until a new event has arrived */
   std::unique_lock<std::mutex> acquire();
 
-  /* Push any given message into the queue. The message object must be copy
+  /* Push any given event into the queue. The message object must be copy
      constructible and derive from Event */
   template <typename T>
   void push(const T& msg) {
@@ -54,23 +60,23 @@ public:
     new_event.notify_one();
   }
 
-  /* Use the given lock to take all current messages (move them out of the queue) */
+  /* Use the given lock to take all current event (move them out of the queue) */
   queue_t take_events(std::unique_lock<std::mutex> lock);
 
 
-  /* Add a message handler function */
+  /* Add an event handler function */
   template <typename T>
   void add_handler(std::function<void(const T&)> handler) {
     handlers[typeid(T)] = handler;
   }
 
-  /* Add a member function of a class as a message handler */
+  /* Add a member function of a class as a event handler */
   template <typename T, typename Class>
   void add_handler(Class* instance, void(Class::*f)(const T&)) {
     add_handler<T>([instance, f] (const T& m) { (*instance.*f)(m); });
   }
 
-  /* Call the right message handlers for the messages in the given queue */
+  /* Call the right event handlers for the messages in the given queue */
   void handle_events(const queue_t& queue);
 
   /* A practical overload */
