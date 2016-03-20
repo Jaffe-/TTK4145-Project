@@ -20,7 +20,7 @@ private:
   using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
   
   const std::chrono::duration<double> timeout_limit = std::chrono::seconds(1);
-  const std::chrono::duration<double> ping_period = std::chrono::milliseconds(500);
+  const std::chrono::duration<double> ping_period = std::chrono::milliseconds(200);
   TimePoint last_ping;
   Network& network;
   

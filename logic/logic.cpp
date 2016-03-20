@@ -20,6 +20,7 @@ Logic::Logic(bool use_simulator, const std::string& port)
 
   event_queue.add_handler<StateUpdateEvent>([this]
 					    (const StateUpdateEvent& e) {
+					      LOG_DEBUG("State update " << e);
 					      network.event_queue.push(e);
 					    });
 

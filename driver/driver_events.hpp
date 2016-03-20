@@ -82,6 +82,8 @@ struct StateUpdateEvent : public Event, public Serializable {
     json["state_id"] = int(state.state_id);
     return json;
   }
+
+  virtual bool serializable() const override { return true; }
 };
 
 /* Convenient overloads for writing events to log etc. */
