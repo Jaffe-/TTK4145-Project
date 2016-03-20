@@ -62,9 +62,10 @@ void Network::make_receive_event(const Packet& packet)
 
   json_t json = json_t::parse(serialized);
   json_t data = json["data"];
-  if (json["type"] == typeid(NetworkReceiveStateEvent).name())
+  LOG(5, json);
+  if (json["type"] == typeid(StateUpdateEvent).name())
     logic_queue.push(NetworkReceiveStateEvent{packet.ip, StateUpdateEvent(data.dump())});
-  else if (json["type"] == typeid(NetworkReceiveButtonEvent).name())
+  else if (json["type"] == typeid(ExternalButtonEvent).name())
     logic_queue.push(NetworkReceiveButtonEvent{packet.ip, ExternalButtonEvent(data.dump())});
 }
 

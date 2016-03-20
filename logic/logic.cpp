@@ -20,6 +20,7 @@ Logic::Logic(bool use_simulator, const std::string& port)
 
   event_queue.add_handler<StateUpdateEvent>(this, &Logic::notify);
   event_queue.add_handler<NetworkReceiveStateEvent>(this, &Logic::notify);
+  event_queue.add_handler<NetworkReceiveButtonEvent>(this, &Logic::notify);
 }
 
 void Logic::notify(const StateUpdateEvent& event)
