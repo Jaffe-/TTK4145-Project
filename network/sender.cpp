@@ -4,38 +4,16 @@
 #include "../util/logger.hpp"
 #include <algorithm>
 
-std::string truncate(const std::string& str, const std::string::size_type trunc_limit)
-{
-  if (str.size() <= trunc_limit)
-    return str;
-  else {
-    std::string truncated = str.substr(0, std::min(str.length(), trunc_limit));
-    std::replace(truncated.begin(), truncated.end(), '\n', ' ');
-    return truncated + " (...)";
-  }
-}
-
-std::ostream& operator<<(std::ostream& s, const MessageEntry& msg_entry)
-{
-  const std::string::size_type trunc_limit = 20;
-  s << "{id=" << msg_entry.id
-    << " sent=" << (msg_entry.sent ? "yes" : "no")
-    << " msg=" << truncate(msg_entry.msg, trunc_limit)
-    << " recipients=" << msg_entry.recipients
-    << "}";
-
-  return s;
-}
+std::ostream& operator<<(std::ostream& s, const MessageEntry& msg_entry);
 
 void Sender::send_message(const std::string& msg)
 {
-  auto clients = network.connection_controller.get_clients();
-  if (clients.empty()) {
+  if (network.connections.empty()) {
     LOG_WARNING("Attempted to send message, but there are no clients.");
     return;
   }
 
-  auto msg_entry = MessageEntry(current_id, msg, clients);
+  auto msg_entry = MessageEntry(current_id, msg);
 
   for (auto& connection : network.connections) {
     connection.second.message_queue.push_back(msg_entry);
@@ -59,38 +37,64 @@ void Sender::notify_okay(const std::string& ip, unsigned int id)
   }
 }
 
-Packet Sender::make_packet(const std::string& msg, unsigned int id)
+void Sender::check_timeout(const std::string& ip, MessageEntry& msg_entry, std::vector<std::string>& timed_out)
 {
-  std::vector<char> bytes(msg.begin(), msg.end());
+  if (std::chrono::system_clock::now() - msg_entry.sent_time > send_timeout) {
+    LOG_WARNING("Client " << ip
+		<< " did not respond with OK for message with id " << msg_entry.id);
+    timed_out.push_back(ip);
+  }
+}
 
-  return make_msg(id, bytes);
+void Sender::send(const std::string& ip, MessageEntry& msg_entry)
+{
+  std::vector<char> bytes(msg_entry.msg.begin(), msg_entry.msg.end());
+
+  auto packet = make_msg(msg_entry.id, bytes);
+  network.send(packet, ip);
+  msg_entry.sent = true;
+  msg_entry.sent_time = std::chrono::system_clock::now();
 }
 
 void Sender::run()
 {
-  for (auto& kv : network.connections) {
-    const std::string& ip = kv.first;
-    std::vector<MessageEntry>& message_queue = kv.second.message_queue;
+  std::vector<std::string> timed_out;
+
+  for (auto& conn : network.connections) {
+    const std::string& ip = conn.first;
+    std::vector<MessageEntry>& message_queue = conn.second.message_queue;
     if (!message_queue.empty()) {
       MessageEntry& current = message_queue[0];
       if (current.sent) {
-	if (std::chrono::system_clock::now() - current.sent_time > send_timeout) {
-	  // generate event that the message was not received by
-	  // the IPs in current.recipients
-	  LOG_WARNING("Clients " << current.recipients
-		      << " did not respond with OK for message with id " << current.id);
-	  network.connection_controller.remove_clients(current.recipients);
-	}
+	check_timeout(ip, current, timed_out);
       }
       else {
-	auto packet = make_packet(current.msg, current.id);
-	network.send(packet, ip);
-	current.sent = true;
-	current.sent_time = std::chrono::system_clock::now();
+	send(ip, current);
       }
     }
   }
+
+  network.connection_controller.remove_clients(timed_out);
 }
 
+std::string truncate(const std::string& str, const std::string::size_type trunc_limit)
+{
+  if (str.size() <= trunc_limit)
+    return str;
+  else {
+    std::string truncated = str.substr(0, std::min(str.length(), trunc_limit));
+    std::replace(truncated.begin(), truncated.end(), '\n', ' ');
+    return truncated + " (...)";
+  }
+}
 
+std::ostream& operator<<(std::ostream& s, const MessageEntry& msg_entry)
+{
+  const std::string::size_type trunc_limit = 20;
+  s << "{id=" << msg_entry.id
+    << " sent=" << (msg_entry.sent ? "yes" : "no")
+    << " msg=" << truncate(msg_entry.msg, trunc_limit)
+    << "}";
 
+  return s;
+}

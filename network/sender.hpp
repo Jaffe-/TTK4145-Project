@@ -16,7 +16,10 @@ private:
   Network& network;
 
   unsigned int current_id = 0;
-  Packet make_packet(const std::string& msg, unsigned int id);
   const std::chrono::duration<double> send_timeout = std::chrono::seconds(1);
+
+  void check_timeout(const std::string& ip, MessageEntry& msg, std::vector<std::string>& timed_out);
+  void send(const std::string& ip, MessageEntry& msg_entry);
+
   friend std::ostream& operator<<(std::ostream& s, const MessageEntry& msg_entry);
 };

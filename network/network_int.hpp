@@ -8,15 +8,15 @@
 using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
 struct MessageEntry {
-  MessageEntry(unsigned int id, const std::string& msg,
-	       const std::vector<std::string>& recipients) :
-    id(id), sent(false), msg(msg), recipients(recipients) {};
-  
+  MessageEntry(unsigned int id, const std::string& msg)
+    : id(id),
+      sent(false),
+      msg(msg) {};
+
   unsigned int id;
   TimePoint sent_time;
   bool sent;
   std::string msg;
-  std::vector<std::string> recipients;
 };
 
 enum class PacketType {
