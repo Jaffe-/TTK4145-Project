@@ -107,5 +107,16 @@ std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event) {
 }
 
 std::ostream& operator<<(std::ostream& s, const StateUpdateEvent& event) {
-  return s << "{StateUpdateEvent current_floor=" << event.state.current_floor << "}";
+  s << "{StateUpdateEvent cf=" << event.state.current_floor
+    << " dir=" << int(event.state.direction);
+    //    << " orders=";
+  /*  for (const auto& floor : event.state.orders) {
+      s << "{";
+      for (auto btn : floor) {
+      s << int(btn) << " ";
+    }
+    s << "\b},";
+    }
+    return s << "\b"; */
+  return s;
 }
