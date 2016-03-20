@@ -29,6 +29,7 @@ void Logic::notify(const StateUpdateEvent& event)
 
 void Logic::notify(const NetworkReceiveStateEvent& event)
 {
+  LOG_DEBUG("Received state update from " << event.ip << " " << event.update_event);
   elevator_states[event.ip] = event.update_event.state;
 }
 

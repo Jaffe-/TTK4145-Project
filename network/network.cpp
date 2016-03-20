@@ -61,11 +61,11 @@ void Network::make_receive_event(const Packet& packet)
   std::string serialized(packet.bytes.begin(), packet.bytes.end());
 
   json_t json = json_t::parse(serialized);
-  std::string data = json["data"];
+  json_t data = json["data"];
   if (json["type"] == typeid(NetworkReceiveStateEvent).name())
-    logic_queue.push(NetworkReceiveStateEvent{packet.ip, StateUpdateEvent(data)});
+    logic_queue.push(NetworkReceiveStateEvent{packet.ip, StateUpdateEvent(data.dump())});
   else if (json["type"] == typeid(NetworkReceiveButtonEvent).name())
-    logic_queue.push(NetworkReceiveButtonEvent{packet.ip, ExternalButtonEvent(data)});
+    logic_queue.push(NetworkReceiveButtonEvent{packet.ip, ExternalButtonEvent(data.dump())});
 }
 
 void Network::receive()
