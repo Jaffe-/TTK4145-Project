@@ -64,9 +64,9 @@ void Network::make_receive_event(const Packet& packet)
   json_t data = json["data"];
   LOG(5, json);
   if (json["type"] == typeid(StateUpdateEvent).name())
-    logic_queue.push(NetworkReceiveStateEvent{packet.ip, StateUpdateEvent(data.dump())});
+    logic_queue.push(NetworkReceiveEvent<StateUpdateEvent>{packet.ip, StateUpdateEvent(data.dump())});
   else if (json["type"] == typeid(ExternalButtonEvent).name())
-    logic_queue.push(NetworkReceiveButtonEvent{packet.ip, ExternalButtonEvent(data.dump())});
+    logic_queue.push(NetworkReceiveEvent<ExternalButtonEvent>{packet.ip, ExternalButtonEvent(data.dump())});
 }
 
 void Network::receive()
@@ -174,9 +174,4 @@ std::ostream& operator<<(std::ostream& os, const LostConnectionEvent& event)
 std::ostream& operator<<(std::ostream& os, const LostNetworkEvent&)
 {
   return os << "{LostNetworkEvent}";
-}
-
-std::ostream& operator<<(std::ostream& os, const NetworkReceiveStateEvent& event)
-{
-  return os << "{NetworkReceiveEvent ip=" << event.ip << ", data=" << event.update_event << "}";
 }

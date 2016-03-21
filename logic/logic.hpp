@@ -12,16 +12,16 @@ public:
 
 private:
   void notify(const StateUpdateEvent& event);
-  void notify(const NetworkReceiveStateEvent& event);
-  void notify(const NetworkReceiveButtonEvent& event);
+  void notify(const NetworkReceiveEvent<StateUpdateEvent>& event);
+  void notify(const NetworkReceiveEvent<ExternalButtonEvent>& event);
   void notify(const LostConnectionEvent& event);
-  
+
   EventQueue event_queue;
   Driver driver;
   Network network;
 
   std::map<std::string, State> elevator_states;
-  
+
   std::thread driver_thread;
   std::thread network_thread;
 };

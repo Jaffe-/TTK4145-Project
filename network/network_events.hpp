@@ -18,23 +18,23 @@ struct LostNetworkEvent : public Event {
   LostNetworkEvent() {};
 };
 
-struct NetworkReceiveStateEvent : public Event {
-  NetworkReceiveStateEvent(const std::string& ip, const StateUpdateEvent& update_event)
+template <typename Data>
+struct NetworkReceiveEvent : public Event {
+  NetworkReceiveEvent(const std::string& ip, const Data& data)
     : ip(ip),
-      update_event(update_event) {};
-  std::string ip;
-  StateUpdateEvent update_event;
-};
+      data(data) {};
 
-struct NetworkReceiveButtonEvent : public Event {
-  NetworkReceiveButtonEvent(const std::string& ip, const ExternalButtonEvent& button_event)
-    : ip(ip),
-      button_event(button_event) {};
   std::string ip;
-  ExternalButtonEvent button_event;
+  Data data;
 };
 
 std::ostream& operator<<(std::ostream& os, const NewConnectionEvent& event);
 std::ostream& operator<<(std::ostream& os, const LostNetworkEvent& event);
 std::ostream& operator<<(std::ostream& os, const LostConnectionEvent&);
-std::ostream& operator<<(std::ostream& os, const NetworkReceiveStateEvent& event);
+
+template <typename Data>
+std::ostream& operator<<(std::ostream& os, const NetworkReceiveEvent<Data>& event)
+{
+  return os << "{NetworkReceiveEvent ip=" << event.ip
+	    << " data=" << event.data << "}";
+}

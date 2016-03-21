@@ -19,8 +19,8 @@ Logic::Logic(bool use_simulator, const std::string& port)
 						 });
 
   event_queue.add_handler<StateUpdateEvent>(this, &Logic::notify);
-  event_queue.add_handler<NetworkReceiveStateEvent>(this, &Logic::notify);
-  event_queue.add_handler<NetworkReceiveButtonEvent>(this, &Logic::notify);
+  event_queue.add_handler<NetworkReceiveEvent<StateUpdateEvent>>(this, &Logic::notify);
+  event_queue.add_handler<NetworkReceiveEvent<ExternalButtonEvent>>(this, &Logic::notify);
 }
 
 void Logic::notify(const StateUpdateEvent& event)
@@ -28,15 +28,15 @@ void Logic::notify(const StateUpdateEvent& event)
   network.event_queue.push(event);
 }
 
-void Logic::notify(const NetworkReceiveStateEvent& event)
+void Logic::notify(const NetworkReceiveEvent<StateUpdateEvent>& event)
 {
-  LOG_DEBUG("Received state update from " << event.ip << " " << event.update_event);
-  elevator_states[event.ip] = event.update_event.state;
+  LOG_DEBUG("Received " << event);
+  elevator_states[event.ip] = event.data.state;
 }
 
-void Logic::notify(const NetworkReceiveButtonEvent& event)
+void Logic::notify(const NetworkReceiveEvent<ExternalButtonEvent>& event)
 {
-  LOG_DEBUG("Received event from  " << event.ip << " " << event.button_event);
+  LOG_DEBUG("Received " << event);
 }
 
 void Logic::notify(const LostConnectionEvent& event)
