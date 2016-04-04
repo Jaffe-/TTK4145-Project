@@ -42,8 +42,7 @@ struct State {
 /* Events */
 struct ExternalButtonEvent : public SerializableEvent {
   ExternalButtonEvent(Button b) : button(b) {};
-  ExternalButtonEvent(const std::string& s) {
-    json_t json = json_t::parse(s);
+  ExternalButtonEvent(const json_t& json) {
     button = Button(int(json["button"]));
   }
 
@@ -72,8 +71,8 @@ struct OrderUpdateEvent : public Event {
 
 struct StateUpdateEvent : public SerializableEvent {
   StateUpdateEvent(State s) : state(s) {};
-  StateUpdateEvent(const std::string& serialized) {
-    json_t json = json_t::parse(serialized);
+
+  StateUpdateEvent(const json_t& json) {
     state.current_floor = json["current_floor"];
     state.direction = Direction(int(json["direction"]));
     state.orders = json["orders"].get<std::vector<std::vector<bool>>>();
