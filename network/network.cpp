@@ -6,6 +6,7 @@
 #include "../util/logger.hpp"
 #include <chrono>
 #include "network_events.hpp"
+#include "../driver/driver_events.hpp"
 
 Network::Network(EventQueue& logic_queue, const std::string& port)
   : logic_queue(logic_queue),

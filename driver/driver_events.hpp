@@ -82,16 +82,12 @@ struct StateUpdateEvent : public SerializableEvent {
   State state;
 
   virtual json_t get_json() const override {
-    json_t json;
-    json["current_floor"] = state.current_floor;
-    json["direction"] = int(state.direction);
-    json["orders"] = state.orders;
-    json["door_open"] = state.door_open;
-    json["state_id"] = int(state.state_id);
-    return json;
+    return {{"current_floor", state.current_floor},
+	    {"direction", int(state.direction)},
+	    {"orders", state.orders},
+	    {"door_open", state.door_open},
+	    {"state_id", int(state.state_id)}};
   }
-
-  virtual bool serializable() const override { return true; }
 };
 
 /* Convenient overloads for writing events to log etc. */

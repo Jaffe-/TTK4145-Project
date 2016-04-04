@@ -2,7 +2,6 @@
 
 #include <string>
 #include "../util/event_queue.hpp"
-#include "../driver/driver_events.hpp"
 
 struct NewConnectionEvent : public Event {
   NewConnectionEvent(const std::string& ip) : ip(ip) {};
