@@ -6,6 +6,7 @@
 #include "connection_controller.hpp"
 #include "socket.hpp"
 #include "../util/event_queue.hpp"
+#include "network_events.hpp"
 
 class Network {
   friend class Sender;
@@ -34,4 +35,13 @@ private:
   };
 
   std::map<std::string, connection> connections;
+
+  template <typename EventType>
+  bool push_receive_event(const std::string& ip, const json_t& json) {
+    if (json["type"] == typeid(EventType).name()) {
+      logic_queue.push(NetworkReceiveEvent<EventType>{ip, EventType {json["data"]}});
+      return true;
+    }
+    return false;
+  }
 };

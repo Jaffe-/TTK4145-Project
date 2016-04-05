@@ -23,9 +23,8 @@ void Network::run()
     for (auto& msg : event_queue.take_events(event_queue.acquire())) {
       if (msg->serializable()) {
 	const Serializable& serializable_msg = *msg;
-	json_t json;
-	json["type"] = typeid(*msg).name();
-	json["data"] = serializable_msg.get_json();
+	json_t json = {{"type", typeid(*msg).name()},
+		       {"data", serializable_msg.get_json()}};
 	sender.send_message(json.dump());
       }
     }
@@ -64,10 +63,11 @@ void Network::make_receive_event(const Packet& packet)
   json_t json = json_t::parse(serialized);
   json_t data = json["data"];
   LOG(5, json);
-  if (json["type"] == typeid(StateUpdateEvent).name())
-    logic_queue.push(NetworkReceiveEvent<StateUpdateEvent>{packet.ip, StateUpdateEvent(data)});
-  else if (json["type"] == typeid(ExternalButtonEvent).name())
-    logic_queue.push(NetworkReceiveEvent<ExternalButtonEvent>{packet.ip, ExternalButtonEvent(data)});
+
+  push_receive_event<StateUpdateEvent>(packet.ip, json)
+    || push_receive_event<ExternalButtonEvent>(packet.ip, json);
+
+  assert(false && "Unexpected event type received from network!");
 }
 
 void Network::receive()
