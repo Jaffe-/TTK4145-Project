@@ -61,13 +61,10 @@ void Network::make_receive_event(const Packet& packet)
   std::string serialized(packet.bytes.begin(), packet.bytes.end());
 
   json_t json = json_t::parse(serialized);
-  json_t data = json["data"];
   LOG(5, json);
 
-  push_receive_event<StateUpdateEvent>(packet.ip, json)
-    || push_receive_event<ExternalButtonEvent>(packet.ip, json);
-
-  assert(false && "Unexpected event type received from network!");
+  assert(push_receive_event<StateUpdateEvent>(packet.ip, json)
+	 || push_receive_event<ExternalButtonEvent>(packet.ip, json));
 }
 
 void Network::receive()
