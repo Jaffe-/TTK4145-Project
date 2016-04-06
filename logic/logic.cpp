@@ -22,20 +22,22 @@ Logic::Logic(bool use_simulator, const std::string& port)
 void Logic::choose_elevator(Button button)
 {
   int min = INT_MAX;
-  std::string min_id;
+  int our_min = INT_MAX; 
   for (const auto& pair : elevator_states) {
     const State& state = pair.second;
-    auto fsm = SimulatedFSM(state);
-    int steps = fsm.calculate(button);
+    int steps = SimulatedFSM(state).calculate(button);
+    LOG_DEBUG("Calculated steps " << steps << " for id " << pair.first);
     if (steps < min) {
       min = steps;
-      min_id = pair.first;
+    }
+    if (pair.first == "me") {
+      our_min = steps;
     }
   }
 
   assert(min != INT_MAX);
 
-  if (min_id == "me") {
+  if (min == our_min) {
     driver.event_queue.push(OrderUpdateEvent(button_floor(button),
 					     button_type(button)));
   }
