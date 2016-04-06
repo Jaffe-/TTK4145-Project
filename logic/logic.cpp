@@ -17,6 +17,9 @@ Logic::Logic(bool use_simulator, const std::string& port)
   event_queue.add_handler<StateUpdateEvent>(this, &Logic::notify);
   event_queue.add_handler<NetworkReceiveEvent<StateUpdateEvent>>(this, &Logic::notify);
   event_queue.add_handler<NetworkReceiveEvent<ExternalButtonEvent>>(this, &Logic::notify);
+  event_queue.add_handler<NewConnectionEvent>(this, &Logic::notify);
+  event_queue.add_handler<LostConnectionEvent>(this, &Logic::notify);
+  
 }
 
 void Logic::choose_elevator(Button button)
@@ -72,6 +75,12 @@ void Logic::notify(const LostConnectionEvent& event)
   auto it = elevator_states.find(event.ip);
   if (it != elevator_states.end())
     elevator_states.erase(it);
+}
+
+void Logic::notify(const NewConnectionEvent&)
+{
+  StateUpdateEvent state(elevator_states["me"]);
+  network.event_queue.push(state);
 }
 
 void Logic::run()
