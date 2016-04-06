@@ -2,7 +2,9 @@
 #include "fsm.hpp"
 #include "../util/logger.hpp"
 
-FSM::FSM(EventQueue& logic_queue) : logic_queue(logic_queue)
+PhysicalFSM::PhysicalFSM(EventQueue& logic_queue) :
+  logic_queue(logic_queue),
+  FSM()
 {
 }
 
@@ -28,7 +30,7 @@ void FSM::insert_order(int floor, int type)
   }
 }
 
-void FSM::change_state(const StateID& new_state)
+void PhysicalFSM::change_state(const StateID& new_state)
 {
   if (new_state == STOPPED) {
     LOG_DEBUG("Changed state to STOPPED");
@@ -47,7 +49,7 @@ void FSM::change_state(const StateID& new_state)
   state.state_id = new_state;
 }
 
-void FSM::update_lights()
+void PhysicalFSM::update_lights()
 {
   elev_set_floor_indicator(state.current_floor);
   elev_set_door_open_lamp(state.door_open ? 1 : 0);
@@ -56,18 +58,18 @@ void FSM::update_lights()
   }
 }
 
-void FSM::notify(const ExternalButtonEvent&)
+void PhysicalFSM::notify(const ExternalButtonEvent&)
 {
 }
 
-void FSM::notify(const InternalButtonEvent& event)
+void PhysicalFSM::notify(const InternalButtonEvent& event)
 {
   insert_order(button_floor(event.button), 2);
   update_lights();
   send_state();
 }
 
-void FSM::notify(const FloorSignalEvent& event)
+void PhysicalFSM::notify(const FloorSignalEvent& event)
 {
   state.current_floor = event.floor;
   if (should_stop(event.floor)) {
@@ -77,7 +79,7 @@ void FSM::notify(const FloorSignalEvent& event)
   send_state();
 }
 
-void FSM::notify(const OrderUpdateEvent& event)
+void PhysicalFSM::notify(const OrderUpdateEvent& event)
 {
   insert_order(event.floor, event.direction);
   update_lights();
@@ -104,7 +106,7 @@ bool FSM::floors_below()
   return false;
 }
 
-void FSM::run()
+void PhysicalFSM::run()
 {
   if (state.state_id == STOPPED) {
     if (state.door_open) {
@@ -141,7 +143,7 @@ void FSM::run()
   }
 }
 
-void FSM::send_state()
+void PhysicalFSM::send_state()
 {
   logic_queue.push(StateUpdateEvent(state));
 }

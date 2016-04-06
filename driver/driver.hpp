@@ -19,7 +19,7 @@ private:
   void event_generator();
   int initialize_position();
 
-  FSM fsm;
+  PhysicalFSM fsm;
   int last_floor_signal = -1;
   int last_button_signals[FLOORS][3] {};
 };

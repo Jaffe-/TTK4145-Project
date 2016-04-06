@@ -2,6 +2,7 @@
 #include "../util/logger.hpp"
 #include "../driver/driver_events.hpp"
 #include "../network/network_events.hpp"
+#include "fsm.hpp"
 
 Logic::Logic(bool use_simulator, const std::string& port)
   : driver(event_queue, use_simulator),
@@ -16,6 +17,10 @@ Logic::Logic(bool use_simulator, const std::string& port)
 						   driver.event_queue.push(OrderUpdateEvent(button_floor(e.button),
 											    button_type(e.button)));
 						   network.event_queue.push(e);
+						   SimulatedFSM sim(elevator_states["me"]);
+						   LOG_DEBUG("This is estimated to take "
+							     << sim.calculate(e.button)
+							     << " steps.");
 						 });
 
   event_queue.add_handler<StateUpdateEvent>(this, &Logic::notify);
@@ -25,6 +30,7 @@ Logic::Logic(bool use_simulator, const std::string& port)
 
 void Logic::notify(const StateUpdateEvent& event)
 {
+  elevator_states["me"] = event.state;
   network.event_queue.push(event);
 }
 

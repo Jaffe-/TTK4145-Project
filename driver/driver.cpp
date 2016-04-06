@@ -10,7 +10,7 @@ Driver::Driver(EventQueue& logic_queue, bool use_simulator)
   : logic_queue(logic_queue),
     fsm(logic_queue)
 {
-  event_queue.add_handler<OrderUpdateEvent>(&fsm, &FSM::notify);
+  event_queue.add_handler<OrderUpdateEvent>(&fsm, &PhysicalFSM::notify);
 
   std::string driver_string = use_simulator ? "simulated" : "hardware";
   elev_init(use_simulator ? ET_Simulation : ET_Comedi);

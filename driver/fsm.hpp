@@ -10,8 +10,24 @@ class FloorSignalEvent;
 class OrderUpdate;
 
 class FSM {
+protected:
+  void clear_orders(int floor);
+  void insert_order(int floor, int type);
+  bool should_stop(int floor);
+  bool floors_below();
+  bool floors_above();
+
+  State state;
+
+  const std::chrono::duration<double> door_time = std::chrono::seconds(3);
+
 public:
-  FSM(EventQueue& logic_queue);
+  //  FSM();
+};
+
+class PhysicalFSM : public FSM {
+public:
+  PhysicalFSM(EventQueue& logic_queue);
   void notify(const InternalButtonEvent& event);
   void notify(const FloorSignalEvent& event);
   void notify(const OrderUpdateEvent& event);
@@ -20,18 +36,9 @@ public:
   void set_floor(int floor) { state.current_floor = floor; };
 
 private:
-  void clear_orders(int floor);
-  void insert_order(int floor, int type);
-  bool should_stop(int floor);
   void change_state(const StateID& new_state);
-  bool floors_below();
-  bool floors_above();
   void update_lights();
   void send_state();
-
-  State state;
-
-  const std::chrono::duration<double> door_time = std::chrono::seconds(3);
 
   EventQueue& logic_queue;
 };
