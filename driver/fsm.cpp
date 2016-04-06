@@ -4,9 +4,6 @@
 
 FSM::FSM(EventQueue& logic_queue) : logic_queue(logic_queue)
 {
-  event_queue.add_handler<OrderUpdateEvent>(this, &FSM::notify);
-  event_queue.add_handler<InternalButtonEvent>(this, &FSM::notify);
-  event_queue.add_handler<FloorSignalEvent>(this, &FSM::notify);
 }
 
 bool FSM::should_stop(int floor)
@@ -59,6 +56,10 @@ void FSM::update_lights()
   }
 }
 
+void FSM::notify(const ExternalButtonEvent&)
+{
+}
+
 void FSM::notify(const InternalButtonEvent& event)
 {
   insert_order(button_floor(event.button), 2);
@@ -105,8 +106,6 @@ bool FSM::floors_below()
 
 void FSM::run()
 {
-  event_queue.handle_events(event_queue.acquire());
-
   if (state.state_id == STOPPED) {
     if (state.door_open) {
       if (std::chrono::system_clock::now() - state.door_opened_time > door_time) {

@@ -10,7 +10,7 @@ public:
   void run();
 
   EventQueue& logic_queue;
-  EventQueue& event_queue;
+  EventQueue event_queue;
 
 private:
   void insert_order(unsigned int floor);
