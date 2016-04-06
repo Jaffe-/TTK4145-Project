@@ -3,6 +3,7 @@
 #include "../driver/driver_events.hpp"
 #include "../network/network_events.hpp"
 #include "fsm.hpp"
+#include <climits>
 
 Logic::Logic(bool use_simulator, const std::string& port)
   : driver(event_queue, use_simulator),
@@ -12,20 +13,38 @@ Logic::Logic(bool use_simulator, const std::string& port)
 {
   LOG_INFO("Logic module started");
 
-  event_queue.add_handler<ExternalButtonEvent>([this]
-						 (const ExternalButtonEvent& e) {
-						   driver.event_queue.push(OrderUpdateEvent(button_floor(e.button),
-											    button_type(e.button)));
-						   network.event_queue.push(e);
-						   SimulatedFSM sim(elevator_states["me"]);
-						   LOG_DEBUG("This is estimated to take "
-							     << sim.calculate(e.button)
-							     << " steps.");
-						 });
-
+  event_queue.add_handler<ExternalButtonEvent>(this, &Logic::notify);
   event_queue.add_handler<StateUpdateEvent>(this, &Logic::notify);
   event_queue.add_handler<NetworkReceiveEvent<StateUpdateEvent>>(this, &Logic::notify);
   event_queue.add_handler<NetworkReceiveEvent<ExternalButtonEvent>>(this, &Logic::notify);
+}
+
+void Logic::choose_elevator(Button button)
+{
+  int min = INT_MAX;
+  std::string min_id;
+  for (const auto& pair : elevator_states) {
+    const State& state = pair.second;
+    auto fsm = SimulatedFSM(state);
+    int steps = fsm.calculate(button);
+    if (steps < min) {
+      min = steps;
+      min_id = pair.first;
+    }
+  }
+
+  assert(min != INT_MAX);
+
+  if (min_id == "me") {
+    driver.event_queue.push(OrderUpdateEvent(button_floor(button),
+					     button_type(button)));
+  }
+}
+
+void Logic::notify(const ExternalButtonEvent& event)
+{
+  network.event_queue.push(event);
+  choose_elevator(event.button);
 }
 
 void Logic::notify(const StateUpdateEvent& event)
@@ -43,6 +62,7 @@ void Logic::notify(const NetworkReceiveEvent<StateUpdateEvent>& event)
 void Logic::notify(const NetworkReceiveEvent<ExternalButtonEvent>& event)
 {
   LOG_DEBUG("Received " << event);
+  choose_elevator(event.data.button);
 }
 
 void Logic::notify(const LostConnectionEvent& event)

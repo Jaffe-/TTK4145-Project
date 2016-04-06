@@ -4,7 +4,9 @@ int SimulatedFSM::calculate(Button button)
 {
   insert_order(button_floor(button), button_type(button));
   int step = 0;
-  while (state.state_id != STOPPED && state.current_floor != button_floor(button)) {
+  while (state.current_floor != button_floor(button)) {
+    if (should_stop(state.current_floor))
+      step++;
     if (state.direction == UP) {
       if (floors_above()) {
 	state.current_floor++;

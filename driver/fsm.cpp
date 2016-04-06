@@ -2,12 +2,6 @@
 #include "fsm.hpp"
 #include "../util/logger.hpp"
 
-PhysicalFSM::PhysicalFSM(EventQueue& logic_queue) :
-  logic_queue(logic_queue),
-  FSM()
-{
-}
-
 bool FSM::should_stop(int floor)
 {
   return
@@ -28,6 +22,32 @@ void FSM::insert_order(int floor, int type)
     LOG_DEBUG("New order: go to floor " << floor << ", type=" << type);
     state.orders[floor][type] = true;
   }
+}
+
+bool FSM::floors_above()
+{
+  for (int floor = state.current_floor + 1; floor < FLOORS; floor++) {
+    if (state.orders[floor][0] || state.orders[floor][1] || state.orders[floor][2]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool FSM::floors_below()
+{
+  for (int floor = state.current_floor - 1; floor >= 0; floor--) {
+    if (state.orders[floor][0] || state.orders[floor][1] || state.orders[floor][2]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+PhysicalFSM::PhysicalFSM(EventQueue& logic_queue) :
+  FSM(),
+  logic_queue(logic_queue)
+{
 }
 
 void PhysicalFSM::change_state(const StateID& new_state)
@@ -84,26 +104,6 @@ void PhysicalFSM::notify(const OrderUpdateEvent& event)
   insert_order(event.floor, event.direction);
   update_lights();
   send_state();
-}
-
-bool FSM::floors_above()
-{
-  for (int floor = state.current_floor + 1; floor < FLOORS; floor++) {
-    if (state.orders[floor][0] || state.orders[floor][1] || state.orders[floor][2]) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool FSM::floors_below()
-{
-  for (int floor = state.current_floor - 1; floor >= 0; floor--) {
-    if (state.orders[floor][0] || state.orders[floor][1] || state.orders[floor][2]) {
-      return true;
-    }
-  }
-  return false;
 }
 
 void PhysicalFSM::run()
