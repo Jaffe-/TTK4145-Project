@@ -4,6 +4,7 @@
 #include "../network/network_events.hpp"
 #include "fsm.hpp"
 #include <climits>
+#include <string>
 
 Logic::Logic(bool use_simulator, const std::string& port)
   : driver(event_queue, use_simulator),
@@ -19,13 +20,13 @@ Logic::Logic(bool use_simulator, const std::string& port)
   event_queue.add_handler<NetworkReceiveEvent<ExternalButtonEvent>>(this, &Logic::notify);
   event_queue.add_handler<NewConnectionEvent>(this, &Logic::notify);
   event_queue.add_handler<LostConnectionEvent>(this, &Logic::notify);
-  
+  event_queue.add_handler<LostNetworkEvent>(this, &Logic::notify);
 }
 
 void Logic::choose_elevator(Button button)
 {
   int min = INT_MAX;
-  int our_min = INT_MAX; 
+  int our_min = INT_MAX;
   for (const auto& pair : elevator_states) {
     const State& state = pair.second;
     int steps = SimulatedFSM(state).calculate(button);
@@ -81,6 +82,19 @@ void Logic::notify(const NewConnectionEvent&)
 {
   StateUpdateEvent state(elevator_states["me"]);
   network.event_queue.push(state);
+}
+
+void Logic::notify(const LostNetworkEvent&)
+{
+  /* When our own network connection is lost, remove all elevator states
+     except our own, as the information about the rest of the elevators
+     will be outdated. */
+  for (auto it = elevator_states.begin(); it != elevator_states.end(); ) {
+    if (it->first != "me")
+      it = elevator_states.erase(it);
+    else
+      it++;
+  }
 }
 
 void Logic::run()

@@ -8,9 +8,7 @@
 
 bool ConnectionController::has_client(const std::string& ip) const
 {
-  return std::find_if(network.connections.begin(), network.connections.end(),
-		      [&] (std::pair<std::string, Network::connection> p) 
-		      { return p.first == ip; }) != network.connections.end();
+  return network.connections.find(ip) != network.connections.end();
 }
 
 void ConnectionController::notify_pong(const std::string& ip)
@@ -51,7 +49,7 @@ void ConnectionController::send_ping()
   TimePoint now = std::chrono::system_clock::now();
   if (now - last_ping >= ping_period) {
     network.broadcast({PacketType::PING, 0, {}, ""});
-    last_ping = now; 
+    last_ping = now;
   }
 }
 

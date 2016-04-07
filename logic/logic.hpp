@@ -17,6 +17,7 @@ private:
   void notify(const NetworkReceiveEvent<ExternalButtonEvent>& event);
   void notify(const LostConnectionEvent& event);
   void notify(const NewConnectionEvent&);
+  void notify(const LostNetworkEvent&);
   void choose_elevator(Button button);
 
   EventQueue event_queue;
