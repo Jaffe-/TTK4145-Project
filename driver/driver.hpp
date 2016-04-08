@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include "fsm.hpp"
+#include "physicalfsm.hpp"
 #include "../util/event_queue.hpp"
 
 class Driver {
