@@ -4,35 +4,23 @@
 #include "../util/serialization.hpp"
 #define FLOORS 4
 
-enum Button {
-  INTERNAL_1, INTERNAL_2, INTERNAL_3, INTERNAL_4,
-  EXTERNAL_1U,
-  EXTERNAL_2D, EXTERNAL_2U,
-  EXTERNAL_3D, EXTERNAL_3U,
-  EXTERNAL_4D,
-  NONE
-};
-
-/* Maps button matrix indices to Button enum values */
-const Button button_list[FLOORS][3] = {
-  { EXTERNAL_1U, NONE, INTERNAL_1},
-  { EXTERNAL_2U, EXTERNAL_2D, INTERNAL_2},
-  { EXTERNAL_3U, EXTERNAL_3D, INTERNAL_3},
-  { NONE, EXTERNAL_4D, INTERNAL_4}
-};
-
 using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
 
 enum StateID {
   MOVING, STOPPED
 };
-enum Direction {
+
+enum class Direction {
   UP, DOWN
+};
+
+enum class ButtonType {
+  UP, DOWN, CMD
 };
 
 struct State {
   int current_floor = 0;
-  Direction direction = UP;
+  Direction direction = Direction::UP;
   std::vector<std::vector<bool>> orders = {{0,0,0},{0,0,0},{0,0,0},{0,0,0}};
   bool door_open = false;
   TimePoint door_opened_time;
@@ -41,21 +29,25 @@ struct State {
 
 /* Events */
 struct ExternalButtonEvent : public SerializableEvent {
-  ExternalButtonEvent(Button b) : button(b) {};
+  ExternalButtonEvent(int floor, ButtonType type) : floor(floor), type(type) {};
   ExternalButtonEvent(const json_t& json) {
-    button = Button(int(json["button"]));
+    floor = json["floor"];
+    type = ButtonType(int(json["type"]));
   }
 
   virtual json_t get_json() const override {
-    return {{"button", int(button)}};
+    return {{"floor", floor},
+	    {"type", int(type)}};
   }
 
-  Button button;
+  int floor;
+  ButtonType type;
 };
 
 struct InternalButtonEvent : public Event {
-  InternalButtonEvent(Button b) : button(b) {};
-  Button button;
+  InternalButtonEvent(int floor) : floor(floor) {};
+
+  int floor;
 };
 
 struct FloorSignalEvent : public Event {
@@ -95,6 +87,3 @@ std::ostream& operator<<(std::ostream& s, const InternalButtonEvent& event);
 std::ostream& operator<<(std::ostream& s, const ExternalButtonEvent& event);
 std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event);
 std::ostream& operator<<(std::ostream& s, const StateUpdateEvent& event);
-
-int button_floor(Button button);
-int button_type(Button button);

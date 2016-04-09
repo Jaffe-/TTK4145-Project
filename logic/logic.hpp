@@ -18,7 +18,7 @@ private:
   void notify(const LostConnectionEvent& event);
   void notify(const NewConnectionEvent&);
   void notify(const LostNetworkEvent&);
-  void choose_elevator(Button button);
+  void choose_elevator(int floor, ButtonType type);
 
   EventQueue event_queue;
   Driver driver;

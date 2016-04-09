@@ -19,7 +19,7 @@ void PhysicalFSM::change_state(const StateID& new_state)
   }
   else if (new_state == MOVING) {
     LOG_DEBUG("Changed state to MOVING");
-    if (state.direction == UP)
+    if (state.direction == Direction::UP)
       elev_set_motor_direction(DIRN_UP);
     else
       elev_set_motor_direction(DIRN_DOWN);
@@ -42,7 +42,7 @@ void PhysicalFSM::notify(const ExternalButtonEvent&)
 
 void PhysicalFSM::notify(const InternalButtonEvent& event)
 {
-  insert_order(button_floor(event.button), 2);
+  insert_order(event.floor, 2);
   update_lights();
   send_state();
 }
@@ -75,24 +75,24 @@ void PhysicalFSM::run()
       }
     }
     else {
-      if (state.direction == UP) {
+      if (state.direction == Direction::UP) {
 	if (floors_above()) {
 	  change_state(MOVING);
 	  send_state();
 	}
 	else if (floors_below()) {
-	  state.direction = DOWN;
+	  state.direction = Direction::DOWN;
 	  change_state(MOVING);
 	  send_state();
 	}
       }
-      else if (state.direction == DOWN) {
+      else if (state.direction == Direction::DOWN) {
 	if (floors_below()) {
 	  change_state(MOVING);
 	  send_state();
 	}
 	else if (floors_above()) {
-	  state.direction = UP;
+	  state.direction = Direction::UP;
 	  change_state(MOVING);
 	  send_state();
 	}

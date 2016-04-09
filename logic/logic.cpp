@@ -26,13 +26,13 @@ Logic::Logic(bool use_simulator, const std::string& port)
 /* Calculate the cost function (using the simulated FSM) for each elevator and
    determine if this elevator should take the given order. If we have the
    minimum value, we should take the order even though others may have it. */
-void Logic::choose_elevator(Button button)
+void Logic::choose_elevator(int floor, ButtonType type)
 {
   int min = INT_MAX;
   int our_min = INT_MAX;
   for (const auto& pair : elevator_states) {
     const State& state = pair.second;
-    int steps = SimulatedFSM(state).calculate(button);
+    int steps = SimulatedFSM(state).calculate(floor, static_cast<int>(type));
     LOG_DEBUG("Calculated steps " << steps << " for id " << pair.first);
     if (steps < min) {
       min = steps;
@@ -45,8 +45,7 @@ void Logic::choose_elevator(Button button)
   assert(min != INT_MAX);
 
   if (min == our_min) {
-    driver.event_queue.push(OrderUpdateEvent(button_floor(button),
-					     button_type(button)));
+    driver.event_queue.push(OrderUpdateEvent(floor, static_cast<int>(type)));
   }
 }
 
@@ -56,7 +55,7 @@ void Logic::choose_elevator(Button button)
 void Logic::notify(const ExternalButtonEvent& event)
 {
   network.event_queue.push(event);
-  choose_elevator(event.button);
+  choose_elevator(event.floor, event.type);
 }
 
 /* When a state update event occurs, our own state in elevator_states should be
@@ -80,7 +79,7 @@ void Logic::notify(const NetworkReceiveEvent<StateUpdateEvent>& event)
 void Logic::notify(const NetworkReceiveEvent<ExternalButtonEvent>& event)
 {
   LOG_DEBUG("Received " << event);
-  choose_elevator(event.data.button);
+  choose_elevator(event.data.floor, event.data.type);
 }
 
 /* When a connection is lost, that elevator's state should be removed from

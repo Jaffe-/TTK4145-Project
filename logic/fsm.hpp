@@ -5,5 +5,5 @@
 class SimulatedFSM : public FSM {
 public:
   SimulatedFSM(State state_) : FSM() { state = state_; };
-  int calculate(Button button);
+  int calculate(int floor, int type);
 };

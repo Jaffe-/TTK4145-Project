@@ -32,7 +32,6 @@ void Network::run()
     receive();
     sender.run();
     connection_controller.run();
-
   }
 }
 
