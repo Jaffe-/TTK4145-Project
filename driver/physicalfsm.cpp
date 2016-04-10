@@ -59,6 +59,7 @@ void PhysicalFSM::notify(const FloorSignalEvent& event)
 
 void PhysicalFSM::notify(const OrderUpdateEvent& event)
 {
+  LOG_DEBUG("New order: go to floor " << floor << ", type=" << type);
   insert_order(event.floor, event.direction);
   update_lights();
   send_state();

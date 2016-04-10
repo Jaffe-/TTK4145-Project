@@ -18,7 +18,6 @@ void FSM::clear_orders(int floor)
 void FSM::insert_order(int floor, int type)
 {
   if (floor != state.current_floor) {
-    LOG_DEBUG("New order: go to floor " << floor << ", type=" << type);
     state.orders[floor][type] = true;
   }
 }
