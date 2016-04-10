@@ -36,12 +36,22 @@ private:
 
   std::map<std::string, connection> connections;
 
-  template <typename EventType>
-  bool push_receive_event(const std::string& ip, const json_t& json) {
-    if (json["type"] == typeid(EventType).name()) {
+  /* Loop recursively through the event list and check whether the typeid of
+     that event type matches the received event type, in which case we construct
+     a new instance of that event and push it onto the event queue. */
+  template <typename EventType, typename... Rest>
+  void push_receive_event(const json_t& json, const std::string& ip,
+			  EventList<EventType, Rest...>) {
+    if (json["type"] == typeid(EventType).name())
       logic_queue.push(NetworkReceiveEvent<EventType>{ip, EventType {json["data"]}});
-      return true;
-    }
-    return false;
+    else
+      push_receive_event(json, ip, EventList<Rest...>{});
   }
+
+  /* The base case reached when the event list is empty, which means that none
+     of the events were recognized. */
+  void push_receive_event(const json_t&, const std::string&, EventList<>) {
+    assert(false && "Unknown event received from network");
+  }
+
 };

@@ -62,8 +62,7 @@ void Network::make_receive_event(const Packet& packet)
   json_t json = json_t::parse(serialized);
   LOG(5, json);
 
-  assert(push_receive_event<StateUpdateEvent>(packet.ip, json)
-	 || push_receive_event<ExternalButtonEvent>(packet.ip, json));
+  push_receive_event(json, packet.ip, EventList<StateUpdateEvent, ExternalButtonEvent>());
 }
 
 void Network::receive()
