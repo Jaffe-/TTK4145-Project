@@ -1,4 +1,4 @@
-#include "fsm.hpp"
+#include "simulatedfsm.hpp"
 #include "../util/logger.hpp"
 
 int SimulatedFSM::calculate(int floor, int type)
