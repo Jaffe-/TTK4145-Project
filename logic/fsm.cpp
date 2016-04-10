@@ -7,7 +7,6 @@ int SimulatedFSM::calculate(int floor, int type)
   int step = 0;
   while (state.current_floor != floor &&
 	 (floors_above() || floors_below())) {
-    LOG_DEBUG("Floor " << state.current_floor);
     if (should_stop(state.current_floor))
       step++;
     if (state.direction == Direction::UP) {
