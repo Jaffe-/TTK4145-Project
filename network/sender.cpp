@@ -9,7 +9,6 @@ std::ostream& operator<<(std::ostream& s, const MessageEntry& msg_entry);
 void Sender::send_message(const std::string& msg)
 {
   if (network.connections.empty()) {
-    LOG_WARNING("Attempted to send message, but there are no clients.");
     return;
   }
 
