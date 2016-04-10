@@ -8,6 +8,7 @@ Bugs:
 
 Todo:
   * System for å holde oversikt over ordrer i systemet
+  * Lysene på eksterne knapper må implementeres
   * Muligens nye navn på Logic, ConnectionController og Sender?
   * Kommentere koden litt bedre
   * Figur(er)
