@@ -38,6 +38,9 @@ public:
   }
 };
 
+template <typename... EventTypes>
+struct EventList {};
+
 class EventQueue {
 public:
   using queue_t = std::deque<std::shared_ptr<const Event>>;
@@ -75,6 +78,18 @@ public:
   void add_handler(Class* instance, void(Class::*f)(const T&)) {
     add_handler<T>([instance, f] (const T& m) { (*instance.*f)(m); });
   }
+
+  /* Take a list of event types which the event queue should respond to, and a
+     pointer to an object which has notify functions for each event type. */
+  template <typename Class, typename EventType, typename... Rest>
+  void listen(Class* instance, EventList<EventType, Rest...>) {
+    add_handler<EventType>(instance, &Class::notify);
+    listen(instance, EventList<Rest...>{});
+  }
+
+  /* Base case for the above function */
+  template <typename Class>
+  void listen(Class*, EventList<>) { }
 
   /* Call the right event handlers for the messages in the given queue */
   void handle_events(const queue_t& queue);

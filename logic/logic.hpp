@@ -8,9 +8,7 @@
 class Logic {
 public:
   Logic(bool use_simulator, const std::string& port);
-  void run();
 
-private:
   void notify(const ExternalButtonEvent& event);
   void notify(const StateUpdateEvent& event);
   void notify(const NetworkReceiveEvent<StateUpdateEvent>& event);
@@ -19,6 +17,9 @@ private:
   void notify(const NewConnectionEvent&);
   void notify(const LostNetworkEvent&);
   void choose_elevator(int floor, ButtonType type);
+  void run();
+
+private:
 
   EventQueue event_queue;
   Driver driver;

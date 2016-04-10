@@ -1,11 +1,13 @@
 #include "fsm.hpp"
+#include "../util/logger.hpp"
 
 int SimulatedFSM::calculate(int floor, int type)
 {
   insert_order(floor, type);
   int step = 0;
-  while (!(state.current_floor == floor &&
-	   type == static_cast<int>(state.direction))) {
+  while (state.current_floor != floor &&
+	 (floors_above() || floors_below())) {
+    LOG_DEBUG("Floor " << state.current_floor);
     if (should_stop(state.current_floor))
       step++;
     if (state.direction == Direction::UP) {

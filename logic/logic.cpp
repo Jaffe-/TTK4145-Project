@@ -14,13 +14,13 @@ Logic::Logic(bool use_simulator, const std::string& port)
 {
   LOG_INFO("Logic module started");
 
-  event_queue.add_handler<ExternalButtonEvent>(this, &Logic::notify);
-  event_queue.add_handler<StateUpdateEvent>(this, &Logic::notify);
-  event_queue.add_handler<NetworkReceiveEvent<StateUpdateEvent>>(this, &Logic::notify);
-  event_queue.add_handler<NetworkReceiveEvent<ExternalButtonEvent>>(this, &Logic::notify);
-  event_queue.add_handler<NewConnectionEvent>(this, &Logic::notify);
-  event_queue.add_handler<LostConnectionEvent>(this, &Logic::notify);
-  event_queue.add_handler<LostNetworkEvent>(this, &Logic::notify);
+  event_queue.listen(this, EventList<ExternalButtonEvent,
+		                     StateUpdateEvent,
+		                     NetworkReceiveEvent<StateUpdateEvent>,
+		                     NetworkReceiveEvent<ExternalButtonEvent>,
+		                     NewConnectionEvent,
+		                     LostConnectionEvent,
+		                     LostNetworkEvent>());
 }
 
 /* Calculate the cost function (using the simulated FSM) for each elevator and
