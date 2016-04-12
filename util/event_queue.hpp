@@ -3,43 +3,10 @@
 #include <deque>
 #include <mutex>
 #include <condition_variable>
-#include <iostream>
-#include "serialization.hpp"
 #include <typeinfo>
 #include <typeindex>
 #include <unordered_map>
-
-class Event {
-public:
-  virtual bool serializable() const {
-    return false;
-  };
-
-  /* Used to cast an event to its concrete derived type */
-  template <typename T>
-  operator const T&() const {
-    if (typeid(T) == typeid(*this))
-      return static_cast<const T&>(*this);
-    else throw std::bad_cast();
-  }
-
-  /* Used to cast itself to Serializable. Must be dynamic cast since
-     Event doesn't itself derive from Serializable. */
-  operator const Serializable&() const {
-    return dynamic_cast<const Serializable&>(*this);
-  };
-};
-
-class SerializableEvent : public Event,
-			  public Serializable {
-public:
-  virtual bool serializable() const override {
-    return true;
-  }
-};
-
-template <typename... EventTypes>
-struct EventList {};
+#include "event.hpp"
 
 class EventQueue {
 public:
