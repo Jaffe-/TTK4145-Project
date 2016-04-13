@@ -75,7 +75,7 @@ void Logic::notify(const StateUpdateEvent& event)
 void Logic::notify(const NetworkMessageEvent<StateUpdateEvent>& event)
 {
   LOG_DEBUG("Received " << event);
-  if (elevator_infos.find(event.ip) != elevator_infos.end())
+  if (elevator_infos.find(event.ip) != elevator_infos.end() && elevator_infos[event.ip].status == ACTIVE)
     elevator_infos[event.ip].state = event.data.state;
   else {
     elevator_infos[event.ip] = { NEW, event.data.state };
