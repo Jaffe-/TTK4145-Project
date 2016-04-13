@@ -1,6 +1,6 @@
 TARGET=elevator
 CC = gcc
-COMMONFLAGS += -Wall -Wextra -pedantic -MD -MP
+COMMONFLAGS += -Wall -Wextra -pedantic -MD -MP -g
 CPPFLAGS = $(COMMONFLAGS) -std=c++11
 CFLAGS = $(COMMONFLAGS) -std=gnu99
 LDFLAGS = -lstdc++ -lcomedi -lpthread -lm

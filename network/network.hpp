@@ -42,8 +42,8 @@ private:
   template <typename EventType, typename... Rest>
   void push_receive_event(const json_t& json, const std::string& ip,
 			  EventList<EventType, Rest...>) {
-    if (json["type"] == typeid(EventType).name())
-      logic_queue.push(NetworkReceiveEvent<EventType>{ip, EventType {json["data"]}});
+    if (json["type"] == typeid(NetworkMessageEvent<EventType>).name())
+      logic_queue.push(NetworkMessageEvent<EventType>{ip, EventType {json["data"]}});
     else
       push_receive_event(json, ip, EventList<Rest...>{});
   }

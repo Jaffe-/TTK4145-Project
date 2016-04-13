@@ -1,4 +1,5 @@
 #include "logic.hpp"
+#include "events.hpp"
 #include "../util/logger.hpp"
 #include "../driver/driver_events.hpp"
 #include "../network/network_events.hpp"
@@ -16,8 +17,8 @@ Logic::Logic(bool use_simulator, const std::string& port)
 
   event_queue.listen(this, EventList<ExternalButtonEvent,
 		                     StateUpdateEvent,
-		                     NetworkReceiveEvent<StateUpdateEvent>,
-		                     NetworkReceiveEvent<ExternalButtonEvent>,
+		                     NetworkMessageEvent<StateUpdateEvent>,
+		                     NetworkMessageEvent<ExternalButtonEvent>,
 		                     NewConnectionEvent,
 		                     LostConnectionEvent,
 		                     LostNetworkEvent>());
@@ -30,15 +31,17 @@ void Logic::choose_elevator(int floor, ButtonType type)
 {
   int min = INT_MAX;
   int our_min = INT_MAX;
-  for (const auto& pair : elevator_states) {
-    const State& state = pair.second;
-    int steps = SimulatedFSM(state).calculate(floor, static_cast<int>(type));
-    LOG_DEBUG("Calculated steps " << steps << " for id " << pair.first);
-    if (steps < min) {
-      min = steps;
-    }
-    if (pair.first == "me") {
-      our_min = steps;
+  for (const auto& pair : elevator_infos) {
+    const ElevatorInfo& elevator_info = pair.second;
+    if (elevator_info.active) {
+      int steps = SimulatedFSM(elevator_info.state).calculate(floor, static_cast<int>(type));
+      LOG_DEBUG("Calculated steps " << steps << " for id " << pair.first);
+      if (steps < min) {
+	min = steps;
+      }
+      if (pair.first == "me") {
+	our_min = steps;
+      }
     }
   }
 
@@ -54,48 +57,57 @@ void Logic::choose_elevator(int floor, ButtonType type)
    elevator should take the order */
 void Logic::notify(const ExternalButtonEvent& event)
 {
-  network.event_queue.push(event);
+  network.event_queue.push(NetworkMessageEvent<ExternalButtonEvent>("all", event));
   choose_elevator(event.floor, event.type);
 }
 
-/* When a state update event occurs, our own state in elevator_states should be
+/* When a state update event occurs, our own state in elevator_infos should be
    updated, and it should be broadcasted to the other elevators. */
 void Logic::notify(const StateUpdateEvent& event)
 {
-  elevator_states["me"] = event.state;
-  network.event_queue.push(event);
+  elevator_infos["me"] = { true, event.state };
+  network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>("all", event));
 }
 
 /* When a state update event is received from the network, it should be stored
-   in elevator_states, creating a new index if needed. */
-void Logic::notify(const NetworkReceiveEvent<StateUpdateEvent>& event)
+   in elevator_infos, creating a new index if needed. */
+void Logic::notify(const NetworkMessageEvent<StateUpdateEvent>& event)
 {
   LOG_DEBUG("Received " << event);
-  elevator_states[event.ip] = event.data.state;
+  elevator_infos[event.ip] = ElevatorInfo { true, event.data.state };
 }
 
 /* When an external button event is received from the network, the choose
    function is run to determine whether this elevator should take the order. */
-void Logic::notify(const NetworkReceiveEvent<ExternalButtonEvent>& event)
+void Logic::notify(const NetworkMessageEvent<ExternalButtonEvent>& event)
 {
   LOG_DEBUG("Received " << event);
   choose_elevator(event.data.floor, event.data.type);
 }
 
 /* When a connection is lost, that elevator's state should be removed from
-   elevator_states, since it should no longer be part of the decision making */
+   elevator_infos, since it should no longer be part of the decision making */
 void Logic::notify(const LostConnectionEvent& event)
 {
-  auto it = elevator_states.find(event.ip);
-  if (it != elevator_states.end())
-    elevator_states.erase(it);
+  elevator_infos[event.ip].active = false;
 }
 
-/* When a new elevator appears we must send our latest state to it. */
-void Logic::notify(const NewConnectionEvent&)
+/* When a new elevator appears we must send our latest state to it. 
+
+   If the elevator is known from before, it means that it has died and
+   come back. In this case, we send it the most recent order list this
+   elevator gave us before it died.
+*/
+void Logic::notify(const NewConnectionEvent& event)
 {
-  StateUpdateEvent state(elevator_states["me"]);
+  StateUpdateEvent state(elevator_infos["me"].state);
   network.event_queue.push(state);
+
+  if (elevator_infos.find(event.ip) != elevator_infos.end()) {
+    OrderBackupEvent order_backup(elevator_infos[event.ip].state.orders);
+    network.event_queue.push(NetworkMessageEvent<OrderBackupEvent>(event.ip, order_backup));
+    elevator_infos[event.ip].active = true;
+  }
 }
 
 /* When our own network connection is lost, remove all elevator states
@@ -103,11 +115,9 @@ void Logic::notify(const NewConnectionEvent&)
    will be outdated. */
 void Logic::notify(const LostNetworkEvent&)
 {
-  for (auto it = elevator_states.begin(); it != elevator_states.end(); ) {
-    if (it->first != "me")
-      it = elevator_states.erase(it);
-    else
-      it++;
+  for (auto& pair : elevator_infos) {
+    if (pair.first != "me")
+      pair.second.active = false;
   }
 }
 

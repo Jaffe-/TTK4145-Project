@@ -2,6 +2,7 @@
 #include <iostream>
 #include "network.hpp"
 #include "sender.hpp"
+#include "../logic/events.hpp"
 #include "connection_controller.hpp"
 #include "../util/logger.hpp"
 #include <chrono>
@@ -23,9 +24,11 @@ void Network::run()
     for (auto& msg : event_queue.take_events(event_queue.acquire())) {
       if (msg->serializable()) {
 	const Serializable& serializable_msg = *msg;
+	json_t event_json = serializable_msg.get_json();
+	std::string ip = event_json["ip"];
 	json_t json = {{"type", typeid(*msg).name()},
-		       {"data", serializable_msg.get_json()}};
-	sender.send_message(json.dump());
+		       {"data", event_json["data"]}};
+	sender.send_message(ip, json.dump());
       }
     }
 
@@ -62,7 +65,7 @@ void Network::make_receive_event(const Packet& packet)
   json_t json = json_t::parse(serialized);
   LOG(5, json);
 
-  push_receive_event(json, packet.ip, EventList<StateUpdateEvent, ExternalButtonEvent>());
+  push_receive_event(json, packet.ip, EventList<StateUpdateEvent, ExternalButtonEvent, OrderBackupEvent>());
 }
 
 void Network::receive()

@@ -8,7 +8,7 @@ class Network;
 class Sender {
 public:
   Sender(Network& network) : network(network) {};
-  void send_message(const std::string& msg);
+  void send_message(const std::string& ip, const std::string& msg);
   void notify_okay(const std::string& ip, unsigned int id);
   void run();
 

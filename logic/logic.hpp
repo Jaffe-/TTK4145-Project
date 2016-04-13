@@ -11,8 +11,8 @@ public:
 
   void notify(const ExternalButtonEvent& event);
   void notify(const StateUpdateEvent& event);
-  void notify(const NetworkReceiveEvent<StateUpdateEvent>& event);
-  void notify(const NetworkReceiveEvent<ExternalButtonEvent>& event);
+  void notify(const NetworkMessageEvent<StateUpdateEvent>& event);
+  void notify(const NetworkMessageEvent<ExternalButtonEvent>& event);
   void notify(const LostConnectionEvent& event);
   void notify(const NewConnectionEvent&);
   void notify(const LostNetworkEvent&);
@@ -25,7 +25,12 @@ private:
   Driver driver;
   Network network;
 
-  std::map<std::string, State> elevator_states;
+  struct ElevatorInfo {
+    bool active;
+    State state;
+  };
+
+  std::map<std::string, ElevatorInfo> elevator_infos;
 
   std::thread driver_thread;
   std::thread network_thread;

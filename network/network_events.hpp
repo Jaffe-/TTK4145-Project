@@ -18,10 +18,14 @@ struct LostNetworkEvent : public Event {
 };
 
 template <typename Data>
-struct NetworkReceiveEvent : public Event {
-  NetworkReceiveEvent(const std::string& ip, const Data& data)
+struct NetworkMessageEvent : public Event, public Serializable {
+  NetworkMessageEvent(const std::string& ip, const Data& data)
     : ip(ip),
       data(data) {};
+
+  virtual json_t get_json() const override {
+    return {{"ip", ip}, {"data", data.get_json() }};
+  }
 
   std::string ip;
   Data data;
@@ -32,8 +36,8 @@ std::ostream& operator<<(std::ostream& os, const LostNetworkEvent& event);
 std::ostream& operator<<(std::ostream& os, const LostConnectionEvent&);
 
 template <typename Data>
-std::ostream& operator<<(std::ostream& os, const NetworkReceiveEvent<Data>& event)
+std::ostream& operator<<(std::ostream& os, const NetworkMessageEvent<Data>& event)
 {
-  return os << "{NetworkReceiveEvent ip=" << event.ip
+  return os << "{NetworkMessageEvent ip=" << event.ip
 	    << " data=" << event.data << "}";
 }

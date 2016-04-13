@@ -6,7 +6,7 @@
 
 std::ostream& operator<<(std::ostream& s, const MessageEntry& msg_entry);
 
-void Sender::send_message(const std::string& msg)
+void Sender::send_message(const std::string& ip, const std::string& msg)
 {
   if (network.connections.empty()) {
     return;
@@ -15,7 +15,8 @@ void Sender::send_message(const std::string& msg)
   auto msg_entry = MessageEntry(current_id, msg);
 
   for (auto& connection : network.connections) {
-    connection.second.message_queue.push_back(msg_entry);
+    if (ip == "all" || ip == connection.first)
+      connection.second.message_queue.push_back(msg_entry);
   }
 
   LOG_DEBUG("New message " << msg_entry);
