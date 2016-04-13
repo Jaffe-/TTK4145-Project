@@ -19,7 +19,6 @@ public:
   void notify(const NewConnectionEvent&);
   void notify(const LostNetworkEvent&);
   void notify(const NetworkMessageEvent<StateUpdateReqEvent>& event);
-  void choose_elevator(int floor, ButtonType type);
   void run();
 
 private:
@@ -47,7 +46,10 @@ private:
   std::thread network_thread;
 
   const std::string backup_filename = "orders.txt";
+
+  int current_id = 0;
   
+  void choose_elevator(const std::string& id, int floor, ButtonType type);
   bool restore_orders(std::vector<std::vector<bool>>& orders);
   void backup_orders(const std::vector<std::vector<bool>>& orders);
 };

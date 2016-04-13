@@ -40,7 +40,7 @@ Logic::Logic(bool use_simulator, const std::string& port)
 /* Calculate the cost function (using the simulated FSM) for each elevator and
    determine if this elevator should take the given order. If we have the
    minimum value, we should take the order even though others may have it. */
-void Logic::choose_elevator(int floor, ButtonType type)
+void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType type)
 {
   int min = INT_MAX;
   std::string min_ip;
@@ -65,9 +65,16 @@ void Logic::choose_elevator(int floor, ButtonType type)
 
   assert(min != INT_MAX);
 
-  if (min_ip == network.own_ip()) {
-    // ta ordren
+  if (min_ip == network.own_ip()) {    
     driver.event_queue.push(OrderUpdateEvent(floor, static_cast<int>(type)));
+  }
+
+  assert(orders.find(min_ip) != orders.end() && "Computed best ip for a order that doesn't exist");
+  orders[order_id].owner = min_ip;
+
+  LOG_DEBUG("Order map now contains: ");
+  for (auto& pair : orders) {
+    LOG_DEBUG(pair.first << ": floor=" << pair.second.floor << " type=" << pair.second.type << " owner=" << pair.second.owner);
   }
 }
 
@@ -76,8 +83,10 @@ void Logic::choose_elevator(int floor, ButtonType type)
    elevator should take the order */
 void Logic::notify(const ExternalButtonEvent& event)
 {
-  network.event_queue.push(NetworkMessageEvent<ExternalButtonEvent>("all", event));
-  choose_elevator(event.floor, event.type);
+  std::string order_id = network.own_ip() + ":" + std::to_string(current_id);
+  orders[order_id] = { event.floor, static_cast<int>(event.type), "" };
+  choose_elevator(order_id, event.floor, event.type);
+  network.event_queue.push(NetworkMessageEvent<ExternalButtonEvent>("all", { event.floor, event.type, order_id }));
 }
 
 /* When a state update event occurs, our own state in elevator_infos should be
@@ -103,7 +112,8 @@ void Logic::notify(const NetworkMessageEvent<StateUpdateEvent>& event)
 void Logic::notify(const NetworkMessageEvent<ExternalButtonEvent>& event)
 {
   LOG_DEBUG("Received " << event);
-  choose_elevator(event.data.floor, event.data.type);
+  orders[event.data.id] = { event.data.floor, static_cast<int>(event.data.type), ""};
+  choose_elevator(event.data.id, event.data.floor, event.data.type);
 }
 
 /* When a connection is lost, that elevator's state should be removed from
