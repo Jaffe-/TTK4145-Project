@@ -15,6 +15,9 @@ class Network {
 public:
   Network(EventQueue& logic_queue, const std::string& port);
   void run();
+  std::string own_ip() {
+    return socket.own_ips[0];
+  }
   EventQueue event_queue;
   EventQueue& logic_queue;
 

@@ -33,8 +33,16 @@ private:
     State state;
   };
 
+  struct OrderInfo {
+    int floor;
+    int type;
+    std::string owner;
+  };
+  
   std::map<std::string, ElevatorInfo> elevator_infos;
 
+  std::map<std::string, OrderInfo> orders;
+  
   std::thread driver_thread;
   std::thread network_thread;
 

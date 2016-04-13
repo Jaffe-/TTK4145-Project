@@ -19,7 +19,8 @@ public:
   std::string port;
   bool operational;
 
+  std::vector<std::string> own_ips;
+
 private:
   int sockfd;
-  std::vector<std::string> own_ips;
 };

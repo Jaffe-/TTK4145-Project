@@ -43,24 +43,30 @@ Logic::Logic(bool use_simulator, const std::string& port)
 void Logic::choose_elevator(int floor, ButtonType type)
 {
   int min = INT_MAX;
-  int our_min = INT_MAX;
-  for (const auto& pair : elevator_infos) {
-    const ElevatorInfo& elevator_info = pair.second;
+  std::string min_ip;
+
+  std::vector<std::string> sorted_ips;
+  for (auto pair : elevator_infos) {
+    sorted_ips.push_back(pair.first);
+  }
+  std::sort(sorted_ips.begin(), sorted_ips.end());
+  
+  for (auto& ip : sorted_ips) {
+    const ElevatorInfo& elevator_info = elevator_infos[ip];
     if (elevator_info.active) {
       int steps = SimulatedFSM(elevator_info.state).calculate(floor, static_cast<int>(type));
-      LOG_DEBUG("Calculated steps " << steps << " for id " << pair.first);
+      LOG_DEBUG("Calculated steps " << steps << " for id " << ip);
       if (steps < min) {
 	min = steps;
-      }
-      if (pair.first == "me") {
-	our_min = steps;
+	min_ip = ip;
       }
     }
   }
 
   assert(min != INT_MAX);
 
-  if (min == our_min) {
+  if (min_ip == network.own_ip()) {
+    // ta ordren
     driver.event_queue.push(OrderUpdateEvent(floor, static_cast<int>(type)));
   }
 }

@@ -30,7 +30,8 @@ Socket::Socket(const std::string& port) : port(port)
     if (ifa->ifa_addr->sa_family == AF_INET) {
       char address[INET_ADDRSTRLEN];
       inet_ntop(AF_INET, &((sockaddr_in*)ifa->ifa_addr)->sin_addr, address, INET_ADDRSTRLEN);
-      own_ips.push_back(address);
+      if (std::string(ifa->ifa_name) != "lo")
+	own_ips.push_back(address);
     }
   }
   if (if_addrs != NULL)
