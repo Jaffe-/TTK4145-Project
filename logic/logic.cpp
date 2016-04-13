@@ -22,7 +22,8 @@ Logic::Logic(bool use_simulator, const std::string& port)
 		                     NewConnectionEvent,
 		                     LostConnectionEvent,
 		     LostNetworkEvent,
-		     NetworkMessageEvent<OrderBackupEvent>>());
+		     NetworkMessageEvent<OrderBackupEvent>,
+		     NetworkMessageEvent<StateUpdateReqEvent>());
 }
 
 /* Calculate the cost function (using the simulated FSM) for each elevator and
@@ -111,6 +112,7 @@ void Logic::notify(const NewConnectionEvent& event)
     }
   }
   else {
+    LOG_DEBUG("NEW client, sending state update request");
     network.event_queue.push(NetworkMessageEvent<StateUpdateReqEvent>(event.ip, {}));
     elevator_infos[event.ip] = { false, {} };
   }
@@ -142,6 +144,7 @@ void Logic::notify(const NetworkMessageEvent<OrderBackupEvent>& event)
 
 void Logic::notify(const NetworkMessageEvent<StateUpdateReqEvent>& event)
 {
+  LOG_DEBUG("Got state update request, sending state.");
   StateUpdateEvent state(elevator_infos["me"].state);
   network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>(event.ip, state));
 }
