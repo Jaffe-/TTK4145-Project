@@ -10,7 +10,7 @@ class Network;
 class ConnectionController {
 public:
   ConnectionController(Network& network) : network(network) {};
-  void notify_pong(const std::string& ip);
+  void notify_receive(const Packet& packet);
   void remove_clients(const std::vector<std::string>& ips);
   std::vector<std::string> get_clients() const;
   bool has_client(const std::string& ip) const;

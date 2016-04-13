@@ -86,12 +86,11 @@ void Network::receive()
 
   LOG(Logger::LogLevel::DEBUG2, "Received packet " << packet);
 
+  connection_controller.notify_receive(packet);
+  
   switch (packet.type){
   case PacketType::PING:
     send(make_pong(), packet.ip);
-    break;
-  case PacketType::PONG:
-    connection_controller.notify_pong(packet.ip);
     break;
   case PacketType::MSG:
     send(make_okay(packet), packet.ip);

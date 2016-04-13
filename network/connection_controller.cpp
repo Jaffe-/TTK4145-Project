@@ -11,13 +11,15 @@ bool ConnectionController::has_client(const std::string& ip) const
   return network.connections.find(ip) != network.connections.end();
 }
 
-void ConnectionController::notify_pong(const std::string& ip)
+void ConnectionController::notify_receive(const Packet& packet)
 {
-  if (!has_client(ip)) {
-    network.logic_queue.push(NewConnectionEvent(ip));
-    LOG_INFO("New client " << ip << " discovered");
+  if (!has_client(packet.ip)) {
+    network.logic_queue.push(NewConnectionEvent(packet.ip));
+    LOG_INFO("New client " << packet.ip << " discovered");
   }
-  network.connections[ip] = {std::chrono::system_clock::now(), {}};
+  if (packet.type == PacketType::PONG) {
+    network.connections[packet.ip] = {std::chrono::system_clock::now(), {}};
+  }
 }
 
 void ConnectionController::remove_clients(const std::vector<std::string>& ips)
