@@ -84,7 +84,7 @@ void Logic::notify(const ExternalButtonEvent& event)
    updated, and it should be broadcasted to the other elevators. */
 void Logic::notify(const StateUpdateEvent& event)
 {
-  elevator_infos["me"] = { true, event.state };
+  elevator_infos[network.own_ip()] = { true, event.state };
   network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>("all", event));
   backup_orders(event.state.orders);
 }
@@ -132,7 +132,7 @@ void Logic::notify(const NewConnectionEvent& event)
 void Logic::notify(const LostNetworkEvent&)
 {
   for (auto& pair : elevator_infos) {
-    if (pair.first != "me")
+    if (pair.first != network.own_ip())
       pair.second.active = false;
   }
 }
@@ -140,7 +140,7 @@ void Logic::notify(const LostNetworkEvent&)
 void Logic::notify(const NetworkMessageEvent<StateUpdateReqEvent>& event)
 {
   LOG_DEBUG("Got state update request, sending state.");
-  StateUpdateEvent state(elevator_infos["me"].state);
+  StateUpdateEvent state(elevator_infos[network.own_ip()].state);
   network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>(event.ip, state));
 }
 
