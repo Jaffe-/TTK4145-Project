@@ -1,8 +1,8 @@
 #include "logic.hpp"
 #include "events.hpp"
 #include "../util/logger.hpp"
-#include "../driver/driver_events.hpp"
-#include "../network/network_events.hpp"
+#include "../driver/events.hpp"
+#include "../network/events.hpp"
 #include "simulatedfsm.hpp"
 #include <climits>
 #include <string>

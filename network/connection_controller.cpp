@@ -4,7 +4,7 @@
 #include "../util/logger.hpp"
 #include <algorithm>
 #include <chrono>
-#include "network_events.hpp"
+#include "events.hpp"
 
 bool ConnectionController::has_client(const std::string& ip) const
 {

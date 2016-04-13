@@ -2,7 +2,7 @@
 #include "../util/event_queue.hpp"
 #include "../driver/driver.hpp"
 #include "../network/network.hpp"
-#include "../network/network_events.hpp"
+#include "../network/events.hpp"
 #include "events.hpp"
 #include <thread>
 

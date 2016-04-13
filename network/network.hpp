@@ -6,7 +6,7 @@
 #include "connection_controller.hpp"
 #include "socket.hpp"
 #include "../util/event_queue.hpp"
-#include "network_events.hpp"
+#include "events.hpp"
 
 class Network {
   friend class Sender;
