@@ -28,6 +28,7 @@ void Network::run()
 	std::string ip = event_json["ip"];
 	json_t json = {{"type", typeid(*msg).name()},
 		       {"data", event_json["data"]}};
+	LOG(5, json.dump());
 	sender.send_message(ip, json.dump());
       }
     }

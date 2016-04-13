@@ -18,7 +18,7 @@ struct LostNetworkEvent : public Event {
 };
 
 template <typename Data>
-struct NetworkMessageEvent : public Event, public Serializable {
+struct NetworkMessageEvent : public SerializableEvent {
   NetworkMessageEvent(const std::string& ip, const Data& data)
     : ip(ip),
       data(data) {};

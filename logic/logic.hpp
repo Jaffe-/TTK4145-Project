@@ -3,6 +3,7 @@
 #include "../driver/driver.hpp"
 #include "../network/network.hpp"
 #include "../network/network_events.hpp"
+#include "events.hpp"
 #include <thread>
 
 class Logic {
@@ -16,6 +17,7 @@ public:
   void notify(const LostConnectionEvent& event);
   void notify(const NewConnectionEvent&);
   void notify(const LostNetworkEvent&);
+  void notify(const NetworkMessageEvent<OrderBackupEvent>& event);
   void choose_elevator(int floor, ButtonType type);
   void run();
 
@@ -25,8 +27,12 @@ private:
   Driver driver;
   Network network;
 
+  enum ElevatorStatus {
+    NEW, INACTIVE, ACTIVE
+  };
+
   struct ElevatorInfo {
-    bool active;
+    ElevatorStatus status;
     State state;
   };
 
