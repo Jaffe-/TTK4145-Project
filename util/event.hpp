@@ -31,6 +31,11 @@ public:
   virtual bool serializable() const override {
     return true;
   }
+
+  // By default, return empty json
+  virtual json_t get_json() const override {
+    return {};
+  }
 };
 
 /* Event list

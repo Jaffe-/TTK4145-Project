@@ -34,7 +34,7 @@ void Logic::choose_elevator(int floor, ButtonType type)
   int our_min = INT_MAX;
   for (const auto& pair : elevator_infos) {
     const ElevatorInfo& elevator_info = pair.second;
-    if (elevator_info.status == ACTIVE) {
+    if (elevator_info.active) {
       int steps = SimulatedFSM(elevator_info.state).calculate(floor, static_cast<int>(type));
       LOG_DEBUG("Calculated steps " << steps << " for id " << pair.first);
       if (steps < min) {
@@ -66,7 +66,7 @@ void Logic::notify(const ExternalButtonEvent& event)
    updated, and it should be broadcasted to the other elevators. */
 void Logic::notify(const StateUpdateEvent& event)
 {
-  elevator_infos["me"] = { ACTIVE, event.state };
+  elevator_infos["me"] = { true, event.state };
   network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>("all", event));
 }
 
@@ -75,11 +75,8 @@ void Logic::notify(const StateUpdateEvent& event)
 void Logic::notify(const NetworkMessageEvent<StateUpdateEvent>& event)
 {
   LOG_DEBUG("Received " << event);
-  if (elevator_infos.find(event.ip) != elevator_infos.end() && elevator_infos[event.ip].status == ACTIVE)
-    elevator_infos[event.ip].state = event.data.state;
-  else {
-    elevator_infos[event.ip] = { NEW, event.data.state };
-  }
+  if (elevator_infos.find(event.ip) != elevator_infos.end())
+    elevator_infos[event.ip] = { true, event.data.state };
 }
 
 /* When an external button event is received from the network, the choose
@@ -94,7 +91,7 @@ void Logic::notify(const NetworkMessageEvent<ExternalButtonEvent>& event)
    elevator_infos, since it should no longer be part of the decision making */
 void Logic::notify(const LostConnectionEvent& event)
 {
-  elevator_infos[event.ip].status = INACTIVE;
+  elevator_infos[event.ip].active = false;
 }
 
 /* When a new elevator appears we must send our latest state to it. 
@@ -105,19 +102,17 @@ void Logic::notify(const LostConnectionEvent& event)
 */
 void Logic::notify(const NewConnectionEvent& event)
 {
-  StateUpdateEvent state(elevator_infos["me"].state);
-  network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>(event.ip, state));
-
   if (elevator_infos.find(event.ip) != elevator_infos.end()) {
-    if (elevator_infos[event.ip].status == INACTIVE) {
+    if (!elevator_infos[event.ip].active) {
       LOG_DEBUG("Sending backup to " << event.ip);
       OrderBackupEvent order_backup(elevator_infos[event.ip].state.orders);
       network.event_queue.push(NetworkMessageEvent<OrderBackupEvent>(event.ip, order_backup));
-      elevator_infos[event.ip].status = ACTIVE;
+      elevator_infos[event.ip].active = true;
     }
   }
   else {
-    elevator_infos[event.ip] = { ACTIVE, {} };
+    network.event_queue.push(NetworkMessageEvent<StateUpdateReqEvent>(event.ip, {}));
+    elevator_infos[event.ip] = { false, {} };
   }
 }
 
@@ -128,7 +123,7 @@ void Logic::notify(const LostNetworkEvent&)
 {
   for (auto& pair : elevator_infos) {
     if (pair.first != "me")
-      pair.second.status = INACTIVE;
+      pair.second.active = false;
   }
 }
 
@@ -143,6 +138,12 @@ void Logic::notify(const NetworkMessageEvent<OrderBackupEvent>& event)
       }
     }
   }
+}
+
+void Logic::notify(const NetworkMessageEvent<StateUpdateReqEvent>& event)
+{
+  StateUpdateEvent state(elevator_infos["me"].state);
+  network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>(event.ip, state));
 }
 
 void Logic::run()

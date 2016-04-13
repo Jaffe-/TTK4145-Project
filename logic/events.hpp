@@ -19,3 +19,9 @@ struct OrderBackupEvent : public SerializableEvent {
     return {{"orders", orders}};
   }
 };
+
+struct StateUpdateReqEvent : public SerializableEvent {
+
+  StateUpdateReqEvent() {};
+  StateUpdateReqEvent(const json_t&) {};
+};

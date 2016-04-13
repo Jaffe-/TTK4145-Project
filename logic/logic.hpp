@@ -18,6 +18,7 @@ public:
   void notify(const NewConnectionEvent&);
   void notify(const LostNetworkEvent&);
   void notify(const NetworkMessageEvent<OrderBackupEvent>& event);
+  void notify(const NetworkMessageEvent<StateUpdateReqEvent>& event);
   void choose_elevator(int floor, ButtonType type);
   void run();
 
@@ -27,12 +28,8 @@ private:
   Driver driver;
   Network network;
 
-  enum ElevatorStatus {
-    NEW, INACTIVE, ACTIVE
-  };
-
   struct ElevatorInfo {
-    ElevatorStatus status;
+    bool active;
     State state;
   };
 
