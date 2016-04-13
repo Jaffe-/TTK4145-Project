@@ -15,6 +15,7 @@ private:
   void change_state(const StateID& new_state);
   void update_lights();
   void send_state();
+  void open_door();
 
   EventQueue& logic_queue;
 };

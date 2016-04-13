@@ -8,6 +8,12 @@ PhysicalFSM::PhysicalFSM(EventQueue& logic_queue) :
 {
 }
 
+void PhysicalFSM::open_door()
+{
+  state.door_opened_time = std::chrono::system_clock::now();
+  state.door_open = true;
+}
+
 void PhysicalFSM::change_state(const StateID& new_state)
 {
   if (new_state == STOPPED) {
@@ -62,6 +68,11 @@ void PhysicalFSM::notify(const OrderUpdateEvent& event)
   LOG_DEBUG("New order: go to floor " << event.floor
 	    << ", type=" << event.direction);
   insert_order(event.floor, event.direction);
+  if (at_floor(event.floor)) {
+    if (!state.door_open) {
+      open_door();
+    }
+  }
   update_lights();
   send_state();
 }

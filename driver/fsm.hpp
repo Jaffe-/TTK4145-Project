@@ -11,6 +11,7 @@ class OrderUpdate;
 
 class FSM {
 protected:
+  bool at_floor(int floor);
   void clear_orders(int floor);
   void insert_order(int floor, int type);
   bool should_stop(int floor);

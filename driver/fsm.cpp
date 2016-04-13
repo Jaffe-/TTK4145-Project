@@ -1,6 +1,11 @@
 #include "fsm.hpp"
 #include "../util/logger.hpp"
 
+bool FSM::at_floor(int floor)
+{
+  return floor == state.current_floor && state.state_id == STOPPED;
+}
+
 bool FSM::should_stop(int floor)
 {
   return
@@ -17,7 +22,7 @@ void FSM::clear_orders(int floor)
 
 void FSM::insert_order(int floor, int type)
 {
-  if (floor != state.current_floor) {
+  if (!at_floor(floor)) {
     state.orders[floor][type] = true;
   }
 }
