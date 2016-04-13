@@ -23,7 +23,7 @@ Logic::Logic(bool use_simulator, const std::string& port)
 		                     LostConnectionEvent,
 		     LostNetworkEvent,
 		     NetworkMessageEvent<OrderBackupEvent>,
-		     NetworkMessageEvent<StateUpdateReqEvent>());
+		     NetworkMessageEvent<StateUpdateReqEvent>>());
 }
 
 /* Calculate the cost function (using the simulated FSM) for each elevator and
