@@ -14,6 +14,7 @@ bool ConnectionController::has_client(const std::string& ip) const
 void ConnectionController::notify_receive(const Packet& packet)
 {
   if (!has_client(packet.ip)) {
+    network.connections[packet.ip] = {std::chrono::system_clock::now(), {}};
     network.logic_queue.push(NewConnectionEvent(packet.ip));
     LOG_INFO("New client " << packet.ip << " discovered");
   }
