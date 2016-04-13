@@ -69,7 +69,7 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
     driver.event_queue.push(OrderUpdateEvent(floor, static_cast<int>(type)));
   }
 
-  assert(orders.find(min_ip) != orders.end() && "Computed best ip for a order that doesn't exist");
+  assert(orders.find(order_id) != orders.end() && "Computed best ip for a order that doesn't exist");
   orders[order_id].owner = min_ip;
 
   LOG_DEBUG("Order map now contains: ");
