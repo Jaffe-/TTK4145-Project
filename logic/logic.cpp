@@ -22,7 +22,6 @@ Logic::Logic(bool use_simulator, const std::string& port)
 		                     NewConnectionEvent,
 		                     LostConnectionEvent,
 		     LostNetworkEvent,
-		     NetworkMessageEvent<OrderBackupEvent>,
 		     NetworkMessageEvent<StateUpdateReqEvent>>());
 }
 
@@ -103,19 +102,9 @@ void Logic::notify(const LostConnectionEvent& event)
 */
 void Logic::notify(const NewConnectionEvent& event)
 {
-  if (elevator_infos.find(event.ip) != elevator_infos.end()) {
-    if (!elevator_infos[event.ip].active) {
-      LOG_DEBUG("Sending backup to " << event.ip);
-      OrderBackupEvent order_backup(elevator_infos[event.ip].state.orders);
-      network.event_queue.push(NetworkMessageEvent<OrderBackupEvent>(event.ip, order_backup));
-      elevator_infos[event.ip].active = true;
-    }
-  }
-  else {
-    LOG_DEBUG("NEW client, sending state update request");
-    network.event_queue.push(NetworkMessageEvent<StateUpdateReqEvent>(event.ip, {}));
-    elevator_infos[event.ip] = { false, {} };
-  }
+  LOG_DEBUG("Sending state update request");
+  network.event_queue.push(NetworkMessageEvent<StateUpdateReqEvent>(event.ip, {}));
+  elevator_infos[event.ip] = { false, {} };
 }
 
 /* When our own network connection is lost, remove all elevator states
@@ -126,19 +115,6 @@ void Logic::notify(const LostNetworkEvent&)
   for (auto& pair : elevator_infos) {
     if (pair.first != "me")
       pair.second.active = false;
-  }
-}
-
-void Logic::notify(const NetworkMessageEvent<OrderBackupEvent>& event)
-{
-  LOG_DEBUG("Order backup received.");
-  for (int floor = 0; floor < FLOORS; floor++) {
-    for (int type = 0; type <= 2; type++) {
-      if (event.data.orders[floor][type] != elevator_infos["me"].state.orders[floor][type]) {
-	LOG_DEBUG("Adding order floor=" << floor << " type=" << type);
-	driver.event_queue.push(OrderUpdateEvent(floor, type));
-      }
-    }
   }
 }
 
