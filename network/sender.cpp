@@ -17,7 +17,7 @@ void Sender::send_message(const std::string& ip, const std::string& msg)
   for (auto& connection : network.connections) {
     if (ip == "all" || ip == connection.first) {
       connection.second.message_queue.push_back(msg_entry);
-      LOG_DEBUG("Putting message in queue for " << ip);
+      LOG(4, "Putting message in queue for " << ip);
     }
   }
 

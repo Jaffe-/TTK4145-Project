@@ -6,6 +6,7 @@
 #include "simulatedfsm.hpp"
 #include <climits>
 #include <string>
+#include <fstream>
 
 Logic::Logic(bool use_simulator, const std::string& port)
   : driver(event_queue, use_simulator),
@@ -23,6 +24,17 @@ Logic::Logic(bool use_simulator, const std::string& port)
 		                     LostConnectionEvent,
 		     LostNetworkEvent,
 		     NetworkMessageEvent<StateUpdateReqEvent>>());
+
+  std::vector<std::vector<bool>> orders = {{0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}};
+  if (restore_orders(orders)) {
+    LOG_INFO("Restoring previous orders");
+    for (int floor = 0; floor < FLOORS; floor++) {
+      for (int type = 0; type <= 2; type++) {
+	if (orders[floor][type])
+	  driver.event_queue.push(OrderUpdateEvent(floor, type));
+      }
+    }
+  }
 }
 
 /* Calculate the cost function (using the simulated FSM) for each elevator and
@@ -68,6 +80,7 @@ void Logic::notify(const StateUpdateEvent& event)
 {
   elevator_infos["me"] = { true, event.state };
   network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>("all", event));
+  backup_orders(event.state.orders);
 }
 
 /* When a state update event is received from the network, it should be stored
@@ -123,6 +136,34 @@ void Logic::notify(const NetworkMessageEvent<StateUpdateReqEvent>& event)
   LOG_DEBUG("Got state update request, sending state.");
   StateUpdateEvent state(elevator_infos["me"].state);
   network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>(event.ip, state));
+}
+
+void Logic::backup_orders(const std::vector<std::vector<bool>>& orders)
+{
+  assert(orders.size() == FLOORS && orders[0].size() == 3); 
+  std::ofstream of(backup_filename);
+  for (int floor = 0; floor < FLOORS; floor++) {
+    for (int type = 0; type <= 2; type++) {
+      of << orders[floor][type] << " ";
+    }
+    of << std::endl;
+  }
+}
+
+bool Logic::restore_orders(std::vector<std::vector<bool>>& orders)
+{
+  std::ifstream ifs(backup_filename);
+  if (ifs.fail()) {
+    return false;
+  }
+  for (int floor = 0; floor < FLOORS; floor++) {
+    for (int type = 0; type <= 2; type++) {
+      bool val;
+      ifs >> val;
+      orders[floor][type] = val;
+    }
+  }
+  return true;
 }
 
 void Logic::run()
