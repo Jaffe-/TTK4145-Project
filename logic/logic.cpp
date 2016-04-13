@@ -83,7 +83,7 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
    elevator should take the order */
 void Logic::notify(const ExternalButtonEvent& event)
 {
-  std::string order_id = network.own_ip() + ":" + std::to_string(current_id);
+  std::string order_id = network.own_ip() + ":" + std::to_string(current_id++);
   orders[order_id] = { event.floor, static_cast<int>(event.type), "" };
   choose_elevator(order_id, event.floor, event.type);
   network.event_queue.push(NetworkMessageEvent<ExternalButtonEvent>("all", { event.floor, event.type, order_id }));
