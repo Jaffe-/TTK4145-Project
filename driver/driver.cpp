@@ -10,7 +10,8 @@ Driver::Driver(EventQueue& logic_queue, bool use_simulator)
   : logic_queue(logic_queue),
     fsm(logic_queue)
 {
-  event_queue.add_handler<OrderUpdateEvent>(&fsm, &PhysicalFSM::notify);
+  /* All incoming events are handled in the FSM */
+  event_queue.listen(&fsm, events);
 
   std::string driver_string = use_simulator ? "simulated" : "hardware";
   elev_init(use_simulator ? ET_Simulation : ET_Comedi);
@@ -110,18 +111,8 @@ std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event) {
 }
 
 std::ostream& operator<<(std::ostream& s, const StateUpdateEvent& event) {
-  s << "{StateUpdateEvent cf=" << event.state.current_floor
+  return s << "{StateUpdateEvent cf=" << event.state.current_floor
     << " dir=" << int(event.state.direction);
-    //    << " orders=";
-  /*  for (const auto& floor : event.state.orders) {
-      s << "{";
-      for (auto btn : floor) {
-      s << int(btn) << " ";
-    }
-    s << "\b},";
-    }
-    return s << "\b"; */
-  return s;
 }
 
 std::ostream& operator<<(std::ostream& s, const FSMOrderCompleteEvent& event) {

@@ -16,16 +16,7 @@ Logic::Logic(bool use_simulator, const std::string& port)
 {
   LOG_INFO("Logic module started");
 
-  event_queue.listen(this, EventList<ExternalButtonEvent,
-		                     StateUpdateEvent,
-		                     NetworkMessageEvent<StateUpdateEvent>,
-		                     NetworkMessageEvent<ExternalButtonEvent>,
-		                     NewConnectionEvent,
-		                     LostConnectionEvent,
-		     LostNetworkEvent,
-		     NetworkMessageEvent<StateUpdateReqEvent>,
-		     FSMOrderCompleteEvent,
-		     NetworkMessageEvent<OrderCompleteEvent>>());
+  event_queue.listen(this, events);
 
   if (restore_orders())
     LOG_DEBUG("Restored internal orders");

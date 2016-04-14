@@ -25,6 +25,18 @@ public:
 
 private:
 
+  /* The list of events that this module accepts */
+  EventList<ExternalButtonEvent,
+	    StateUpdateEvent,
+	    NetworkMessageEvent<StateUpdateEvent>,
+	    NetworkMessageEvent<ExternalButtonEvent>,
+	    NewConnectionEvent,
+	    LostConnectionEvent,
+	    LostNetworkEvent,
+	    NetworkMessageEvent<StateUpdateReqEvent>,
+	    FSMOrderCompleteEvent,
+	    NetworkMessageEvent<OrderCompleteEvent>> events;
+
   EventQueue event_queue;
   Driver driver;
   Network network;

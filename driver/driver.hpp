@@ -13,6 +13,10 @@ public:
   EventQueue event_queue;
 
 private:
+
+  /* List of events that this module handles */
+  EventList<OrderUpdateEvent> events;
+
   template <typename EventType>
   void poll(int& last, int new_value, int invalid_value, EventType event);
 

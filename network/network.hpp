@@ -43,17 +43,17 @@ private:
      that event type matches the received event type, in which case we construct
      a new instance of that event and push it onto the event queue. */
   template <typename EventType, typename... Rest>
-  void push_receive_event(const json_t& json, const std::string& ip,
+  void push_deserialized_event(const json_t& json, const std::string& ip,
 			  EventList<EventType, Rest...>) {
     if (json["type"] == typeid(NetworkMessageEvent<EventType>).name())
       logic_queue.push(NetworkMessageEvent<EventType>{ip, EventType {json["data"]}});
     else
-      push_receive_event(json, ip, EventList<Rest...>{});
+      push_deserialized_event(json, ip, EventList<Rest...>{});
   }
 
   /* The base case reached when the event list is empty, which means that none
      of the events were recognized. */
-  void push_receive_event(const json_t&, const std::string&, EventList<>) {
+  void push_deserialized_event(const json_t&, const std::string&, EventList<>) {
     assert(false && "Unknown event received from network");
   }
 

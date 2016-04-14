@@ -63,10 +63,12 @@ void Network::make_receive_event(const Packet& packet)
 {
   std::string serialized(packet.bytes.begin(), packet.bytes.end());
 
-  json_t json = json_t::parse(serialized);
-  LOG(5, json);
+  EventList<StateUpdateEvent,
+	    ExternalButtonEvent,
+	    StateUpdateReqEvent,
+	    OrderCompleteEvent> accepted_events;
 
-  push_receive_event(json, packet.ip, EventList<StateUpdateEvent, ExternalButtonEvent, StateUpdateReqEvent, OrderCompleteEvent>());
+  push_deserialized_event(json_t::parse(serialized), packet.ip, accepted_events);
 }
 
 void Network::receive()
