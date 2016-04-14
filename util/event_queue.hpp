@@ -4,14 +4,11 @@
 #include <mutex>
 #include <condition_variable>
 #include <typeinfo>
-#include <typeindex>
-#include <unordered_map>
 #include "event.hpp"
 
 class EventQueue {
 public:
   using queue_t = std::deque<std::shared_ptr<const Event>>;
-  using map_t = std::unordered_map<std::type_index, std::function<void(const Event&)>>;
 
   /* Acquire immediately locks the queue */
   std::unique_lock<std::mutex> wait();
@@ -33,6 +30,19 @@ public:
   /* Use the given lock to take all current event (move them out of the queue) */
   queue_t take_events(std::unique_lock<std::mutex> lock);
 
+  /* For each event in the queue, Class::notify is called on the given Class
+     instance. The EventList given contains the event types that will be
+     handled */
+  template <typename Class, typename... Events>
+  void handle_events(std::unique_lock<std::mutex> lock, Class* instance, EventList<Events...> events)
+  {
+    for (const auto& event : take_events(std::move(lock))) {
+      call_notify(*event, instance, events);
+    }
+  }
+
+private:
+
   /* Take a list of event types which the event queue should respond to, and a
      pointer to an object which has notify functions for each event type. */
   template <typename Class, typename EventType, typename... Rest>
@@ -43,22 +53,12 @@ public:
       call_notify(event, instance, EventList<Rest...>{});
   }
 
-  /* Base case for the above function */
+  /* Base case for the above function. This is reached if none of the events in
+     the EventList matched the given event. */
   template <typename Class>
   void call_notify(const Event&, Class*, EventList<>) { }
 
-  template <typename Class, typename... Events>
-  void handle_events(std::unique_lock<std::mutex> lock, Class* instance, EventList<Events...> events)
-  {
-    for (const auto& event : take_events(std::move(lock))) {
-      call_notify(*event, instance, events);
-    }
-  }
-
-private:
   queue_t queue;
   std::mutex mut;
   std::condition_variable new_event;
-
-  map_t handlers;
 };
