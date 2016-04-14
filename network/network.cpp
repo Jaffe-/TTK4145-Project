@@ -2,12 +2,9 @@
 #include <iostream>
 #include "network.hpp"
 #include "sender.hpp"
-#include "../logic/events.hpp"
 #include "connection_controller.hpp"
 #include "../util/logger.hpp"
 #include <chrono>
-#include "events.hpp"
-#include "../driver/events.hpp"
 
 Network::Network(EventQueue& logic_queue, const std::string& port)
   : logic_queue(logic_queue),
@@ -23,13 +20,6 @@ void Network::run()
   while (true) {
     for (auto& msg : event_queue.take_events(event_queue.acquire())) {
       if (msg->serializable()) {
-	const Serializable& serializable_msg = *msg;
-	json_t event_json = serializable_msg.get_json();
-	std::string ip = event_json["ip"];
-	json_t json = {{"type", typeid(*msg).name()},
-		       {"data", event_json["data"]}};
-	LOG(5, json.dump());
-	sender.send_message(ip, json.dump());
       }
     }
 
@@ -63,12 +53,7 @@ void Network::make_receive_event(const Packet& packet)
 {
   std::string serialized(packet.bytes.begin(), packet.bytes.end());
 
-  EventList<StateUpdateEvent,
-	    ExternalButtonEvent,
-	    StateUpdateReqEvent,
-	    OrderCompleteEvent> accepted_events;
-
-  push_deserialized_event(json_t::parse(serialized), packet.ip, accepted_events);
+  push_deserialized_event(json_t::parse(serialized), packet.ip, events);
 }
 
 void Network::receive()
@@ -89,7 +74,7 @@ void Network::receive()
   LOG(Logger::LogLevel::DEBUG2, "Received packet " << packet);
 
   connection_controller.notify_receive(packet);
-  
+
   switch (packet.type){
   case PacketType::PING:
     send(make_pong(), packet.ip);

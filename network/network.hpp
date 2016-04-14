@@ -7,6 +7,9 @@
 #include "socket.hpp"
 #include "../util/event_queue.hpp"
 #include "events.hpp"
+#include "../driver/events.hpp"
+#include "../logic/events.hpp"
+#include "../util/logger.hpp"
 
 class Network {
   friend class Sender;
@@ -18,10 +21,25 @@ public:
   std::string own_ip() {
     return socket.own_ips[0];
   }
+
+  template <typename EventType>
+  void notify(const NetworkMessageEvent<EventType>& event) {
+    json_t json = {{"type", typeid(event).name()},
+		   {"data", event.get_json()["data"]}};
+    LOG(5, json.dump());
+    sender.send_message(event.ip, json.dump());
+  }
+
   EventQueue event_queue;
   EventQueue& logic_queue;
 
 private:
+
+  EventList<NetworkMessageEvent<StateUpdateEvent>,
+	    NetworkMessageEvent<ExternalButtonEvent>,
+	    NetworkMessageEvent<StateUpdateReqEvent>,
+	    NetworkMessageEvent<OrderCompleteEvent>> events;
+
   void send(const Packet& packet, const std::string& ip);
   void send_all(const Packet& packet);
   void broadcast(const Packet& packet);
@@ -44,9 +62,9 @@ private:
      a new instance of that event and push it onto the event queue. */
   template <typename EventType, typename... Rest>
   void push_deserialized_event(const json_t& json, const std::string& ip,
-			  EventList<EventType, Rest...>) {
+			       EventList<NetworkMessageEvent<EventType>, Rest...>) {
     if (json["type"] == typeid(NetworkMessageEvent<EventType>).name())
-      logic_queue.push(NetworkMessageEvent<EventType>{ip, EventType {json["data"]}});
+      logic_queue.push(NetworkMessageEvent<EventType> {ip, EventType {json["data"]}});
     else
       push_deserialized_event(json, ip, EventList<Rest...>{});
   }
