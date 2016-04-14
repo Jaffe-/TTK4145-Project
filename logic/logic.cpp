@@ -49,7 +49,7 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
     const ElevatorInfo& elevator_info = elevator_infos[ip];
     if (elevator_info.active) {
       int steps = SimulatedFSM(elevator_info.state).calculate(floor, static_cast<int>(type));
-      LOG_DEBUG("Calculated steps " << steps << " for id " << ip);
+      LOG(4, "Calculated steps " << steps << " for id " << ip);
       if (steps < min) {
 	min = steps;
 	min_ip = ip;
@@ -66,9 +66,9 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
   assert(orders.find(order_id) != orders.end() && "Computed best ip for a order that doesn't exist");
   orders[order_id].owner = min_ip;
 
-  LOG_DEBUG("Order map now contains: ");
+  LOG(4, "Order map now contains: ");
   for (auto& pair : orders) {
-    LOG_DEBUG(pair.first << ": floor=" << pair.second.floor << " type=" << pair.second.type << " owner=" << pair.second.owner);
+    LOG(4, pair.first << ": floor=" << pair.second.floor << " type=" << pair.second.type << " owner=" << pair.second.owner);
   }
 }
 
