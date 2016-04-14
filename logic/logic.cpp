@@ -27,16 +27,8 @@ Logic::Logic(bool use_simulator, const std::string& port)
 		     FSMOrderCompleteEvent,
 		     NetworkMessageEvent<OrderCompleteEvent>>());
 
-  std::vector<std::vector<bool>> orders = {{0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}};
-  if (restore_orders(orders)) {
-    LOG_INFO("Restoring previous orders");
-    for (int floor = 0; floor < FLOORS; floor++) {
-      for (int type = 0; type <= 2; type++) {
-	if (orders[floor][type])
-	  driver.event_queue.push(OrderUpdateEvent(floor, type));
-      }
-    }
-  }
+  if (restore_orders())
+    LOG_DEBUG("Restored internal orders");
 }
 
 /* Calculate the cost function (using the simulated FSM) for each elevator and
@@ -97,7 +89,7 @@ void Logic::notify(const StateUpdateEvent& event)
 {
   elevator_infos[network.own_ip()] = { true, event.state };
   network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>("all", event));
-  backup_orders(event.state.orders);
+  backup_orders();
 }
 
 /* When a state update event is received from the network, it should be stored
@@ -185,32 +177,41 @@ void Logic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
   }
 }
 
-void Logic::backup_orders(const std::vector<std::vector<bool>>& orders)
+/* Writes internal orders to file */
+void Logic::backup_orders()
 {
+  const auto& orders = elevator_infos[network.own_ip()].state.orders;
   assert(orders.size() == FLOORS && orders[0].size() == 3);
   std::ofstream of(backup_filename);
   for (int floor = 0; floor < FLOORS; floor++) {
-    for (int type = 0; type <= 2; type++) {
-      of << orders[floor][type] << " ";
-    }
-    of << std::endl;
+    of << orders[floor][2] << " ";
   }
 }
 
-bool Logic::restore_orders(std::vector<std::vector<bool>>& orders)
+/* Restores internal orders from file */
+bool Logic::restore_orders()
 {
   std::ifstream ifs(backup_filename);
   if (ifs.fail()) {
     return false;
   }
+
+  std::vector<bool> orders = {0,0,0,0};
   for (int floor = 0; floor < FLOORS; floor++) {
-    for (int type = 0; type <= 2; type++) {
-      bool val;
-      ifs >> val;
-      orders[floor][type] = val;
+    bool val;
+    ifs >> val;
+    orders[floor] = val;
+  }
+
+  bool restored;
+  for (int floor = 0; floor < FLOORS; floor++) {
+    if (orders[floor]) {
+      restored = true;
+      driver.event_queue.push(OrderUpdateEvent(floor, 2));
     }
   }
-  return true;
+
+  return restored;
 }
 
 void Logic::run()

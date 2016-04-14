@@ -17,11 +17,11 @@ void Sender::send_message(const std::string& ip, const std::string& msg)
   for (auto& connection : network.connections) {
     if (ip == "all" || ip == connection.first) {
       connection.second.message_queue.push_back(msg_entry);
-      LOG(4, "Putting message in queue for " << ip);
+      LOG(5, "Putting message in queue for " << ip);
     }
   }
 
-  LOG_DEBUG("New message " << msg_entry);
+  LOG(4, "New message " << msg_entry);
   current_id++;
 }
 
@@ -31,8 +31,8 @@ void Sender::notify_okay(const std::string& ip, unsigned int id)
   if (!message_queue.empty()) {
     MessageEntry& current = message_queue[0];
     if (current.id == id) {
-      LOG_DEBUG("OK received from " << ip
-		<< " for message id " << current.id);
+      LOG(4, "OK received from " << ip
+	  << " for message id " << current.id);
 
       message_queue.erase(message_queue.begin());
     }

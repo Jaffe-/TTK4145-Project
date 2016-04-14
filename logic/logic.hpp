@@ -41,7 +41,6 @@ private:
   };
 
   std::map<std::string, ElevatorInfo> elevator_infos;
-
   std::map<std::string, OrderInfo> orders;
 
   std::thread driver_thread;
@@ -52,6 +51,6 @@ private:
   int current_id = 0;
 
   void choose_elevator(const std::string& id, int floor, ButtonType type);
-  bool restore_orders(std::vector<std::vector<bool>>& orders);
-  void backup_orders(const std::vector<std::vector<bool>>& orders);
+  bool restore_orders();
+  void backup_orders();
 };

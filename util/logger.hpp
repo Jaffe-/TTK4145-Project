@@ -13,7 +13,7 @@
 
 #define LOG_DEBUG(Message_) LOG(Logger::LogLevel::DEBUG, Message_)
 #define LOG_WARNING(Message_) LOG(Logger::LogLevel::WARNING, Message_)
-#define LOG_INFO(Message_) LOG(Logger::LogLevel::INFO, Message_) 
+#define LOG_INFO(Message_) LOG(Logger::LogLevel::INFO, Message_)
 #define LOG_ERROR(Message_) LOG(Logger::LogLevel::ERROR, Message_)
 
 class Logger {
