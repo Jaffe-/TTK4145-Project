@@ -19,10 +19,7 @@ Network::Network(EventQueue& logic_queue, const std::string& port)
 void Network::run()
 {
   while (true) {
-    for (auto& msg : event_queue.take_events(event_queue.acquire())) {
-      if (msg->serializable()) {
-      }
-    }
+    event_queue.handle_events(event_queue.acquire());
 
     receive();
     sender.run();
