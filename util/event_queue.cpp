@@ -22,12 +22,3 @@ EventQueue::queue_t EventQueue::take_events(std::unique_lock<std::mutex> lock)
   queue = queue_t();
   return events;
 }
-
-void EventQueue::handle_events(const queue_t& queue)
-{
-  for (const auto& event : queue) {
-    if (handlers.find(typeid(*event)) != handlers.end()) {
-      handlers[typeid(*event)](*event);
-    }
-  }
-}

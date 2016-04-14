@@ -16,8 +16,6 @@ Logic::Logic(bool use_simulator, const std::string& port)
 {
   LOG_INFO("Logic module started");
 
-  event_queue.listen(this, events);
-
   if (restore_orders())
     LOG_DEBUG("Restored internal orders");
 }
@@ -209,6 +207,6 @@ bool Logic::restore_orders()
 void Logic::run()
 {
   while (true) {
-    event_queue.handle_events(event_queue.wait());
+    event_queue.handle_events(event_queue.wait(), this, events);
   };
 }

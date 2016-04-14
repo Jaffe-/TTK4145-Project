@@ -12,14 +12,13 @@ Network::Network(EventQueue& logic_queue, const std::string& port)
     sender(*this),
     connection_controller(*this)
 {
-  event_queue.listen(this, events);
   LOG_INFO("Network started on port " << port);
 }
 
 void Network::run()
 {
   while (true) {
-    event_queue.handle_events(event_queue.acquire());
+    event_queue.handle_events(event_queue.acquire(), this, events);
 
     receive();
     sender.run();

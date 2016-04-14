@@ -10,9 +10,6 @@ Driver::Driver(EventQueue& logic_queue, bool use_simulator)
   : logic_queue(logic_queue),
     fsm(logic_queue)
 {
-  /* All incoming events are handled in the FSM */
-  event_queue.listen(&fsm, events);
-
   std::string driver_string = use_simulator ? "simulated" : "hardware";
   elev_init(use_simulator ? ET_Simulation : ET_Comedi);
 
@@ -91,7 +88,7 @@ int Driver::initialize_position()
 void Driver::run()
 {
   while (1) {
-    event_queue.handle_events(event_queue.acquire());
+    event_queue.handle_events(event_queue.acquire(), &fsm, events);
     fsm.run();
     event_generator();
   }

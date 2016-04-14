@@ -33,37 +33,26 @@ public:
   /* Use the given lock to take all current event (move them out of the queue) */
   queue_t take_events(std::unique_lock<std::mutex> lock);
 
-
-  /* Add an event handler function */
-  template <typename T>
-  void add_handler(std::function<void(const T&)> handler) {
-    handlers[typeid(T)] = handler;
-  }
-
-  /* Add a member function of a class as a event handler */
-  template <typename T, typename Class>
-  void add_handler(Class* instance, void(Class::*f)(const T&)) {
-    add_handler<T>([instance, f] (const T& m) { (*instance.*f)(m); });
-  }
-
   /* Take a list of event types which the event queue should respond to, and a
      pointer to an object which has notify functions for each event type. */
   template <typename Class, typename EventType, typename... Rest>
-  void listen(Class* instance, EventList<EventType, Rest...>) {
-    add_handler<EventType>(instance, &Class::notify);
-    listen(instance, EventList<Rest...>{});
+  void call_notify(const Event& event, Class* instance, EventList<EventType, Rest...>) {
+    if (typeid(event) == typeid(EventType))
+      instance->notify((const EventType&)event);
+    else
+      call_notify(event, instance, EventList<Rest...>{});
   }
 
   /* Base case for the above function */
   template <typename Class>
-  void listen(Class*, EventList<>) { }
+  void call_notify(const Event&, Class*, EventList<>) { }
 
-  /* Call the right event handlers for the messages in the given queue */
-  void handle_events(const queue_t& queue);
-
-  /* A practical overload */
-  void handle_events(std::unique_lock<std::mutex> lock) {
-    handle_events(take_events(std::move(lock)));
+  template <typename Class, typename... Events>
+  void handle_events(std::unique_lock<std::mutex> lock, Class* instance, EventList<Events...> events)
+  {
+    for (const auto& event : take_events(std::move(lock))) {
+      call_notify(*event, instance, events);
+    }
   }
 
 private:

@@ -21,7 +21,9 @@ template <typename Data>
 struct NetworkMessageEvent : public SerializableEvent {
   NetworkMessageEvent(const std::string& ip, const Data& data)
     : ip(ip),
-      data(data) {};
+      data(data) {
+    assert(data.serializable() && "Data needs to be serializable");
+  };
 
   virtual json_t get_json() const override {
     return {{"ip", ip}, {"data", data.get_json() }};
