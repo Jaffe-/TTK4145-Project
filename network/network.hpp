@@ -24,7 +24,7 @@ public:
 
   template <typename EventType>
   void notify(const NetworkMessageEvent<EventType>& event) {
-    json_t json = {{"type", typeid(event).name()},
+    json_t json = {{"type", typeid(EventType).name()},
 		   {"data", event.get_json()["data"]}};
     LOG(5, json.dump());
     sender.send_message(event.ip, json.dump());
@@ -63,7 +63,7 @@ private:
   template <typename EventType, typename... Rest>
   void push_deserialized_event(const json_t& json, const std::string& ip,
 			       EventList<NetworkMessageEvent<EventType>, Rest...>) {
-    if (json["type"] == typeid(NetworkMessageEvent<EventType>).name())
+    if (json["type"] == typeid(EventType).name())
       logic_queue.push(NetworkMessageEvent<EventType> {ip, EventType {json["data"]}});
     else
       push_deserialized_event(json, ip, EventList<Rest...>{});
