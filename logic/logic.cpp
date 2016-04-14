@@ -59,6 +59,7 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
 
   assert(min != INT_MAX);
 
+  LOG_DEBUG(min_ip << " is chosen (" << min << " steps)");
   if (min_ip == network.own_ip()) {
     driver.event_queue.push(OrderUpdateEvent(floor, static_cast<int>(type)));
   }
