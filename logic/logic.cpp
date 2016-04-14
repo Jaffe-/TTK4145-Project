@@ -23,7 +23,9 @@ Logic::Logic(bool use_simulator, const std::string& port)
 		                     NewConnectionEvent,
 		                     LostConnectionEvent,
 		     LostNetworkEvent,
-		     NetworkMessageEvent<StateUpdateReqEvent>>());
+		     NetworkMessageEvent<StateUpdateReqEvent>,
+		     FSMOrderCompleteEvent,
+		     NetworkMessageEvent<OrderCompleteEvent>>());
 
   std::vector<std::vector<bool>> orders = {{0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}};
   if (restore_orders(orders)) {
@@ -50,7 +52,7 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
     sorted_ips.push_back(pair.first);
   }
   std::sort(sorted_ips.begin(), sorted_ips.end());
-  
+
   for (auto& ip : sorted_ips) {
     const ElevatorInfo& elevator_info = elevator_infos[ip];
     if (elevator_info.active) {
@@ -65,7 +67,7 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
 
   assert(min != INT_MAX);
 
-  if (min_ip == network.own_ip()) {    
+  if (min_ip == network.own_ip()) {
     driver.event_queue.push(OrderUpdateEvent(floor, static_cast<int>(type)));
   }
 
@@ -123,7 +125,7 @@ void Logic::notify(const LostConnectionEvent& event)
   elevator_infos[event.ip].active = false;
 }
 
-/* When a new elevator appears we must send our latest state to it. 
+/* When a new elevator appears we must send our latest state to it.
 
    If the elevator is known from before, it means that it has died and
    come back. In this case, we send it the most recent order list this
@@ -154,9 +156,33 @@ void Logic::notify(const NetworkMessageEvent<StateUpdateReqEvent>& event)
   network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>(event.ip, state));
 }
 
+void Logic::notify(const FSMOrderCompleteEvent& event)
+{
+  LOG_DEBUG("Received " << event);
+  for (auto it = orders.begin(); it != orders.end(); ) {
+    if (it->second.floor == event.floor && it->second.type == event.type) {
+      LOG_DEBUG("Found matching order id " << it->first);
+      network.event_queue.push(NetworkMessageEvent<OrderCompleteEvent>("all", it->first));
+      it = orders.erase(it);
+    }
+    else {
+      ++it;
+    }
+  }
+}
+
+void Logic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
+{
+  auto it = orders.find(event.data.id);
+  if (it != orders.end()) {
+    LOG_DEBUG("Order " << event.data.id << " is complete and was ERASED");
+    orders.erase(it);
+  }
+}
+
 void Logic::backup_orders(const std::vector<std::vector<bool>>& orders)
 {
-  assert(orders.size() == FLOORS && orders[0].size() == 3); 
+  assert(orders.size() == FLOORS && orders[0].size() == 3);
   std::ofstream of(backup_filename);
   for (int floor = 0; floor < FLOORS; floor++) {
     for (int type = 0; type <= 2; type++) {

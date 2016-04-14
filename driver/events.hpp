@@ -35,7 +35,7 @@ struct ExternalButtonEvent : public SerializableEvent {
       id(id)
   {
   }
-  
+
   ExternalButtonEvent(const json_t& json) {
     floor = json["floor"];
     type = ButtonType(int(json["type"]));
@@ -91,8 +91,16 @@ struct StateUpdateEvent : public SerializableEvent {
   }
 };
 
+struct FSMOrderCompleteEvent : public Event {
+  FSMOrderCompleteEvent(int floor, int type) : floor(floor), type(type) {}
+
+  int floor;
+  int type;
+};
+
 /* Convenient overloads for writing events to log etc. */
 std::ostream& operator<<(std::ostream& s, const InternalButtonEvent& event);
 std::ostream& operator<<(std::ostream& s, const ExternalButtonEvent& event);
 std::ostream& operator<<(std::ostream& s, const FloorSignalEvent& event);
 std::ostream& operator<<(std::ostream& s, const StateUpdateEvent& event);
+std::ostream& operator<<(std::ostream& s, const FSMOrderCompleteEvent& event);

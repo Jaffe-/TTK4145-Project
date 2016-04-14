@@ -123,3 +123,7 @@ std::ostream& operator<<(std::ostream& s, const StateUpdateEvent& event) {
     return s << "\b"; */
   return s;
 }
+
+std::ostream& operator<<(std::ostream& s, const FSMOrderCompleteEvent& event) {
+  return s << "{FSMOrderCompleteEvent floor=" << event.floor << " type= " << event.type << "}";
+}
