@@ -123,6 +123,11 @@ void Logic::notify(const NetworkMessageEvent<ExternalButtonEvent>& event)
 void Logic::notify(const LostConnectionEvent& event)
 {
   elevator_infos[event.ip].active = false;
+  for (auto& order_pair : orders) {
+    if (order_pair.second.owner == event.ip) {
+      choose_elevator(order_pair.first, order_pair.second.floor, static_cast<ButtonType>(order_pair.second.type));
+    }
+  }
 }
 
 /* When a new elevator appears we must send our latest state to it.
