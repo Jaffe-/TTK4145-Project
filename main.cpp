@@ -3,21 +3,6 @@
 #include "logic/logic.hpp"
 #include <thread>
 
-class NetworkMessage : public Event, public Serializable {
-public:
-  bool serializable() const override { return true; };
-  std::string data;
-  int id;
-
-  NetworkMessage(std::string d, int i) : data(d), id(i) {};
-
-  json_t get_json() const override {
-    return {{"id", id}, {"data", data}};
-  }
-
-  //  void deserialize(const std::string& s) override {};
-};
-
 int main(int argc, char** argv)
 {
   std::cout << "******************************************************" << std::endl

@@ -1,7 +1,9 @@
 #pragma once
-#include "serialization.hpp"
+#include "json.hpp"
 #include <typeinfo>
 #include "logger.hpp"
+
+using json_t = nlohmann::json;
 
 /* Basic event class */
 class Event {
@@ -12,16 +14,19 @@ public:
 };
 
 /* Event that can be serialized */
-class SerializableEvent : public Event,
-			  public Serializable {
+class SerializableEvent : public Event {
 public:
   virtual bool serializable() const override {
     return true;
   }
 
   // By default, return empty json
-  virtual json_t get_json() const override {
+  virtual json_t get_json() const {
     return {};
+  }
+
+  std::string serialize() const {
+    return get_json().dump();
   }
 };
 
