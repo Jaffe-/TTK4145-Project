@@ -18,4 +18,6 @@ private:
   void open_door();
 
   EventQueue& logic_queue;
+  TimePoint depart_time;
+  const std::chrono::duration<double> move_timeout = std::chrono::seconds(4);
 };

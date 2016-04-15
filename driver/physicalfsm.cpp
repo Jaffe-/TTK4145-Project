@@ -34,6 +34,7 @@ void PhysicalFSM::change_state(const StateID& new_state)
       elev_set_motor_direction(DIRN_UP);
     else
       elev_set_motor_direction(DIRN_DOWN);
+    depart_time = std::chrono::system_clock::now();
   }
   state.state_id = new_state;
 }
@@ -64,8 +65,10 @@ void PhysicalFSM::notify(const FloorSignalEvent& event)
   if (should_stop(event.floor)) {
     change_state(STOPPED);
   }
+  state.error = false;
   update_lights();
   send_state();
+  depart_time = std::chrono::system_clock::now();
 }
 
 void PhysicalFSM::notify(const OrderUpdateEvent& event)
@@ -115,6 +118,12 @@ void PhysicalFSM::run()
 	  send_state();
 	}
       }
+    }
+  }
+  else {
+    if (!state.error && std::chrono::system_clock::now() - depart_time > move_timeout) {
+      state.error = true;
+      send_state();
     }
   }
 }

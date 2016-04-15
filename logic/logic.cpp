@@ -77,7 +77,12 @@ void Logic::notify(const ExternalButtonEvent& event)
    updated, and it should be broadcasted to the other elevators. */
 void Logic::notify(const StateUpdateEvent& event)
 {
-  elevator_infos[network.own_ip()] = { true, event.state };
+  if (!event.state.error)
+    elevator_infos[network.own_ip()] = { true, event.state };
+  else {
+    remove_elevator(network.own_ip());
+    LOG_ERROR("Driver error!");
+  }
   network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>("all", event));
   backup_orders();
 }
@@ -87,8 +92,14 @@ void Logic::notify(const StateUpdateEvent& event)
 void Logic::notify(const NetworkMessageEvent<StateUpdateEvent>& event)
 {
   LOG_DEBUG("Received " << event);
-  if (elevator_infos.find(event.ip) != elevator_infos.end())
-    elevator_infos[event.ip] = { true, event.data.state };
+  if (elevator_infos.find(event.ip) != elevator_infos.end()) {
+    if (!event.data.state.error)
+      elevator_infos[event.ip] = { true, event.data.state };
+    else {
+      remove_elevator(event.ip);
+      LOG_INFO("Elevator " << event.ip << " has driver problems.");
+    }
+  }
 }
 
 /* When an external button event is received from the network, the choose
@@ -104,12 +115,7 @@ void Logic::notify(const NetworkMessageEvent<ExternalButtonEvent>& event)
    elevator_infos, since it should no longer be part of the decision making */
 void Logic::notify(const LostConnectionEvent& event)
 {
-  elevator_infos[event.ip].active = false;
-  for (auto& order_pair : orders) {
-    if (order_pair.second.owner == event.ip) {
-      choose_elevator(order_pair.first, order_pair.second.floor, static_cast<ButtonType>(order_pair.second.type));
-    }
-  }
+  remove_elevator(event.ip);
 }
 
 /* When a new elevator appears we must send our latest state to it.
@@ -164,6 +170,17 @@ void Logic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
   if (it != orders.end()) {
     LOG_DEBUG("Order " << event.data.id << ": " << event.ip << " reports that order is completed");
     orders.erase(it);
+  }
+}
+
+void Logic::remove_elevator(const std::string& ip)
+{
+  elevator_infos[ip].active = false;
+  LOG_DEBUG("Remove ip " << ip);
+  for (auto& order_pair : orders) {
+    if (order_pair.second.owner == ip) {
+      choose_elevator(order_pair.first, order_pair.second.floor, static_cast<ButtonType>(order_pair.second.type));
+    }
   }
 }
 

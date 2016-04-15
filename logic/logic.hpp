@@ -21,6 +21,7 @@ public:
   void notify(const NetworkMessageEvent<StateUpdateReqEvent>& event);
   void notify(const FSMOrderCompleteEvent& event);
   void notify(const NetworkMessageEvent<OrderCompleteEvent>& event);
+
   void run();
 
 private:
@@ -63,6 +64,7 @@ private:
   int current_id = 0;
 
   void choose_elevator(const std::string& id, int floor, ButtonType type);
+  void remove_elevator(const std::string& ip);
   bool restore_orders();
   void backup_orders();
 };

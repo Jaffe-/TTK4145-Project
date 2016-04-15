@@ -25,6 +25,7 @@ struct State {
   bool door_open = false;
   TimePoint door_opened_time;
   StateID state_id = STOPPED;
+  bool error = false;
 };
 
 /* Events */
