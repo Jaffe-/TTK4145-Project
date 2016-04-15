@@ -2,12 +2,28 @@
 
 #include <chrono>
 #include "../util/event_queue.hpp"
-#include "events.hpp"
+//#include "events.hpp"
 #define FLOORS 4
 
-class ButtonPressEvent;
-class FloorSignalEvent;
-class OrderUpdate;
+using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
+
+enum StateID {
+  MOVING, STOPPED
+};
+
+enum class Direction {
+  UP, DOWN
+};
+
+struct State {
+  int current_floor = 0;
+  Direction direction = Direction::UP;
+  std::vector<std::vector<bool>> orders = {{0,0,0},{0,0,0},{0,0,0},{0,0,0}};
+  bool door_open = false;
+  TimePoint door_opened_time;
+  StateID state_id = STOPPED;
+  bool error = false;
+};
 
 class FSM {
 protected:
@@ -21,7 +37,4 @@ protected:
   State state;
 
   const std::chrono::duration<double> door_time = std::chrono::seconds(3);
-
-public:
-  //  FSM();
 };

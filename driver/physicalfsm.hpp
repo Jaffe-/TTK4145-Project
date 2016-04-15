@@ -1,5 +1,6 @@
 #pragma once
 #include "fsm.hpp"
+#include "events.hpp"
 
 class PhysicalFSM : public FSM {
 public:

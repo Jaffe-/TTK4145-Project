@@ -1,30 +1,10 @@
 #pragma once
 
 #include <ostream>
-#define FLOORS 4
-
-using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
-
-enum StateID {
-  MOVING, STOPPED
-};
-
-enum class Direction {
-  UP, DOWN
-};
+#include "fsm.hpp"
 
 enum class ButtonType {
   UP, DOWN, CMD
-};
-
-struct State {
-  int current_floor = 0;
-  Direction direction = Direction::UP;
-  std::vector<std::vector<bool>> orders = {{0,0,0},{0,0,0},{0,0,0},{0,0,0}};
-  bool door_open = false;
-  TimePoint door_opened_time;
-  StateID state_id = STOPPED;
-  bool error = false;
 };
 
 /* Events */
