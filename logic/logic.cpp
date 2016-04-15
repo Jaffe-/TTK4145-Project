@@ -67,10 +67,15 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
    elevator should take the order */
 void Logic::notify(const ExternalButtonEvent& event)
 {
-  std::string order_id = network.own_ip() + ":" + std::to_string(current_id++);
-  orders[order_id] = { event.floor, static_cast<int>(event.type), "" };
-  choose_elevator(order_id, event.floor, event.type);
-  network.event_queue.push(NetworkMessageEvent<ExternalButtonEvent>("all", { event.floor, event.type, order_id }));
+  if (!order_exists(event.floor, static_cast<int>(event.type))) {
+    std::string order_id = network.own_ip() + ":" + std::to_string(current_id++);
+    network.event_queue.push(NetworkMessageEvent<ExternalButtonEvent>("all", { event.floor, event.type, order_id }));
+
+    add_order(order_id, event.floor, event.type);
+  }
+  else {
+    LOG(4, "Order for " << event << " already exists.");
+  }
 }
 
 /* When a state update event occurs, our own state in elevator_infos should be
@@ -107,8 +112,7 @@ void Logic::notify(const NetworkMessageEvent<StateUpdateEvent>& event)
 void Logic::notify(const NetworkMessageEvent<ExternalButtonEvent>& event)
 {
   LOG_DEBUG("Received " << event);
-  orders[event.data.id] = { event.data.floor, static_cast<int>(event.data.type), ""};
-  choose_elevator(event.data.id, event.data.floor, event.data.type);
+  add_order(event.data.id, event.data.floor, event.data.type);
 }
 
 /* When a connection is lost, that elevator's state should be removed from
@@ -171,6 +175,21 @@ void Logic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
     LOG_DEBUG("Order " << event.data.id << ": " << event.ip << " reports that order is completed");
     orders.erase(it);
   }
+}
+
+bool Logic::order_exists(int floor, int type)
+{
+  return std::find_if(orders.begin(), orders.end(),
+		      [floor, type] (const std::pair<std::string, OrderInfo> &o) {
+			return o.second.floor == floor && o.second.type == type;
+		      }) != orders.end();
+}
+
+void Logic::add_order(const std::string& id, int floor, ButtonType btype)
+{
+  int type = static_cast<int>(btype);
+  orders[id] = { floor, type, ""};
+  choose_elevator(id, floor, btype);
 }
 
 void Logic::remove_elevator(const std::string& ip)

@@ -65,6 +65,8 @@ private:
 
   void choose_elevator(const std::string& id, int floor, ButtonType type);
   void remove_elevator(const std::string& ip);
-  bool restore_orders();
+  bool order_exists(int floor, int type);
+  void add_order(const std::string& id, int floor, ButtonType type);
   void backup_orders();
+  bool restore_orders();
 };
