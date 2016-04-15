@@ -48,7 +48,7 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
 
   assert(min != INT_MAX);
 
-  LOG_DEBUG(min_ip << " is chosen (" << min << " steps)");
+  LOG_DEBUG("Order " << order_id << ": " << min_ip << " is chosen (" << min << " steps)");
   if (min_ip == network.own_ip()) {
     driver.event_queue.push(OrderUpdateEvent(floor, static_cast<int>(type)));
   }
@@ -147,7 +147,7 @@ void Logic::notify(const FSMOrderCompleteEvent& event)
 {
   for (auto it = orders.begin(); it != orders.end(); ) {
     if (it->second.floor == event.floor && it->second.type == event.type) {
-      LOG_DEBUG("Order id " << it->first << " is completed by this elevator");
+      LOG_DEBUG("Order " << it->first << ": completed by this elevator");
       network.event_queue.push(NetworkMessageEvent<OrderCompleteEvent>("all", it->first));
       it = orders.erase(it);
     }
@@ -161,7 +161,7 @@ void Logic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
 {
   auto it = orders.find(event.data.id);
   if (it != orders.end()) {
-    LOG_DEBUG(event.ip << " reports that order " << event.data.id << " is completed");
+    LOG_DEBUG("Order " << event.data.id << ": " << event.ip << " reports that order is completed");
     orders.erase(it);
   }
 }
