@@ -17,7 +17,6 @@ protected:
   bool should_stop(int floor);
   bool floors_below();
   bool floors_above();
-  bool order_complete(int floor, int type);
 
   State state;
 

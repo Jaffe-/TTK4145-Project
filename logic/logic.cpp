@@ -145,6 +145,7 @@ void Logic::notify(const NetworkMessageEvent<StateUpdateReqEvent>& event)
 
 void Logic::notify(const FSMOrderCompleteEvent& event)
 {
+  LOG_DEBUG("Received " << event);
   for (auto it = orders.begin(); it != orders.end(); ) {
     if (it->second.floor == event.floor && it->second.type == event.type) {
       LOG_DEBUG("Order " << it->first << ": completed by this elevator");
