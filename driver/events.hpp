@@ -80,6 +80,7 @@ struct StateUpdateEvent : public SerializableEvent {
     state.orders = json["orders"].get<std::vector<std::vector<bool>>>();
     state.door_open = json["door_open"];
     state.state_id = StateID(int(json["state_id"]));
+    state.error = json["state_id"];
   };
   State state;
 
@@ -88,7 +89,8 @@ struct StateUpdateEvent : public SerializableEvent {
 	    {"direction", int(state.direction)},
 	    {"orders", state.orders},
 	    {"door_open", state.door_open},
-	    {"state_id", int(state.state_id)}};
+	    {"state_id", int(state.state_id)},
+	    {"error", error}};
   }
 };
 
