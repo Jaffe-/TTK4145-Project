@@ -68,7 +68,7 @@ void Network::receive()
   if (socket.own_ip(packet.ip))
     return;
 
-  LOG(Logger::LogLevel::DEBUG2, "Received packet " << packet);
+  LOG(6, "Received packet " << packet);
 
   connection_controller.notify_receive(packet);
 
