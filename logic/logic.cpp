@@ -62,6 +62,7 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
   }
 }
 
+
 /* When an external button event occurs, it is broadcasted to the other
    connections, and the choose function is run to determine whether this
    elevator should take the order */
@@ -78,8 +79,30 @@ void Logic::notify(const ExternalButtonEvent& event)
   }
 }
 
+/* When an external button press event is received from the network, the
+   corresponding order id is added to our order map. The order id has been
+   generated on the sender side. */
+void Logic::notify(const NetworkMessageEvent<ExternalButtonEvent>& event)
+{
+  LOG_DEBUG("Received " << event);
+  add_order(event.data.id, event.data.floor, event.data.type);
+}
+
+
+/* When we receive a state update request, we get our own most recent state
+   from elevator_infos and send it to the elevator which requested it. */
+void Logic::notify(const NetworkMessageEvent<StateUpdateReqEvent>& event)
+{
+  LOG_DEBUG("Got state update request, sending state.");
+  StateUpdateEvent state(elevator_infos[network.own_ip()].state);
+  network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>(event.ip, state));
+}
+
 /* When a state update event occurs, our own state in elevator_infos should be
-   updated, and it should be broadcasted to the other elevators. */
+   updated, and it should be broadcasted to the other elevators. If the error
+   flag is set, there is some problem with the driver/fsm. We then remove
+   ourselves (mark ourselves as inactive) so we don't participate in order
+   dispatching. */
 void Logic::notify(const StateUpdateEvent& event)
 {
   if (!event.state.error)
@@ -92,8 +115,10 @@ void Logic::notify(const StateUpdateEvent& event)
   backup_orders();
 }
 
-/* When a state update event is received from the network, it should be stored
-   in elevator_infos, creating a new index if needed. */
+/* When a state update is received from the network, we only add it if the
+   elevator exists in elevator_infos (it is known to us). If the new state has
+   the error flag set, the elevator is removed (marked as inactive). Otherwise
+   the previous state is overwritten with the new one. */
 void Logic::notify(const NetworkMessageEvent<StateUpdateEvent>& event)
 {
   LOG_DEBUG("Received " << event);
@@ -107,27 +132,17 @@ void Logic::notify(const NetworkMessageEvent<StateUpdateEvent>& event)
   }
 }
 
-/* When an external button event is received from the network, the choose
-   function is run to determine whether this elevator should take the order. */
-void Logic::notify(const NetworkMessageEvent<ExternalButtonEvent>& event)
-{
-  LOG_DEBUG("Received " << event);
-  add_order(event.data.id, event.data.floor, event.data.type);
-}
 
-/* When a connection is lost, that elevator's state should be removed from
-   elevator_infos, since it should no longer be part of the decision making */
+/* When a connection is lost, that elevator is removed (marked as inactive) from
+   the decision process. */
 void Logic::notify(const LostConnectionEvent& event)
 {
   remove_elevator(event.ip);
 }
 
-/* When a new elevator appears we must send our latest state to it.
-
-   If the elevator is known from before, it means that it has died and
-   come back. In this case, we send it the most recent order list this
-   elevator gave us before it died.
-*/
+/* When a new connection appears, we ask it for a state update by sending a
+   StateUpdateReqEvent. The elevator is marked as inactive until that state
+   update comes. */
 void Logic::notify(const NewConnectionEvent& event)
 {
   LOG_DEBUG("Sending state update request");
@@ -135,9 +150,9 @@ void Logic::notify(const NewConnectionEvent& event)
   elevator_infos[event.ip] = { false, {} };
 }
 
-/* When our own network connection is lost, remove all elevator states
-   except our own, as the information about the rest of the elevators
-   will be outdated. */
+/* When our own network connection is lost, we mark all other elevators as
+   inactive so that their outdated state information won't affect the operation
+   of this elevator */
 void Logic::notify(const LostNetworkEvent&)
 {
   for (auto& pair : elevator_infos) {
@@ -146,13 +161,9 @@ void Logic::notify(const LostNetworkEvent&)
   }
 }
 
-void Logic::notify(const NetworkMessageEvent<StateUpdateReqEvent>& event)
-{
-  LOG_DEBUG("Got state update request, sending state.");
-  StateUpdateEvent state(elevator_infos[network.own_ip()].state);
-  network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>(event.ip, state));
-}
 
+/* When the FSM tells us that it has completed an order, we remove it from the
+   system and send an OrderCompleteEvent to the other elevators. */
 void Logic::notify(const FSMOrderCompleteEvent& event)
 {
   LOG_DEBUG("Received " << event);
@@ -168,6 +179,8 @@ void Logic::notify(const FSMOrderCompleteEvent& event)
   }
 }
 
+/* When we receive an OrderCompleteEvent, the order is removed from the order
+   map */
 void Logic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
 {
   auto it = orders.find(event.data.id);
@@ -177,6 +190,9 @@ void Logic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
   }
 }
 
+
+/* Check whether an order with the given floor and type (direction) exists
+   already. This is necessary to avoid duplicate orders in the system. */
 bool Logic::order_exists(int floor, int type)
 {
   return std::find_if(orders.begin(), orders.end(),
@@ -185,6 +201,7 @@ bool Logic::order_exists(int floor, int type)
 		      }) != orders.end();
 }
 
+/* Add the order with the given id */
 void Logic::add_order(const std::string& id, int floor, ButtonType btype)
 {
   int type = static_cast<int>(btype);
@@ -192,6 +209,8 @@ void Logic::add_order(const std::string& id, int floor, ButtonType btype)
   choose_elevator(id, floor, btype);
 }
 
+/* Remove elevator for elevator_infos and go through each order and choose a new
+   elevator to take it */
 void Logic::remove_elevator(const std::string& ip)
 {
   elevator_infos[ip].active = false;
