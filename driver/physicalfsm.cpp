@@ -22,9 +22,8 @@ void PhysicalFSM::change_state(const StateID& new_state)
     state.door_opened_time = std::chrono::system_clock::now();
     state.door_open = true;
     for (int i = 0; i < 2; i++) {
-      if (state.orders[state.current_floor][i]) {
+      if (order_complete(state.current_floor, i))
 	logic_queue.push(FSMOrderCompleteEvent(state.current_floor, i));
-      }
     }
     clear_orders(state.current_floor);
   }

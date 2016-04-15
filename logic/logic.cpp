@@ -145,10 +145,9 @@ void Logic::notify(const NetworkMessageEvent<StateUpdateReqEvent>& event)
 
 void Logic::notify(const FSMOrderCompleteEvent& event)
 {
-  LOG_DEBUG("Received " << event);
   for (auto it = orders.begin(); it != orders.end(); ) {
     if (it->second.floor == event.floor && it->second.type == event.type) {
-      LOG_DEBUG("Found matching order id " << it->first);
+      LOG_DEBUG("Order id " << it->first << " is completed by this elevator");
       network.event_queue.push(NetworkMessageEvent<OrderCompleteEvent>("all", it->first));
       it = orders.erase(it);
     }
@@ -162,7 +161,7 @@ void Logic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
 {
   auto it = orders.find(event.data.id);
   if (it != orders.end()) {
-    LOG_DEBUG("Order " << event.data.id << " is complete and was ERASED");
+    LOG_DEBUG(event.ip << " reports that order " << event.data.id << " is completed");
     orders.erase(it);
   }
 }
