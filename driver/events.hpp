@@ -90,7 +90,7 @@ struct StateUpdateEvent : public SerializableEvent {
 	    {"orders", state.orders},
 	    {"door_open", state.door_open},
 	    {"state_id", int(state.state_id)},
-	    {"error", error}};
+	    {"error", state.error}};
   }
 };
 
