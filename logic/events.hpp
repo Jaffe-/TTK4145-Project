@@ -3,6 +3,12 @@
 #include "../util/event.hpp"
 #include <vector>
 
+struct OrderInfo {
+  int floor;
+  int type;
+  std::string owner;
+};
+
 struct StateUpdateReqEvent : public SerializableEvent {
 
   StateUpdateReqEvent() {};
@@ -20,4 +26,36 @@ struct OrderCompleteEvent : public SerializableEvent {
   }
 
   std::string id;
+};
+
+struct OrderMapReqEvent : public SerializableEvent {
+  OrderMapReqEvent() {};
+  OrderMapReqEvent(const json_t&) {};
+};
+
+struct OrderMapUpdateEvent : public SerializableEvent {
+  OrderMapUpdateEvent(const std::map<std::string, OrderInfo>& orders) : orders(orders) {};
+  OrderMapUpdateEvent(const json_t& js) {
+    json_t json = js;
+    for (json_t::iterator it = json.begin(); it != json.end(); ++it) {
+      orders[it.key()] = OrderInfo { it.value()["floor"],
+				     it.value()["type"],
+				     it.value()["owner"] };
+    }
+  }
+
+  virtual json_t get_json() const override {
+    json_t json;
+    for (const auto& pair : orders) {
+      json_t entry_json = {
+	{"floor", pair.second.floor},
+	{"type", pair.second.type},
+	{"owner", pair.second.owner}
+      };
+      json[pair.first] = entry_json;
+    }
+    return json;
+  }
+
+  std::map<std::string, OrderInfo> orders;
 };

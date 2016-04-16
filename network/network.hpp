@@ -38,7 +38,9 @@ private:
   EventList<NetworkMessageEvent<StateUpdateEvent>,
 	    NetworkMessageEvent<ExternalButtonEvent>,
 	    NetworkMessageEvent<StateUpdateReqEvent>,
-	    NetworkMessageEvent<OrderCompleteEvent>> events;
+	    NetworkMessageEvent<OrderCompleteEvent>,
+	    NetworkMessageEvent<OrderMapReqEvent>,
+	    NetworkMessageEvent<OrderMapUpdateEvent>> events;
 
   void send(const Packet& packet, const std::string& ip);
   void send_all(const Packet& packet);

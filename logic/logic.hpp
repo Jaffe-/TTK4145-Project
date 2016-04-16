@@ -7,6 +7,7 @@
 #include <thread>
 #include <vector>
 
+
 class Logic {
 public:
   Logic(bool use_simulator, const std::string& port);
@@ -21,6 +22,8 @@ public:
   void notify(const NetworkMessageEvent<StateUpdateReqEvent>& event);
   void notify(const FSMOrderCompleteEvent& event);
   void notify(const NetworkMessageEvent<OrderCompleteEvent>& event);
+  void notify(const NetworkMessageEvent<OrderMapReqEvent>& event);
+  void notify(const NetworkMessageEvent<OrderMapUpdateEvent>& event);
 
   void run();
 
@@ -36,7 +39,9 @@ private:
 	    LostNetworkEvent,
 	    NetworkMessageEvent<StateUpdateReqEvent>,
 	    FSMOrderCompleteEvent,
-	    NetworkMessageEvent<OrderCompleteEvent>> events;
+	    NetworkMessageEvent<OrderCompleteEvent>,
+	    NetworkMessageEvent<OrderMapReqEvent>,
+	    NetworkMessageEvent<OrderMapUpdateEvent>> events;
 
   EventQueue event_queue;
   Driver driver;
@@ -45,12 +50,6 @@ private:
   struct ElevatorInfo {
     bool active;
     State state;
-  };
-
-  struct OrderInfo {
-    int floor;
-    int type;
-    std::string owner;
   };
 
   std::map<std::string, ElevatorInfo> elevator_infos;

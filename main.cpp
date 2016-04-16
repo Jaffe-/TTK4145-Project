@@ -4,7 +4,7 @@
 #include <thread>
 
 int main(int argc, char** argv)
-{
+{  
   std::cout << "******************************************************" << std::endl
 	    << "*                                                    *" << std::endl
 	    << "*         Voll Electronics UltraElevator4000         *" << std::endl

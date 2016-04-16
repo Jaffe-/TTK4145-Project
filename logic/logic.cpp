@@ -146,8 +146,9 @@ void Logic::notify(const LostConnectionEvent& event)
    update comes. */
 void Logic::notify(const NewConnectionEvent& event)
 {
-  LOG_DEBUG("Sending state update request");
+  LOG_DEBUG("Sending state update and order map update requests");
   network.event_queue.push(NetworkMessageEvent<StateUpdateReqEvent>(event.ip, {}));
+  network.event_queue.push(NetworkMessageEvent<OrderMapReqEvent>(event.ip, {}));
   elevator_infos[event.ip] = { false, {} };
 }
 
@@ -189,6 +190,25 @@ void Logic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
     driver.event_queue.push(FSMOrderCompleteEvent(it->second.floor, it->second.type));
     LOG_DEBUG("Order " << event.data.id << ": " << event.ip << " reports that order is completed");
     orders.erase(it);
+  }
+}
+
+
+void Logic::notify(const NetworkMessageEvent<OrderMapReqEvent>& event)
+{
+  LOG_DEBUG("Received order map update request");
+  network.event_queue.push(NetworkMessageEvent<OrderMapUpdateEvent>
+			   (event.ip, OrderMapUpdateEvent(orders)));
+}
+
+void Logic::notify(const NetworkMessageEvent<OrderMapUpdateEvent>& event)
+{
+  LOG_DEBUG("Received order map update from " << event.ip);
+  for (const auto& pair : event.data.orders) {
+    if (!order_exists(pair.second.floor, pair.second.type)) {
+      LOG(4, "Adding order " << pair.first);
+      orders[pair.first] = pair.second;
+    }
   }
 }
 
