@@ -8,9 +8,9 @@
 #include <vector>
 
 
-class Logic {
+class DispatchLogic {
 public:
-  Logic(bool use_simulator, const std::string& port);
+  DispatchLogic(bool use_simulator, const std::string& port);
 
   void notify(const ExternalButtonEvent& event);
   void notify(const StateUpdateEvent& event);

@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 
   LOG_DEBUG("Log is initialized");
 
-  Logic logic(cmd_options.has("simulated"), cmd_options["port"]);
+  DispatchLogic dispatch_logic(cmd_options.has("simulated"), cmd_options["port"]);
 
-  logic.run();
+  dispatch_logic.run();
 }
