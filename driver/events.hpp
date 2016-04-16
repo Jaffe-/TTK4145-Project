@@ -8,29 +8,15 @@ enum class ButtonType {
 };
 
 /* Events */
-struct ExternalButtonEvent : public SerializableEvent {
-  ExternalButtonEvent(int floor, ButtonType type, const std::string& id = "")
+struct ExternalButtonEvent : public Event {
+  ExternalButtonEvent(int floor, ButtonType type)
     : floor(floor),
-      type(type),
-      id(id)
+      type(type)
   {
-  }
-
-  ExternalButtonEvent(const json_t& json) {
-    floor = json["floor"];
-    type = ButtonType(int(json["type"]));
-    id = json["id"];
-  }
-
-  virtual json_t get_json() const override {
-    return {{"floor", floor},
-	    {"type", int(type)},
-	    {"id", id}};
   }
 
   int floor;
   ButtonType type;
-  std::string id;
 };
 
 struct InternalButtonEvent : public Event {

@@ -15,14 +15,13 @@ public:
   void notify(const ExternalButtonEvent& event);
   void notify(const StateUpdateEvent& event);
   void notify(const NetworkMessageEvent<StateUpdateEvent>& event);
-  void notify(const NetworkMessageEvent<ExternalButtonEvent>& event);
+  void notify(const NetworkMessageEvent<OrderTakenEvent>& event);
   void notify(const LostConnectionEvent& event);
   void notify(const NewConnectionEvent&);
   void notify(const LostNetworkEvent&);
-  void notify(const NetworkMessageEvent<StateUpdateReqEvent>& event);
+  void notify(const NetworkMessageEvent<UpdateRequestEvent>& event);
   void notify(const FSMOrderCompleteEvent& event);
   void notify(const NetworkMessageEvent<OrderCompleteEvent>& event);
-  void notify(const NetworkMessageEvent<OrderMapReqEvent>& event);
   void notify(const NetworkMessageEvent<OrderMapUpdateEvent>& event);
 
   void run();
@@ -33,14 +32,13 @@ private:
   EventList<ExternalButtonEvent,
 	    StateUpdateEvent,
 	    NetworkMessageEvent<StateUpdateEvent>,
-	    NetworkMessageEvent<ExternalButtonEvent>,
+	    NetworkMessageEvent<OrderTakenEvent>,
 	    NewConnectionEvent,
 	    LostConnectionEvent,
 	    LostNetworkEvent,
-	    NetworkMessageEvent<StateUpdateReqEvent>,
+	    NetworkMessageEvent<UpdateRequestEvent>,
 	    FSMOrderCompleteEvent,
 	    NetworkMessageEvent<OrderCompleteEvent>,
-	    NetworkMessageEvent<OrderMapReqEvent>,
 	    NetworkMessageEvent<OrderMapUpdateEvent>> events;
 
   EventQueue event_queue;
@@ -65,7 +63,6 @@ private:
   void choose_elevator(const std::string& id, int floor, ButtonType type);
   void remove_elevator(const std::string& ip);
   bool order_exists(int floor, int type);
-  void add_order(const std::string& id, int floor, ButtonType type);
   void backup_orders();
   bool restore_orders();
 };

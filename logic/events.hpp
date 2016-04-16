@@ -9,10 +9,28 @@ struct OrderInfo {
   std::string owner;
 };
 
-struct StateUpdateReqEvent : public SerializableEvent {
+struct UpdateRequestEvent : public SerializableEvent {
 
-  StateUpdateReqEvent() {};
-  StateUpdateReqEvent(const json_t&) {};
+  UpdateRequestEvent() {};
+  UpdateRequestEvent(const json_t&) {};
+};
+
+struct OrderTakenEvent : public SerializableEvent {
+  OrderTakenEvent(const std::string& id, OrderInfo info) : id(id), info(info) {}
+  OrderTakenEvent(const json_t& json) {
+    id = json["id"];
+    info = { json["floor"], json["type"], json["owner"] };
+  }
+
+  virtual json_t get_json() const override {
+    return {{"id", id},
+    	    {"floor", info.floor},
+	    {"type", info.type},
+	    {"owner", info.owner}};
+  }
+
+  std::string id;
+  OrderInfo info;
 };
 
 struct OrderCompleteEvent : public SerializableEvent {
@@ -26,11 +44,6 @@ struct OrderCompleteEvent : public SerializableEvent {
   }
 
   std::string id;
-};
-
-struct OrderMapReqEvent : public SerializableEvent {
-  OrderMapReqEvent() {};
-  OrderMapReqEvent(const json_t&) {};
 };
 
 struct OrderMapUpdateEvent : public SerializableEvent {

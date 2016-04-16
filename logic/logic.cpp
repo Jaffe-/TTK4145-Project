@@ -28,20 +28,14 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
   int min = INT_MAX;
   std::string min_ip;
 
-  std::vector<std::string> sorted_ips;
-  for (auto pair : elevator_infos) {
-    sorted_ips.push_back(pair.first);
-  }
-  std::sort(sorted_ips.begin(), sorted_ips.end());
-
-  for (auto& ip : sorted_ips) {
-    const ElevatorInfo& elevator_info = elevator_infos[ip];
+  for (const auto& pair : elevator_infos) {
+    const ElevatorInfo& elevator_info = pair.second;
     if (elevator_info.active) {
       int steps = SimulatedFSM(elevator_info.state).calculate(floor, static_cast<int>(type));
-      LOG(4, "Calculated steps " << steps << " for id " << ip);
+      LOG(4, "Calculated steps " << steps << " for id " << pair.first);
       if (steps < min) {
         min = steps;
-        min_ip = ip;
+        min_ip = pair.first;
       }
     }
   }
@@ -50,11 +44,15 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
 
   LOG_DEBUG("Order " << order_id << ": " << min_ip << " is chosen (" << min << " steps)");
   if (min_ip == network.own_ip()) {
+    LOG_DEBUG("Order " << order_id << ": this elevator takes the order");
     driver.event_queue.push(OrderUpdateEvent(floor, static_cast<int>(type)));
   }
 
   assert(orders.find(order_id) != orders.end() && "Computed best ip for a order that doesn't exist");
   orders[order_id].owner = min_ip;
+
+  network.event_queue.push(NetworkMessageEvent<OrderTakenEvent>
+			   ("all", OrderTakenEvent { order_id, orders[order_id] }));
 
   LOG(4, "Order map now contains: ");
   for (auto& pair : orders) {
@@ -70,9 +68,9 @@ void Logic::notify(const ExternalButtonEvent& event)
 {
   if (!order_exists(event.floor, static_cast<int>(event.type))) {
     std::string order_id = network.own_ip() + ":" + std::to_string(current_id++);
-    network.event_queue.push(NetworkMessageEvent<ExternalButtonEvent>("all", { event.floor, event.type, order_id }));
 
-    add_order(order_id, event.floor, event.type);
+    orders[order_id] = OrderInfo { event.floor, static_cast<int>(event.type), ""};
+    choose_elevator(order_id, event.floor, event.type);
   }
   else {
     LOG(4, "Order for " << event << " already exists.");
@@ -82,21 +80,29 @@ void Logic::notify(const ExternalButtonEvent& event)
 /* When an external button press event is received from the network, the
    corresponding order id is added to our order map. The order id has been
    generated on the sender side. */
-void Logic::notify(const NetworkMessageEvent<ExternalButtonEvent>& event)
+void Logic::notify(const NetworkMessageEvent<OrderTakenEvent>& event)
 {
-  LOG_DEBUG("Received " << event);
-  driver.event_queue.push(event.data);
-   add_order(event.data.id, event.data.floor, event.data.type);
+  LOG_DEBUG("New order " << event.data.id << ": taken by " << event.data.info.owner);
+  driver.event_queue.push(ExternalButtonEvent(event.data.info.floor,
+					      static_cast<ButtonType>(event.data.info.type)));
+  if (event.data.info.owner == network.own_ip()) {
+    LOG_DEBUG("Order " << event.data.id << ": I am the owner");
+    driver.event_queue.push(OrderUpdateEvent(event.data.info.floor, event.data.info.type));
+  }
+  orders[event.data.id] = event.data.info;
 }
 
 
-/* When we receive a state update request, we get our own most recent state
-   from elevator_infos and send it to the elevator which requested it. */
-void Logic::notify(const NetworkMessageEvent<StateUpdateReqEvent>& event)
+/* When we receive an update request, we get our own most recent state
+   from elevator_infos, and our current order map and send them to the 
+   elevator which requested it. */
+void Logic::notify(const NetworkMessageEvent<UpdateRequestEvent>& event)
 {
-  LOG_DEBUG("Got state update request, sending state.");
+  LOG_DEBUG("Received update request, sending state and order map.");
   StateUpdateEvent state(elevator_infos[network.own_ip()].state);
   network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>(event.ip, state));
+  network.event_queue.push(NetworkMessageEvent<OrderMapUpdateEvent>
+			   (event.ip, OrderMapUpdateEvent(orders)));
 }
 
 /* When a state update event occurs, our own state in elevator_infos should be
@@ -147,8 +153,7 @@ void Logic::notify(const LostConnectionEvent& event)
 void Logic::notify(const NewConnectionEvent& event)
 {
   LOG_DEBUG("Sending state update and order map update requests");
-  network.event_queue.push(NetworkMessageEvent<StateUpdateReqEvent>(event.ip, {}));
-  network.event_queue.push(NetworkMessageEvent<OrderMapReqEvent>(event.ip, {}));
+  network.event_queue.push(NetworkMessageEvent<UpdateRequestEvent>(event.ip, {}));
   elevator_infos[event.ip] = { false, {} };
 }
 
@@ -194,13 +199,8 @@ void Logic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
 }
 
 
-void Logic::notify(const NetworkMessageEvent<OrderMapReqEvent>& event)
-{
-  LOG_DEBUG("Received order map update request");
-  network.event_queue.push(NetworkMessageEvent<OrderMapUpdateEvent>
-			   (event.ip, OrderMapUpdateEvent(orders)));
-}
-
+/* When an order map update is received (which happens when a new client is 
+   discovered) we merge it with our own order map */
 void Logic::notify(const NetworkMessageEvent<OrderMapUpdateEvent>& event)
 {
   LOG_DEBUG("Received order map update from " << event.ip);
@@ -223,23 +223,26 @@ bool Logic::order_exists(int floor, int type)
 		      }) != orders.end();
 }
 
-/* Add the order with the given id */
-void Logic::add_order(const std::string& id, int floor, ButtonType btype)
-{
-  int type = static_cast<int>(btype);
-  orders[id] = { floor, type, ""};
-  choose_elevator(id, floor, btype);
-}
-
 /* Remove elevator for elevator_infos and go through each order and choose a new
    elevator to take it */
 void Logic::remove_elevator(const std::string& ip)
 {
+  LOG_DEBUG("Distributing orders for dead elevator " << ip);
   elevator_infos[ip].active = false;
-  LOG_DEBUG("Remove ip " << ip);
   for (auto& order_pair : orders) {
+    LOG_DEBUG("ORDER " << order_pair.first << " f=" << order_pair.second.floor << " owner=" << order_pair.second.owner);
     if (order_pair.second.owner == ip) {
-      choose_elevator(order_pair.first, order_pair.second.floor, static_cast<ButtonType>(order_pair.second.type));
+      LOG_DEBUG("Order " << order_pair.first << " belonged to dead elevator");
+      std::vector<std::string> ips;
+      for (auto pair : elevator_infos) {
+	if (pair.second.active)
+	  ips.push_back(pair.first);
+      }
+      auto min_ip_it = std::min_element(ips.begin(), ips.end());
+      if (min_ip_it != ips.end() && *min_ip_it == network.own_ip()) {
+	LOG_DEBUG("min = " << *min_ip_it);
+	choose_elevator(order_pair.first, order_pair.second.floor, static_cast<ButtonType>(order_pair.second.type));
+      }
     }
   }
 }

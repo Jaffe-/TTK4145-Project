@@ -36,10 +36,9 @@ public:
 private:
 
   EventList<NetworkMessageEvent<StateUpdateEvent>,
-	    NetworkMessageEvent<ExternalButtonEvent>,
-	    NetworkMessageEvent<StateUpdateReqEvent>,
+	    NetworkMessageEvent<UpdateRequestEvent>,
 	    NetworkMessageEvent<OrderCompleteEvent>,
-	    NetworkMessageEvent<OrderMapReqEvent>,
+	    NetworkMessageEvent<OrderTakenEvent>,
 	    NetworkMessageEvent<OrderMapUpdateEvent>> events;
 
   void send(const Packet& packet, const std::string& ip);
