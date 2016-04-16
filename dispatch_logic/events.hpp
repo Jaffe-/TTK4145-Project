@@ -10,7 +10,6 @@ struct OrderInfo {
 };
 
 struct UpdateRequestEvent : public SerializableEvent {
-
   UpdateRequestEvent() {};
   UpdateRequestEvent(const json_t&) {};
 };

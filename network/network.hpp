@@ -35,6 +35,7 @@ public:
 
 private:
 
+  /* The events that are handled by this module */
   EventList<NetworkMessageEvent<StateUpdateEvent>,
 	    NetworkMessageEvent<UpdateRequestEvent>,
 	    NetworkMessageEvent<OrderCompleteEvent>,

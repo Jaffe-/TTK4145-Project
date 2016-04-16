@@ -20,7 +20,7 @@ private:
 	    ExternalButtonEvent> events;
 
   template <typename EventType>
-  void poll(int& last, int new_value, int invalid_value, EventType event);
+  void poll(int& last, int new_value, int invalid_value, const EventType& event);
 
   void event_generator();
   int initialize_position();

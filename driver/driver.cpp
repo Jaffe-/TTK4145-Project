@@ -28,11 +28,11 @@ Driver::Driver(EventQueue& logic_queue, bool use_simulator)
 }
 
 template <typename EventType>
-void Driver::poll(int& last, int new_value, int invalid_value, EventType event)
+void Driver::poll(int& last, int new_value, int invalid_value, const EventType& event)
 {
-   if (new_value != last){
+  if (new_value != last){
     last = new_value;
-    if(new_value != invalid_value){
+    if (new_value != invalid_value){
       LOG_DEBUG("New event generated: " << event);
       fsm.notify(event);
       logic_queue.push(event);

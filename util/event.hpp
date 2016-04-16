@@ -30,10 +30,7 @@ public:
   }
 };
 
-/* Event list
-
-   This is used to list events and is used by event_queue.listen() and by
-   serialize_event().
-*/
+/* Event lists used to list event class types for use in the event queues
+   and in the network receiver */
 template <typename... EventTypes>
 struct EventList {};

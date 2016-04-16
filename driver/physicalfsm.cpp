@@ -21,6 +21,7 @@ void PhysicalFSM::change_state(const StateID& new_state)
     elev_set_motor_direction(DIRN_STOP);
     state.door_opened_time = std::chrono::system_clock::now();
     state.door_open = true;
+
     for (int i = 0; i < 2; i++) {
       if (state.orders[state.current_floor][i]) {
 	auto event = FSMOrderCompleteEvent(state.current_floor, i);
@@ -30,14 +31,18 @@ void PhysicalFSM::change_state(const StateID& new_state)
     }
     clear_orders(state.current_floor);
   }
+
   else if (new_state == MOVING) {
     LOG_DEBUG("Changed state to MOVING");
+
     if (state.direction == Direction::UP)
       elev_set_motor_direction(DIRN_UP);
     else
       elev_set_motor_direction(DIRN_DOWN);
+
     depart_time = std::chrono::system_clock::now();
   }
+
   state.state_id = new_state;
 }
 
@@ -50,16 +55,19 @@ void PhysicalFSM::update_lights()
   }
 }
 
+/* This even might be received from the poller or from the dispatch logic module */
 void PhysicalFSM::notify(const ExternalButtonEvent& event)
 {
   elev_set_button_lamp(static_cast<elev_button_type_t>(event.type), event.floor, 1);
 }
 
+/* This even might be received from the poller or from the dispatch logic module */
 void PhysicalFSM::notify(const FSMOrderCompleteEvent& event)
 {
   elev_set_button_lamp(static_cast<elev_button_type_t>(event.type), event.floor, 0);
 }
 
+/* This is only received from the poller */
 void PhysicalFSM::notify(const InternalButtonEvent& event)
 {
   insert_order(event.floor, 2);
@@ -67,6 +75,7 @@ void PhysicalFSM::notify(const InternalButtonEvent& event)
   send_state();
 }
 
+/* This is only received from the poller */
 void PhysicalFSM::notify(const FloorSignalEvent& event)
 {
   state.current_floor = event.floor;
@@ -79,6 +88,7 @@ void PhysicalFSM::notify(const FloorSignalEvent& event)
   depart_time = std::chrono::system_clock::now();
 }
 
+/* This is received from the dispatch logic module */
 void PhysicalFSM::notify(const OrderUpdateEvent& event)
 {
   LOG_DEBUG("New order: go to floor " << event.floor
