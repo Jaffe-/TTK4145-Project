@@ -3,7 +3,7 @@
 #include <string>
 #include "network_int.hpp"
 #include "sender.hpp"
-#include "connection_controller.hpp"
+#include "connection_manager.hpp"
 #include "socket.hpp"
 #include "../util/event_queue.hpp"
 #include "events.hpp"
