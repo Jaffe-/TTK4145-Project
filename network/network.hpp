@@ -13,7 +13,7 @@
 
 class Network {
   friend class Sender;
-  friend class ConnectionController;
+  friend class ConnectionManager;
 
 public:
   Network(EventQueue& logic_queue, const std::string& port);
@@ -49,7 +49,7 @@ private:
 
   Socket socket;
   Sender sender;
-  ConnectionController connection_controller;
+  ConnectionManager connection_manager;
 
   struct connection {
     TimePoint last_ping;

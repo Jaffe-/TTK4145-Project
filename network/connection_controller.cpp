@@ -6,12 +6,12 @@
 #include <chrono>
 #include "events.hpp"
 
-bool ConnectionController::has_client(const std::string& ip) const
+bool ConnectionManager::has_client(const std::string& ip) const
 {
   return network.connections.find(ip) != network.connections.end();
 }
 
-void ConnectionController::notify_receive(const Packet& packet)
+void ConnectionManager::notify_receive(const Packet& packet)
 {
   if (!has_client(packet.ip)) {
     network.connections[packet.ip] = {std::chrono::system_clock::now(), {}};
@@ -23,7 +23,7 @@ void ConnectionController::notify_receive(const Packet& packet)
   }
 }
 
-void ConnectionController::remove_clients(const std::vector<std::string>& ips)
+void ConnectionManager::remove_clients(const std::vector<std::string>& ips)
 {
   for (auto& ip : ips) {
     if (has_client(ip)) {
@@ -34,7 +34,7 @@ void ConnectionController::remove_clients(const std::vector<std::string>& ips)
   }
 }
 
-void ConnectionController::check_timeouts()
+void ConnectionManager::check_timeouts()
 {
   std::vector<std::string> timed_out;
   for (auto& kv : network.connections) {
@@ -47,7 +47,7 @@ void ConnectionController::check_timeouts()
   remove_clients(timed_out);
 }
 
-void ConnectionController::send_ping()
+void ConnectionManager::send_ping()
 {
   TimePoint now = std::chrono::system_clock::now();
   if (now - last_ping >= ping_period) {
@@ -56,13 +56,13 @@ void ConnectionController::send_ping()
   }
 }
 
-void ConnectionController::run()
+void ConnectionManager::run()
 {
   check_timeouts();
   send_ping();
 }
 
-std::vector<std::string> ConnectionController::get_clients() const
+std::vector<std::string> ConnectionManager::get_clients() const
 {
   std::vector<std::string> results;
 

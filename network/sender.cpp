@@ -76,7 +76,7 @@ void Sender::run()
     }
   }
 
-  network.connection_controller.remove_clients(timed_out);
+  network.connection_manager.remove_clients(timed_out);
 }
 
 std::string truncate(const std::string& str, const std::string::size_type trunc_limit)

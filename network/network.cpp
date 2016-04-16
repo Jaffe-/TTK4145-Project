@@ -10,7 +10,7 @@ Network::Network(EventQueue& logic_queue, const std::string& port)
   : logic_queue(logic_queue),
     socket(port),
     sender(*this),
-    connection_controller(*this)
+    connection_manager(*this)
 {
   LOG_INFO("Network started on port " << port);
 }
@@ -22,7 +22,7 @@ void Network::run()
 
     receive();
     sender.run();
-    connection_controller.run();
+    connection_manager.run();
   }
 }
 
@@ -35,7 +35,7 @@ void Network::send(const Packet& packet, const std::string& ip)
 
 void Network::send_all(const Packet& packet)
 {
-  for (auto& ip: connection_controller.get_clients()) {
+  for (auto& ip: connection_manager.get_clients()) {
     send(packet, ip);
   }
 }
@@ -68,7 +68,7 @@ void Network::receive()
 
   LOG(6, "Received packet " << packet);
 
-  connection_controller.notify_receive(packet);
+  connection_manager.notify_receive(packet);
 
   switch (packet.type){
   case PacketType::PING:

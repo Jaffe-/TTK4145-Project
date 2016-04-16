@@ -7,9 +7,9 @@
 
 class Network;
 
-class ConnectionController {
+class ConnectionManager {
 public:
-  ConnectionController(Network& network) : network(network) {};
+  ConnectionManager(Network& network) : network(network) {};
   void notify_receive(const Packet& packet);
   void remove_clients(const std::vector<std::string>& ips);
   std::vector<std::string> get_clients() const;
