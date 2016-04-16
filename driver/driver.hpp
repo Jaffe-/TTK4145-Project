@@ -15,7 +15,9 @@ public:
 private:
 
   /* List of events that this module handles */
-  EventList<OrderUpdateEvent> events;
+  EventList<OrderUpdateEvent,
+	    FSMOrderCompleteEvent,
+	    ExternalButtonEvent> events;
 
   template <typename EventType>
   void poll(int& last, int new_value, int invalid_value, EventType event);

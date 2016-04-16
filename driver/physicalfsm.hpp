@@ -8,7 +8,8 @@ public:
   void notify(const InternalButtonEvent& event);
   void notify(const FloorSignalEvent& event);
   void notify(const OrderUpdateEvent& event);
-  void notify(const ExternalButtonEvent&);
+  void notify(const ExternalButtonEvent& event);
+  void notify(const FSMOrderCompleteEvent& event);
   void run();
   void set_floor(int floor) { state.current_floor = floor; };
 

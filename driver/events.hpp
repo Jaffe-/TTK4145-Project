@@ -59,7 +59,7 @@ struct StateUpdateEvent : public SerializableEvent {
     state.orders = json["orders"].get<std::vector<std::vector<bool>>>();
     state.door_open = json["door_open"];
     state.state_id = StateID(int(json["state_id"]));
-    state.error = json["state_id"];
+    state.error = json["error"];
   };
   State state;
 

@@ -40,8 +40,8 @@ void Logic::choose_elevator(const std::string& order_id, int floor, ButtonType t
       int steps = SimulatedFSM(elevator_info.state).calculate(floor, static_cast<int>(type));
       LOG(4, "Calculated steps " << steps << " for id " << ip);
       if (steps < min) {
-	min = steps;
-	min_ip = ip;
+        min = steps;
+        min_ip = ip;
       }
     }
   }
@@ -85,7 +85,8 @@ void Logic::notify(const ExternalButtonEvent& event)
 void Logic::notify(const NetworkMessageEvent<ExternalButtonEvent>& event)
 {
   LOG_DEBUG("Received " << event);
-  add_order(event.data.id, event.data.floor, event.data.type);
+  driver.event_queue.push(event.data);
+   add_order(event.data.id, event.data.floor, event.data.type);
 }
 
 
@@ -185,6 +186,7 @@ void Logic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
 {
   auto it = orders.find(event.data.id);
   if (it != orders.end()) {
+    driver.event_queue.push(FSMOrderCompleteEvent(it->second.floor, it->second.type));
     LOG_DEBUG("Order " << event.data.id << ": " << event.ip << " reports that order is completed");
     orders.erase(it);
   }

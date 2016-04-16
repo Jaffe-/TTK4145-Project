@@ -23,7 +23,9 @@ void PhysicalFSM::change_state(const StateID& new_state)
     state.door_open = true;
     for (int i = 0; i < 2; i++) {
       if (state.orders[state.current_floor][i]) {
-	logic_queue.push(FSMOrderCompleteEvent(state.current_floor, i));
+	auto event = FSMOrderCompleteEvent(state.current_floor, i);
+        logic_queue.push(event);
+	notify(event);
       }
     }
     clear_orders(state.current_floor);
@@ -48,8 +50,14 @@ void PhysicalFSM::update_lights()
   }
 }
 
-void PhysicalFSM::notify(const ExternalButtonEvent&)
+void PhysicalFSM::notify(const ExternalButtonEvent& event)
 {
+  elev_set_button_lamp(static_cast<elev_button_type_t>(event.type), event.floor, 1);
+}
+
+void PhysicalFSM::notify(const FSMOrderCompleteEvent& event)
+{
+  elev_set_button_lamp(static_cast<elev_button_type_t>(event.type), event.floor, 0);
 }
 
 void PhysicalFSM::notify(const InternalButtonEvent& event)
@@ -74,9 +82,14 @@ void PhysicalFSM::notify(const FloorSignalEvent& event)
 void PhysicalFSM::notify(const OrderUpdateEvent& event)
 {
   LOG_DEBUG("New order: go to floor " << event.floor
-	    << ", type=" << event.direction);
+            << ", type=" << event.direction);
   insert_order(event.floor, event.direction);
   if (at_floor(event.floor)) {
+    if (event.direction < 2) {
+      auto complete_event = FSMOrderCompleteEvent(event.floor, event.direction);
+      logic_queue.push(complete_event);
+      notify(complete_event);
+    }
     if (!state.door_open) {
       open_door();
     }
@@ -90,9 +103,9 @@ void PhysicalFSM::run()
   if (state.state_id == STOPPED) {
     if (state.door_open) {
       if (std::chrono::system_clock::now() - state.door_opened_time > door_time) {
-	state.door_open = false;
-	update_lights();
-	send_state();
+          state.door_open = false;
+          update_lights();
+          send_state();
       }
     }
     else {

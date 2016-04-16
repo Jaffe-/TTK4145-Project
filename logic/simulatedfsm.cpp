@@ -5,6 +5,8 @@ int SimulatedFSM::calculate(int floor, int type)
 {
   insert_order(floor, type);
   int step = 0;
+  if (state.door_open)
+    step++;
   while (!at_floor(floor))  {
     LOG(5, "dir=" << (int)state.direction << " floor=" << state.current_floor
 	<< "state=" << (int)state.state_id);
