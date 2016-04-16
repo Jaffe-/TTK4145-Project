@@ -21,8 +21,7 @@ DispatchLogic::DispatchLogic(bool use_simulator, const std::string& port)
 }
 
 /* Calculate the cost function (using the simulated FSM) for each elevator and
-   determine if this elevator should take the given order. If we have the
-   minimum value, we should take the order even though others may have it. */
+   determine which elevator should take it. */
 void DispatchLogic::choose_elevator(const std::string& order_id, int floor, ButtonType type)
 {
   int min = INT_MAX;
@@ -61,9 +60,9 @@ void DispatchLogic::choose_elevator(const std::string& order_id, int floor, Butt
 }
 
 
-/* When an external button event occurs, it is broadcasted to the other
-   connections, and the choose function is run to determine whether this
-   elevator should take the order */
+/* When an external button event occurs, a new order is created (if it doesnt already exist)
+   and choose_elevator is called to determine which elevator is going to take
+   the order. */
 void DispatchLogic::notify(const ExternalButtonEvent& event)
 {
   if (!order_exists(event.floor, static_cast<int>(event.type))) {
@@ -77,18 +76,20 @@ void DispatchLogic::notify(const ExternalButtonEvent& event)
   }
 }
 
-/* When an external button press event is received from the network, the
-   corresponding order id is added to our order map. The order id has been
-   generated on the sender side. */
+/* When an order taken event is received, we check if it is assigned to us, and
+   send an order update event to the driver if it is. The order is added to the
+   order map. */
 void DispatchLogic::notify(const NetworkMessageEvent<OrderTakenEvent>& event)
 {
   LOG_DEBUG("New order " << event.data.id << ": taken by " << event.data.info.owner);
   driver.event_queue.push(ExternalButtonEvent(event.data.info.floor,
 					      static_cast<ButtonType>(event.data.info.type)));
+
   if (event.data.info.owner == network.own_ip()) {
     LOG_DEBUG("Order " << event.data.id << ": I am the owner");
     driver.event_queue.push(OrderUpdateEvent(event.data.info.floor, event.data.info.type));
   }
+
   orders[event.data.id] = event.data.info;
 }
 
@@ -100,13 +101,16 @@ void DispatchLogic::notify(const NetworkMessageEvent<UpdateRequestEvent>& event)
 {
   LOG_DEBUG("Received update request, sending state and order map.");
   StateUpdateEvent state(elevator_infos[network.own_ip()].state);
-  network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>(event.ip, state));
+
+  network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>
+			   (event.ip, state));
+
   network.event_queue.push(NetworkMessageEvent<OrderMapUpdateEvent>
 			   (event.ip, OrderMapUpdateEvent(orders)));
 }
 
 /* When a state update event occurs, our own state in elevator_infos should be
-   updated, and it should be broadcasted to the other elevators. If the error
+   updated, and it should be sent to the other elevators. If the error
    flag is set, there is some problem with the driver/fsm. We then remove
    ourselves (mark ourselves as inactive) so we don't participate in order
    dispatching. */
@@ -147,9 +151,9 @@ void DispatchLogic::notify(const LostConnectionEvent& event)
   remove_elevator(event.ip);
 }
 
-/* When a new connection appears, we ask it for a state update by sending a
-   StateUpdateReqEvent. The elevator is marked as inactive until that state
-   update comes. */
+/* When a new connection appears, we ask it for an update by sending a
+   UpdateRequestEvent. The elevator is marked as inactive until those updates
+   arrive. */
 void DispatchLogic::notify(const NewConnectionEvent& event)
 {
   LOG_DEBUG("Sending state update and order map update requests");
@@ -188,7 +192,7 @@ void DispatchLogic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
 }
 
 
-/* When an order map update is received (which happens when a new client is 
+/* When an order map update is received (which happens when a new connection is 
    discovered) we merge it with our own order map */
 void DispatchLogic::notify(const NetworkMessageEvent<OrderMapUpdateEvent>& event)
 {
@@ -217,19 +221,24 @@ bool DispatchLogic::order_exists(int floor, int type)
 void DispatchLogic::remove_elevator(const std::string& ip)
 {
   LOG_DEBUG("Distributing orders for dead elevator " << ip);
+
   elevator_infos[ip].active = false;
-  for (auto& order_pair : orders) {
-    LOG_DEBUG("ORDER " << order_pair.first << " f=" << order_pair.second.floor << " owner=" << order_pair.second.owner);
-    if (order_pair.second.owner == ip) {
-      LOG_DEBUG("Order " << order_pair.first << " belonged to dead elevator");
-      std::vector<std::string> ips;
-      for (auto pair : elevator_infos) {
-	if (pair.second.active)
-	  ips.push_back(pair.first);
-      }
-      auto min_ip_it = std::min_element(ips.begin(), ips.end());
-      if (min_ip_it != ips.end() && *min_ip_it == network.own_ip()) {
-	LOG_DEBUG("min = " << *min_ip_it);
+
+  std::vector<std::string> ips;
+  for (auto pair : elevator_infos) {
+    if (pair.second.active)
+      ips.push_back(pair.first);
+  }
+
+  auto min_ip_it = std::min_element(ips.begin(), ips.end());
+
+  // The remaining elevator with the lowest IP address should be responsible for
+  // assigning the orders of the dead elevator to new owners.
+  if (min_ip_it != ips.end() && *min_ip_it == network.own_ip()) {
+    LOG_DEBUG("This elevator should do the order reassigning");
+    for (auto& order_pair : orders) {
+      if (order_pair.second.owner == ip) {
+	LOG_DEBUG("Order " << order_pair.first << " belonged to disconnected elevator and needs to be reassigned");
 	choose_elevator(order_pair.first, order_pair.second.floor, static_cast<ButtonType>(order_pair.second.type));
       }
     }

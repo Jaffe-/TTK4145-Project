@@ -35,7 +35,7 @@ void Network::send(const Packet& packet, const std::string& ip)
 
 void Network::send_all(const Packet& packet)
 {
-  for (auto& ip: connection_manager.get_clients()) {
+  for (auto& ip: connection_manager.get_connections()) {
     send(packet, ip);
   }
 }

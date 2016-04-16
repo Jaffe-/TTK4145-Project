@@ -11,9 +11,9 @@ class ConnectionManager {
 public:
   ConnectionManager(Network& network) : network(network) {};
   void notify_receive(const Packet& packet);
-  void remove_clients(const std::vector<std::string>& ips);
-  std::vector<std::string> get_clients() const;
-  bool has_client(const std::string& ip) const;
+  void remove_connections(const std::vector<std::string>& ips);
+  std::vector<std::string> get_connections() const;
+  bool has_connection(const std::string& ip) const;
   void run();
 
 private:
