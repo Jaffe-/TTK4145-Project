@@ -4,7 +4,7 @@ COMMONFLAGS += -Wall -Wextra -pedantic -MD -MP -g
 CPPFLAGS = $(COMMONFLAGS) -std=c++11
 CFLAGS = $(COMMONFLAGS) -std=gnu99
 LDFLAGS = -lstdc++ -lcomedi -lpthread -lm
-MODULES = network driver driver/hw_interface logic util
+MODULES = network driver driver/hw_interface dispatch_logic util
 CPPSRC = main.cpp $(foreach m, $(MODULES), $(wildcard $(m)/*.cpp))
 CSRC = $(foreach m, $(MODULES), $(wildcard $(m)/*.c))
 OBJ = $(CPPSRC:%.cpp=%.o) $(CSRC:%.c=%.o)

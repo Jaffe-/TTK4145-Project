@@ -8,7 +8,7 @@
 #include "../util/event_queue.hpp"
 #include "events.hpp"
 #include "../driver/events.hpp"
-#include "../logic/events.hpp"
+#include "../dispatch_logic/events.hpp"
 #include "../util/logger.hpp"
 
 class Network {

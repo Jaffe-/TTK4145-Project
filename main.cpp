@@ -1,6 +1,6 @@
 #include "util/cmdopts.hpp"
 #include "util/logger.hpp"
-#include "logic/logic.hpp"
+#include "dispatch_logic/dispatch_logic.hpp"
 #include <thread>
 
 int main(int argc, char** argv)
