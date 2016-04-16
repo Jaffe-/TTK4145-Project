@@ -43,8 +43,9 @@ public:
 
 private:
 
-  /* Take a list of event types which the event queue should respond to, and a
-     pointer to an object which has notify functions for each event type. */
+  /* This is a recursive template which will expand into a chain of comparisons
+     of the event's typeid to each type in the event list, issuing a call to
+     Class::notify on the given instance if they match. */
   template <typename Class, typename EventType, typename... Rest>
   void call_notify(const Event& event, Class* instance, EventList<EventType, Rest...>) {
     if (typeid(event) == typeid(EventType))
