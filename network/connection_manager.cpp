@@ -1,5 +1,5 @@
 #include "network.hpp"
-#include "connection_controller.hpp"
+#include "connection_manager.hpp"
 #include <vector>
 #include "../util/logger.hpp"
 #include <algorithm>

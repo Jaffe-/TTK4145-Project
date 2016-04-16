@@ -2,7 +2,7 @@
 #include <iostream>
 #include "network.hpp"
 #include "sender.hpp"
-#include "connection_controller.hpp"
+#include "connection_manager.hpp"
 #include "../util/logger.hpp"
 #include <chrono>
 
