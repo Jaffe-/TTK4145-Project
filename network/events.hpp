@@ -13,10 +13,6 @@ struct LostConnectionEvent : public Event {
   std::string ip;
 };
 
-struct LostNetworkEvent : public Event {
-  LostNetworkEvent() {};
-};
-
 template <typename Data>
 struct NetworkMessageEvent : public SerializableEvent {
   NetworkMessageEvent(const std::string& ip, const Data& data)
@@ -34,7 +30,6 @@ struct NetworkMessageEvent : public SerializableEvent {
 };
 
 std::ostream& operator<<(std::ostream& os, const NewConnectionEvent& event);
-std::ostream& operator<<(std::ostream& os, const LostNetworkEvent& event);
 std::ostream& operator<<(std::ostream& os, const LostConnectionEvent&);
 
 template <typename Data>

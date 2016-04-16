@@ -94,7 +94,7 @@ bool Socket::empty()
   int rv = select(sockfd + 1, &readfds, NULL, NULL, &tv);
 
   if (rv == -1) {
-    LOG_ERROR("select() failed.");
+    LOG(6, "select() failed.");
     // Todo: find out what to do in this case
     return true;
   }
@@ -114,7 +114,7 @@ bool Socket::read(Packet& packet)
 
   if ((numbytes = recvfrom(sockfd, buf, MAXBUF-1, 0,
 			   (sockaddr*)&their_addr, &addr_len)) == -1) {
-    LOG_ERROR("recvfrom() failed.");
+    LOG(6, "recvfrom() failed.");
     return false;
   }
 
@@ -142,7 +142,7 @@ bool Socket::write(const Packet& packet, const std::string& to_ip)
   std::copy(packet.bytes.begin(), packet.bytes.end(), buf + 1 + sizeof(int));
   if (sendto(sockfd, buf, packet.bytes.size() + 1 + sizeof(int),
 	     0, (sockaddr*) &si, sizeof(si)) == -1) {
-    LOG_ERROR("sendto() failed");
+    LOG(6, "sendto() failed");
     return false;
   }
 

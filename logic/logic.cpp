@@ -157,17 +157,6 @@ void Logic::notify(const NewConnectionEvent& event)
   elevator_infos[event.ip] = { false, {} };
 }
 
-/* When our own network connection is lost, we mark all other elevators as
-   inactive so that their outdated state information won't affect the operation
-   of this elevator */
-void Logic::notify(const LostNetworkEvent&)
-{
-  for (auto& pair : elevator_infos) {
-    if (pair.first != network.own_ip())
-      pair.second.active = false;
-  }
-}
-
 
 /* When the FSM tells us that it has completed an order, we remove it from the
    system and send an OrderCompleteEvent to the other elevators. */

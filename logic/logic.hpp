@@ -18,7 +18,6 @@ public:
   void notify(const NetworkMessageEvent<OrderTakenEvent>& event);
   void notify(const LostConnectionEvent& event);
   void notify(const NewConnectionEvent&);
-  void notify(const LostNetworkEvent&);
   void notify(const NetworkMessageEvent<UpdateRequestEvent>& event);
   void notify(const FSMOrderCompleteEvent& event);
   void notify(const NetworkMessageEvent<OrderCompleteEvent>& event);
@@ -35,7 +34,6 @@ private:
 	    NetworkMessageEvent<OrderTakenEvent>,
 	    NewConnectionEvent,
 	    LostConnectionEvent,
-	    LostNetworkEvent,
 	    NetworkMessageEvent<UpdateRequestEvent>,
 	    FSMOrderCompleteEvent,
 	    NetworkMessageEvent<OrderCompleteEvent>,

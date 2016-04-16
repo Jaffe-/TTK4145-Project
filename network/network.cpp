@@ -29,8 +29,7 @@ void Network::run()
 void Network::send(const Packet& packet, const std::string& ip)
 {
   if (!socket.write(packet, ip)) {
-    LOG_ERROR("Failed to write to socket");
-    logic_queue.push(LostNetworkEvent());
+    LOG(6, "Failed to write to socket");
   }
 }
 
@@ -43,7 +42,7 @@ void Network::send_all(const Packet& packet)
 
 void Network::broadcast(const Packet& packet)
 {
-  socket.write(packet, "255.255.255.255");
+  send(packet, "255.255.255.255");
 }
 
 void Network::make_receive_event(const Packet& packet)
@@ -60,8 +59,7 @@ void Network::receive()
 
   Packet packet;
   if (!socket.read(packet)) {
-    LOG_ERROR("Unable to read from socket");
-    logic_queue.push(LostNetworkEvent());
+    LOG(6, "Unable to read from socket");
     return;
   }
 
@@ -152,9 +150,4 @@ std::ostream& operator<<(std::ostream& os, const NewConnectionEvent& event)
 std::ostream& operator<<(std::ostream& os, const LostConnectionEvent& event)
 {
   return os << "{LostConnectionEvent " << event.ip << "}";
-}
-
-std::ostream& operator<<(std::ostream& os, const LostNetworkEvent&)
-{
-  return os << "{LostNetworkEvent}";
 }
