@@ -19,7 +19,7 @@ void ConnectionManager::notify_receive(const Packet& packet)
   if (!has_connection(packet.ip)) {
     network.connections[packet.ip] = {std::chrono::system_clock::now(), {}};
     network.logic_queue.push(NewConnectionEvent(packet.ip));
-    LOG_INFO("New connection " << packet.ip << " discovered");
+    LOG_INFO("New connection " << packet.ip << " added");
   }
 
   if (packet.type == PacketType::PONG) {
@@ -32,7 +32,7 @@ void ConnectionManager::remove_connections(const std::vector<std::string>& ips)
   for (auto& ip : ips) {
     if (has_connection(ip)) {
       network.logic_queue.push(LostConnectionEvent(ip));
-      LOG_WARNING("Connection " << ip << " is removed");
+      LOG_WARNING("Connection " << ip << " removed");
       network.connections.erase(ip);
     }
   }

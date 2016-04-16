@@ -95,7 +95,6 @@ bool Socket::empty()
 
   if (rv == -1) {
     LOG(6, "select() failed.");
-    // Todo: find out what to do in this case
     return true;
   }
   else if (rv == 0)
