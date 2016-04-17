@@ -51,10 +51,6 @@ void DispatchLogic::choose_elevator(const std::string& order_id, int floor, Butt
   network.event_queue.push(NetworkMessageEvent<NewOrderEvent>
 			   ("all", NewOrderEvent { order_id, order }));
 
-  LOG(4, "Order map now contains: ");
-  for (auto& pair : orders) {
-    LOG(4, pair.first << ": floor=" << pair.second.floor << " type=" << pair.second.type << " owner=" << pair.second.owner);
-  }
 }
 
 void DispatchLogic::add_order(const std::string& id, const OrderInfo& info)
@@ -120,7 +116,8 @@ void DispatchLogic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
 {
   auto it = orders.find(event.data.id);
   if (it != orders.end()) {
-    driver.event_queue.push(FSMOrderCompleteEvent(it->second.floor, it->second.type));
+    driver.event_queue.push(ExternalLightOffEvent
+			    (it->second.floor, static_cast<ButtonType>(it->second.type)));
     LOG_DEBUG("Order " << event.data.id << ": " << event.ip << " reports that order is completed");
     orders.erase(it);
   }
