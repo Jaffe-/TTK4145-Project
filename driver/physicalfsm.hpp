@@ -9,7 +9,9 @@ public:
   void notify(const FloorSignalEvent& event);
   void notify(const OrderUpdateEvent& event);
   void notify(const ExternalButtonEvent& event);
-  void notify(const FSMOrderCompleteEvent& event);
+  void notify(const ExternalLightOnEvent& event);
+  void notify(const ExternalLightOffEvent& event);
+
   void run();
   void set_floor(int floor) { state.current_floor = floor; };
 

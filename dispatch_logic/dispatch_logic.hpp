@@ -27,7 +27,7 @@ public:
 
 private:
 
-  /* The list of events that this module accepts */
+  /* The events handled by this module */
   EventList<ExternalButtonEvent,
 	    StateUpdateEvent,
 	    NetworkMessageEvent<StateUpdateEvent>,
@@ -48,7 +48,7 @@ private:
     State state;
   };
 
-  std::map<std::string, ElevatorInfo> elevator_infos;
+  std::map<std::string, ElevatorInfo> elevators;
   std::map<std::string, OrderInfo> orders;
 
   std::thread driver_thread;

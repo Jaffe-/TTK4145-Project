@@ -17,6 +17,7 @@ class Network {
 
 public:
   Network(EventQueue& logic_queue, const std::string& port);
+
   void run();
   std::string own_ip() {
     return socket.own_ips[0];
@@ -31,7 +32,6 @@ public:
   }
 
   EventQueue event_queue;
-  EventQueue& logic_queue;
 
 private:
 
@@ -48,6 +48,7 @@ private:
   void receive();
   void make_receive_event(const Packet& packet);
 
+  EventQueue& logic_queue;
   Socket socket;
   Sender sender;
   ConnectionManager connection_manager;

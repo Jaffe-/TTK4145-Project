@@ -26,7 +26,6 @@ void PhysicalFSM::change_state(const StateID& new_state)
       if (state.orders[state.current_floor][i]) {
 	auto event = FSMOrderCompleteEvent(state.current_floor, i);
         logic_queue.push(event);
-	notify(event);
       }
     }
     clear_orders(state.current_floor);
@@ -55,16 +54,18 @@ void PhysicalFSM::update_lights()
   }
 }
 
-/* This even might be received from the poller or from the dispatch logic module */
-void PhysicalFSM::notify(const ExternalButtonEvent& event)
+void PhysicalFSM::notify(const ExternalLightOnEvent& event)
 {
   elev_set_button_lamp(static_cast<elev_button_type_t>(event.type), event.floor, 1);
 }
 
-/* This even might be received from the poller or from the dispatch logic module */
-void PhysicalFSM::notify(const FSMOrderCompleteEvent& event)
+void PhysicalFSM::notify(const ExternalLightOffEvent& event)
 {
   elev_set_button_lamp(static_cast<elev_button_type_t>(event.type), event.floor, 0);
+}
+
+void PhysicalFSM::notify(const ExternalButtonEvent&)
+{
 }
 
 /* This is only received from the poller */
@@ -98,7 +99,6 @@ void PhysicalFSM::notify(const OrderUpdateEvent& event)
     if (event.direction < 2) {
       auto complete_event = FSMOrderCompleteEvent(event.floor, event.direction);
       logic_queue.push(complete_event);
-      notify(complete_event);
     }
     if (!state.door_open) {
       open_door();

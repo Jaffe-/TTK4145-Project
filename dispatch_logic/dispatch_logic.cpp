@@ -27,7 +27,7 @@ void DispatchLogic::choose_elevator(const std::string& order_id, int floor, Butt
   int min = INT_MAX;
   std::string min_ip;
 
-  for (const auto& pair : elevator_infos) {
+  for (const auto& pair : elevators) {
     const ElevatorInfo& elevator_info = pair.second;
     if (elevator_info.active) {
       int steps = SimulatedFSM(elevator_info.state).calculate(floor, static_cast<int>(type));
@@ -39,15 +39,18 @@ void DispatchLogic::choose_elevator(const std::string& order_id, int floor, Butt
     }
   }
 
-  assert(min != INT_MAX);
+  // We found no elevator to take the order
+  if (min == INT_MAX) {
+  }
 
   LOG_DEBUG("Order " << order_id << ": " << min_ip << " is chosen (" << min << " steps)");
+  driver.event_queue.push(ExternalLightOnEvent(floor, type));
+
   if (min_ip == network.own_ip()) {
     LOG_DEBUG("Order " << order_id << ": this elevator takes the order");
     driver.event_queue.push(OrderUpdateEvent(floor, static_cast<int>(type)));
   }
 
-  assert(orders.find(order_id) != orders.end() && "Computed best ip for a order that doesn't exist");
   orders[order_id].owner = min_ip;
 
   network.event_queue.push(NetworkMessageEvent<OrderTakenEvent>
@@ -82,8 +85,8 @@ void DispatchLogic::notify(const ExternalButtonEvent& event)
 void DispatchLogic::notify(const NetworkMessageEvent<OrderTakenEvent>& event)
 {
   LOG_DEBUG("New order " << event.data.id << ": taken by " << event.data.info.owner);
-  driver.event_queue.push(ExternalButtonEvent(event.data.info.floor,
-					      static_cast<ButtonType>(event.data.info.type)));
+  driver.event_queue.push(ExternalLightOnEvent
+			  (event.data.info.floor, static_cast<ButtonType>(event.data.info.type)));
 
   if (event.data.info.owner == network.own_ip()) {
     LOG_DEBUG("Order " << event.data.id << ": I am the owner");
@@ -93,75 +96,6 @@ void DispatchLogic::notify(const NetworkMessageEvent<OrderTakenEvent>& event)
   orders[event.data.id] = event.data.info;
 }
 
-
-/* When we receive an update request, we get our own most recent state
-   from elevator_infos, and our current order map and send them to the 
-   elevator which requested it. */
-void DispatchLogic::notify(const NetworkMessageEvent<UpdateRequestEvent>& event)
-{
-  LOG_DEBUG("Received update request, sending state and order map.");
-  StateUpdateEvent state(elevator_infos[network.own_ip()].state);
-
-  network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>
-			   (event.ip, state));
-
-  network.event_queue.push(NetworkMessageEvent<OrderMapUpdateEvent>
-			   (event.ip, OrderMapUpdateEvent(orders)));
-}
-
-/* When a state update event occurs, our own state in elevator_infos should be
-   updated, and it should be sent to the other elevators. If the error
-   flag is set, there is some problem with the driver/fsm. We then remove
-   ourselves (mark ourselves as inactive) so we don't participate in order
-   dispatching. */
-void DispatchLogic::notify(const StateUpdateEvent& event)
-{
-  if (!event.state.error)
-    elevator_infos[network.own_ip()] = { true, event.state };
-  else {
-    remove_elevator(network.own_ip());
-    LOG_ERROR("Driver error!");
-  }
-  network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>("all", event));
-  backup_orders();
-}
-
-/* When a state update is received from the network, we only add it if the
-   elevator exists in elevator_infos (it is known to us). If the new state has
-   the error flag set, the elevator is removed (marked as inactive). Otherwise
-   the previous state is overwritten with the new one. */
-void DispatchLogic::notify(const NetworkMessageEvent<StateUpdateEvent>& event)
-{
-  LOG_DEBUG("Received " << event);
-  if (elevator_infos.find(event.ip) != elevator_infos.end()) {
-    if (!event.data.state.error)
-      elevator_infos[event.ip] = { true, event.data.state };
-    else {
-      remove_elevator(event.ip);
-      LOG_INFO("Elevator " << event.ip << " has driver problems.");
-    }
-  }
-}
-
-
-/* When a connection is lost, that elevator is removed (marked as inactive) from
-   the decision process. */
-void DispatchLogic::notify(const LostConnectionEvent& event)
-{
-  remove_elevator(event.ip);
-}
-
-/* When a new connection appears, we ask it for an update by sending a
-   UpdateRequestEvent. The elevator is marked as inactive until those updates
-   arrive. */
-void DispatchLogic::notify(const NewConnectionEvent& event)
-{
-  LOG_DEBUG("Sending state update and order map update requests");
-  network.event_queue.push(NetworkMessageEvent<UpdateRequestEvent>(event.ip, {}));
-  elevator_infos[event.ip] = { false, {} };
-}
-
-
 /* When the FSM tells us that it has completed an order, we remove it from the
    system and send an OrderCompleteEvent to the other elevators. */
 void DispatchLogic::notify(const FSMOrderCompleteEvent& event)
@@ -170,7 +104,10 @@ void DispatchLogic::notify(const FSMOrderCompleteEvent& event)
   for (auto it = orders.begin(); it != orders.end(); ) {
     if (it->second.floor == event.floor && it->second.type == event.type) {
       LOG_DEBUG("Order " << it->first << ": completed by this elevator");
-      network.event_queue.push(NetworkMessageEvent<OrderCompleteEvent>("all", it->first));
+      driver.event_queue.push(ExternalLightOffEvent
+			      (event.floor, static_cast<ButtonType>(event.type)));
+      network.event_queue.push(NetworkMessageEvent<OrderCompleteEvent>
+			       ("all", it->first));
       it = orders.erase(it);
     }
     else {
@@ -192,7 +129,56 @@ void DispatchLogic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
 }
 
 
-/* When an order map update is received (which happens when a new connection is 
+/* When we receive an update request, we get our own most recent state
+   from elevators, and our current order map and send them to the
+   elevator which requested it. */
+void DispatchLogic::notify(const NetworkMessageEvent<UpdateRequestEvent>& event)
+{
+  LOG_DEBUG("Received update request, sending state and order map.");
+  StateUpdateEvent state(elevators[network.own_ip()].state);
+
+  network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>
+			   (event.ip, state));
+
+  network.event_queue.push(NetworkMessageEvent<OrderMapUpdateEvent>
+			   (event.ip, OrderMapUpdateEvent(orders)));
+}
+
+/* When a state update event occurs, our own state in the elevators map should be
+   updated, and it should be sent to the other elevators. If the error
+   flag is set, there is some problem with the driver/fsm. We then remove
+   ourselves (mark ourselves as inactive) so we don't participate in order
+   dispatching. */
+void DispatchLogic::notify(const StateUpdateEvent& event)
+{
+  if (!event.state.error)
+    elevators[network.own_ip()] = { true, event.state };
+  else {
+    remove_elevator(network.own_ip());
+    LOG_ERROR("Driver error!");
+  }
+  network.event_queue.push(NetworkMessageEvent<StateUpdateEvent>("all", event));
+  backup_orders();
+}
+
+/* When a state update is received from the network, we only add it if the
+   elevator exists in elevators map (it is known to us). If the new state has
+   the error flag set, the elevator is removed (marked as inactive). Otherwise
+   the previous state is overwritten with the new one. */
+void DispatchLogic::notify(const NetworkMessageEvent<StateUpdateEvent>& event)
+{
+  LOG_DEBUG("Received " << event);
+  if (elevators.find(event.ip) != elevators.end()) {
+    if (!event.data.state.error)
+      elevators[event.ip] = { true, event.data.state };
+    else {
+      remove_elevator(event.ip);
+      LOG_WARNING("Elevator " << event.ip << " has driver problems.");
+    }
+  }
+}
+
+/* When an order map update is received (which happens when a new connection is
    discovered) we merge it with our own order map */
 void DispatchLogic::notify(const NetworkMessageEvent<OrderMapUpdateEvent>& event)
 {
@@ -206,6 +192,24 @@ void DispatchLogic::notify(const NetworkMessageEvent<OrderMapUpdateEvent>& event
 }
 
 
+/* When a connection is lost, that elevator is removed (marked as inactive) from
+   the decision process. */
+void DispatchLogic::notify(const LostConnectionEvent& event)
+{
+  remove_elevator(event.ip);
+}
+
+/* When a new connection appears, we ask it for an update by sending a
+   UpdateRequestEvent. The elevator is marked as inactive until those updates
+   arrive. */
+void DispatchLogic::notify(const NewConnectionEvent& event)
+{
+  LOG_DEBUG("Sending state update and order map update requests");
+  network.event_queue.push(NetworkMessageEvent<UpdateRequestEvent>(event.ip, {}));
+  elevators[event.ip] = { false, {} };
+}
+
+
 /* Check whether an order with the given floor and type (direction) exists
    already. This is necessary to avoid duplicate orders in the system. */
 bool DispatchLogic::order_exists(int floor, int type)
@@ -216,16 +220,17 @@ bool DispatchLogic::order_exists(int floor, int type)
 		      }) != orders.end();
 }
 
-/* Remove elevator for elevator_infos and go through each order and choose a new
-   elevator to take it */
+/* Mark elevator as inactive in the elevators map and determine whether this
+   elevator should take on the job of reassigning the orders that the dead
+   elevator owned. */
 void DispatchLogic::remove_elevator(const std::string& ip)
 {
   LOG_DEBUG("Distributing orders for dead elevator " << ip);
 
-  elevator_infos[ip].active = false;
+  elevators[ip].active = false;
 
   std::vector<std::string> ips;
-  for (auto pair : elevator_infos) {
+  for (auto pair : elevators) {
     if (pair.second.active)
       ips.push_back(pair.first);
   }
@@ -248,7 +253,7 @@ void DispatchLogic::remove_elevator(const std::string& ip)
 /* Writes internal orders to file */
 void DispatchLogic::backup_orders()
 {
-  const auto& orders = elevator_infos[network.own_ip()].state.orders;
+  const auto& orders = elevators[network.own_ip()].state.orders;
   assert(orders.size() == FLOORS && orders[0].size() == 3);
   std::ofstream of(backup_filename);
   for (int floor = 0; floor < FLOORS; floor++) {

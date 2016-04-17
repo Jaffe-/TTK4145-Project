@@ -66,6 +66,20 @@ struct FSMOrderCompleteEvent : public Event {
   int type;
 };
 
+struct ExternalLightOnEvent : public Event {
+  ExternalLightOnEvent(int floor, ButtonType type) : floor(floor), type(type) {}
+
+  int floor;
+  ButtonType type;
+};
+
+struct ExternalLightOffEvent : public Event {
+  ExternalLightOffEvent(int floor, ButtonType type) : floor(floor), type(type) {}
+
+  int floor;
+  ButtonType type;
+};
+
 /* Convenient overloads for writing events to log etc. */
 std::ostream& operator<<(std::ostream& s, const InternalButtonEvent& event);
 std::ostream& operator<<(std::ostream& s, const ExternalButtonEvent& event);

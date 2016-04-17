@@ -1,7 +1,7 @@
 TARGET=elevator
 CC = gcc
 COMMONFLAGS += -Wall -Wextra -pedantic -MD -MP -g
-CPPFLAGS = $(COMMONFLAGS) -std=c++11
+CPPFLAGS = $(COMMONFLAGS) -std=c++14
 CFLAGS = $(COMMONFLAGS) -std=gnu99
 LDFLAGS = -lstdc++ -lcomedi -lpthread -lm
 MODULES = network driver driver/hw_interface dispatch_logic util
