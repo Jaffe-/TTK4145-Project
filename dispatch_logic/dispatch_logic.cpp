@@ -31,8 +31,6 @@ void DispatchLogic::notify(const ExternalButtonEvent& event)
 {
   if (!order_exists(event.floor, static_cast<int>(event.type))) {
     std::string order_id = network.own_ip() + ":" + std::to_string(current_id++);
-
-    orders[order_id] = OrderInfo { event.floor, static_cast<int>(event.type), ""};
     choose_elevator(order_id, event.floor, event.type);
   }
   else {
