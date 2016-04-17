@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <algorithm>
-#include <exception>
+#include "../util/init_exception.hpp"
 
 Socket::Socket(const std::string& port) : port(port)
 {
@@ -39,12 +39,12 @@ Socket::Socket(const std::string& port) : port(port)
     freeifaddrs(if_addrs);
   else {
     LOG_ERROR("getifaddrs() failed");
-    return;
+    throw InitException();
   };
 
   if (own_ips.empty()) {
     LOG_ERROR("No network interfaces found");
-    throw std::exception();
+    throw InitException();
   }
 
   LOG_DEBUG("IPs of own interfaces: " << own_ips);
@@ -57,24 +57,24 @@ Socket::Socket(const std::string& port) : port(port)
 
   if ((rv = getaddrinfo(NULL, port.c_str(), &hints, &res)) != 0) {
     LOG_ERROR("getaddrinfo() failed.");
-    return;
+    throw InitException();
   }
 
   if ((sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1){
     LOG_ERROR("socket() failed");
-    return;
+    throw InitException();
   }
 
   if (bind(sockfd, res->ai_addr, res->ai_addrlen) == -1) {
     close(sockfd);
     LOG_ERROR("bind() failed.");
-    return;
+    throw InitException();
   }
 
   int b = 1;
   if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &b, sizeof(b)) == -1) {
     LOG_ERROR("setsockopt() failed.");
-    return;
+    throw InitException();
   }
 
   freeaddrinfo(res);

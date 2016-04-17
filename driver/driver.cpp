@@ -1,6 +1,7 @@
 #include "hw_interface/elev.h"
 #include "driver.hpp"
 #include "../util/logger.hpp"
+#include "../util/init_exception.hpp"
 #include <chrono>
 #include <iostream>
 
@@ -21,7 +22,7 @@ Driver::Driver(EventQueue& logic_queue, bool use_simulator)
   }
   else {
     LOG_ERROR("Failed to position the elevator at a known floor!");
-    // ERROR
+    throw InitException();
   }
 
   fsm.set_floor(current_floor);

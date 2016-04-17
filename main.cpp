@@ -1,5 +1,6 @@
 #include "util/cmdopts.hpp"
 #include "util/logger.hpp"
+#include "util/init_exception.hpp"
 #include "dispatch_logic/dispatch_logic.hpp"
 #include <thread>
 
@@ -33,7 +34,7 @@ int main(int argc, char** argv)
 
     dispatch_logic.run();
   }
-  catch (...) {
-    std::cout << "Initialization failed." << std::endl;
+  catch (InitException e) {
+    std::cout << "Initialization failed. See log fore more information." << std::endl;
   }
 }
