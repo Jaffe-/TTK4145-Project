@@ -7,7 +7,6 @@
 #include <thread>
 #include <vector>
 
-
 class DispatchLogic {
 public:
   DispatchLogic(bool use_simulator, const std::string& port);

@@ -20,50 +20,9 @@ DispatchLogic::DispatchLogic(bool use_simulator, const std::string& port)
     LOG_DEBUG("Restored internal orders");
 }
 
-/* Calculate the cost function (using the simulated FSM) for each elevator and
-   determine which elevator should take it. */
-void DispatchLogic::choose_elevator(const std::string& order_id, int floor, ButtonType type)
-{
-  int min = INT_MAX;
-  std::string min_ip;
 
-  for (const auto& pair : elevators) {
-    const ElevatorInfo& elevator_info = pair.second;
-    if (elevator_info.active) {
-      int steps = SimulatedFSM(elevator_info.state).calculate(floor, static_cast<int>(type));
-      LOG(4, "Calculated steps " << steps << " for id " << pair.first);
-      if (steps < min) {
-        min = steps;
-        min_ip = pair.first;
-      }
-    }
-  }
 
-  // We found no elevator to take the order
-  if (min == INT_MAX) {
-    return;
-  }
-
-  LOG_DEBUG("Order " << order_id << ": " << min_ip << " is chosen (" << min << " steps)");
-
-  auto order = OrderInfo { floor, static_cast<int>(type), min_ip };
-  add_order(order_id, order);
-  network.event_queue.push(NetworkMessageEvent<NewOrderEvent>
-			   ("all", NewOrderEvent { order_id, order }));
-
-}
-
-void DispatchLogic::add_order(const std::string& id, const OrderInfo& info)
-{
-  orders[id] = info;
-
-  driver.event_queue.push(ExternalLightOnEvent(info.floor, static_cast<ButtonType>(info.type)));
-  if (info.owner == network.own_ip()) {
-    LOG_DEBUG("Order " << id << ": this elevator takes the order");
-    driver.event_queue.push(OrderUpdateEvent(info.floor, info.type));
-  }
-}
-
+/* --- Events involved in adding and completing orders --- */
 
 /* When an external button event occurs, a new order is created (if it doesnt already exist)
    and choose_elevator is called to determine which elevator is going to take
@@ -123,6 +82,9 @@ void DispatchLogic::notify(const NetworkMessageEvent<OrderCompleteEvent>& event)
   }
 }
 
+
+
+/* --- Events involved in communicating the 'state of the world' --- */
 
 /* When we receive an update request, we get our own most recent state
    from elevators, and our current order map and send them to the
@@ -187,6 +149,9 @@ void DispatchLogic::notify(const NetworkMessageEvent<OrderMapUpdateEvent>& event
 }
 
 
+
+/* --- Events involved in adding and removing connections --- */
+
 /* When a connection is lost, that elevator is removed (marked as inactive) from
    the decision process. */
 void DispatchLogic::notify(const LostConnectionEvent& event)
@@ -204,6 +169,51 @@ void DispatchLogic::notify(const NewConnectionEvent& event)
   elevators[event.ip] = { false, {} };
 }
 
+
+
+/* Calculate the cost function (using the simulated FSM) for each elevator and
+   determine which elevator should take it. */
+void DispatchLogic::choose_elevator(const std::string& order_id, int floor, ButtonType type)
+{
+  int min = INT_MAX;
+  std::string min_ip;
+
+  for (const auto& pair : elevators) {
+    const ElevatorInfo& elevator_info = pair.second;
+    if (elevator_info.active) {
+      int steps = SimulatedFSM(elevator_info.state).calculate(floor, static_cast<int>(type));
+      LOG(4, "Calculated steps " << steps << " for id " << pair.first);
+      if (steps < min) {
+        min = steps;
+        min_ip = pair.first;
+      }
+    }
+  }
+
+  // We found no elevator to take the order
+  if (min == INT_MAX) {
+    return;
+  }
+
+  LOG_DEBUG("Order " << order_id << ": " << min_ip << " is chosen (" << min << " steps)");
+
+  auto order = OrderInfo { floor, static_cast<int>(type), min_ip };
+  add_order(order_id, order);
+  network.event_queue.push(NetworkMessageEvent<NewOrderEvent>
+			   ("all", NewOrderEvent { order_id, order }));
+
+}
+
+void DispatchLogic::add_order(const std::string& id, const OrderInfo& info)
+{
+  orders[id] = info;
+
+  driver.event_queue.push(ExternalLightOnEvent(info.floor, static_cast<ButtonType>(info.type)));
+  if (info.owner == network.own_ip()) {
+    LOG_DEBUG("Order " << id << ": this elevator takes the order");
+    driver.event_queue.push(OrderUpdateEvent(info.floor, info.type));
+  }
+}
 
 /* Check whether an order with the given floor and type (direction) exists
    already. This is necessary to avoid duplicate orders in the system. */
