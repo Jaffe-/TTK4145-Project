@@ -15,7 +15,7 @@ public:
   void notify(const ExternalButtonEvent& event);
   void notify(const StateUpdateEvent& event);
   void notify(const NetworkMessageEvent<StateUpdateEvent>& event);
-  void notify(const NetworkMessageEvent<OrderTakenEvent>& event);
+  void notify(const NetworkMessageEvent<NewOrderEvent>& event);
   void notify(const LostConnectionEvent& event);
   void notify(const NewConnectionEvent&);
   void notify(const NetworkMessageEvent<UpdateRequestEvent>& event);
@@ -31,7 +31,7 @@ private:
   EventList<ExternalButtonEvent,
 	    StateUpdateEvent,
 	    NetworkMessageEvent<StateUpdateEvent>,
-	    NetworkMessageEvent<OrderTakenEvent>,
+	    NetworkMessageEvent<NewOrderEvent>,
 	    NewConnectionEvent,
 	    LostConnectionEvent,
 	    NetworkMessageEvent<UpdateRequestEvent>,

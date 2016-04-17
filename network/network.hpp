@@ -39,7 +39,7 @@ private:
   EventList<NetworkMessageEvent<StateUpdateEvent>,
 	    NetworkMessageEvent<UpdateRequestEvent>,
 	    NetworkMessageEvent<OrderCompleteEvent>,
-	    NetworkMessageEvent<OrderTakenEvent>,
+	    NetworkMessageEvent<NewOrderEvent>,
 	    NetworkMessageEvent<OrderMapUpdateEvent>> events;
 
   void send(const Packet& packet, const std::string& ip);

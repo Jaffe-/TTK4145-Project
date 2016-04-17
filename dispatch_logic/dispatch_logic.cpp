@@ -53,8 +53,8 @@ void DispatchLogic::choose_elevator(const std::string& order_id, int floor, Butt
 
   orders[order_id].owner = min_ip;
 
-  network.event_queue.push(NetworkMessageEvent<OrderTakenEvent>
-			   ("all", OrderTakenEvent { order_id, orders[order_id] }));
+  network.event_queue.push(NetworkMessageEvent<NewOrderEvent>
+			   ("all", NewOrderEvent { order_id, orders[order_id] }));
 
   LOG(4, "Order map now contains: ");
   for (auto& pair : orders) {
@@ -82,7 +82,7 @@ void DispatchLogic::notify(const ExternalButtonEvent& event)
 /* When an order taken event is received, we check if it is assigned to us, and
    send an order update event to the driver if it is. The order is added to the
    order map. */
-void DispatchLogic::notify(const NetworkMessageEvent<OrderTakenEvent>& event)
+void DispatchLogic::notify(const NetworkMessageEvent<NewOrderEvent>& event)
 {
   LOG_DEBUG("New order " << event.data.id << ": taken by " << event.data.info.owner);
   driver.event_queue.push(ExternalLightOnEvent

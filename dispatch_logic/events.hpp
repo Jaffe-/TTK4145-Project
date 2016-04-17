@@ -14,9 +14,9 @@ struct UpdateRequestEvent : public SerializableEvent {
   UpdateRequestEvent(const json_t&) {};
 };
 
-struct OrderTakenEvent : public SerializableEvent {
-  OrderTakenEvent(const std::string& id, OrderInfo info) : id(id), info(info) {}
-  OrderTakenEvent(const json_t& json) {
+struct NewOrderEvent : public SerializableEvent {
+  NewOrderEvent(const std::string& id, OrderInfo info) : id(id), info(info) {}
+  NewOrderEvent(const json_t& json) {
     id = json["id"];
     info = { json["floor"], json["type"], json["owner"] };
   }
