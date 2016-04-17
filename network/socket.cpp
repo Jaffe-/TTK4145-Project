@@ -38,13 +38,11 @@ Socket::Socket(const std::string& port) : port(port)
   if (if_addrs != NULL)
     freeifaddrs(if_addrs);
   else {
-    LOG_ERROR("getifaddrs() failed");
-    throw InitException();
+    throw InitException("getifaddrs() failed");
   };
 
   if (own_ips.empty()) {
-    LOG_ERROR("No network interfaces found");
-    throw InitException();
+    throw InitException("No network interfaces found");
   }
 
   LOG_DEBUG("IPs of own interfaces: " << own_ips);
@@ -56,25 +54,21 @@ Socket::Socket(const std::string& port) : port(port)
   hints.ai_flags = AI_PASSIVE;
 
   if ((rv = getaddrinfo(NULL, port.c_str(), &hints, &res)) != 0) {
-    LOG_ERROR("getaddrinfo() failed.");
-    throw InitException();
+    throw InitException("getaddrinfo() failed");
   }
 
   if ((sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1){
-    LOG_ERROR("socket() failed");
-    throw InitException();
+    throw InitException("socket() failed");
   }
 
   if (bind(sockfd, res->ai_addr, res->ai_addrlen) == -1) {
     close(sockfd);
-    LOG_ERROR("bind() failed.");
-    throw InitException();
+    throw InitException("bind() failed");
   }
 
   int b = 1;
   if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &b, sizeof(b)) == -1) {
-    LOG_ERROR("setsockopt() failed.");
-    throw InitException();
+    throw InitException("setsockopt() failed");
   }
 
   freeaddrinfo(res);

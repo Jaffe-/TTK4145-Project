@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 
     dispatch_logic.run();
   }
-  catch (InitException e) {
-    std::cout << "Initialization failed. See log fore more information." << std::endl;
+  catch (InitException& e) {
+    std::cout << "Initialization failed: " << e.what << std::endl;
   }
 }

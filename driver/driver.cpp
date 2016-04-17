@@ -21,8 +21,7 @@ Driver::Driver(EventQueue& logic_queue, bool use_simulator)
     LOG_INFO("Elevator is now at floor " << current_floor);
   }
   else {
-    LOG_ERROR("Failed to position the elevator at a known floor!");
-    throw InitException();
+    throw InitException("Failed to position the elevator at a known floor!");
   }
 
   fsm.set_floor(current_floor);
