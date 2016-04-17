@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #include "channels.h"
 #include "io.h"
@@ -32,6 +33,7 @@ static const int button_channel_matrix[N_FLOORS][N_BUTTONS] = {
 
 static elev_type elevatorType = ET_Comedi;
 static int sockfd;
+static pthread_mutex_t sockmtx;
 
 void elev_init(elev_type e) {
     elevatorType = e;
@@ -60,6 +62,8 @@ void elev_init(elev_type e) {
             con_val("com_ip",   ip,   "%s")
             con_val("com_port", port, "%s")
         )
+        
+        pthread_mutex_init(&sockmtx, NULL);
     
         sockfd = socket(AF_INET, SOCK_STREAM, 0);
         assert(sockfd != -1 && "Unable to set up socket");
@@ -73,7 +77,7 @@ void elev_init(elev_type e) {
         getaddrinfo(ip, port, &hints, &res);
 
         int fail = connect(sockfd, res->ai_addr, res->ai_addrlen);
-        assert(fail == 0 && "Unable to connect to simulator backend");
+        assert(fail == 0 && "Unable to connect to simulator server");
 
         freeaddrinfo(res);
 
@@ -100,7 +104,9 @@ void elev_set_motor_direction(elev_motor_direction_t dirn) {
         }
         break;
     case ET_Simulation:
+        pthread_mutex_lock(&sockmtx);
         send(sockfd, (char[4]) {1, dirn}, 4, 0);
+        pthread_mutex_unlock(&sockmtx);
         break;
     }
 }
@@ -121,7 +127,9 @@ void elev_set_button_lamp(elev_button_type_t button, int floor, int value) {
         }
         break;
     case ET_Simulation:
+        pthread_mutex_lock(&sockmtx);
         send(sockfd, (char[4]) {2, button, floor, value}, 4, 0);
+        pthread_mutex_unlock(&sockmtx);
         break;
     }
 }
@@ -147,7 +155,9 @@ void elev_set_floor_indicator(int floor) {
         }
         break;
     case ET_Simulation:
+        pthread_mutex_lock(&sockmtx);
         send(sockfd, (char[4]) {3, floor}, 4, 0);
+        pthread_mutex_unlock(&sockmtx);
         break;
     }
 }
@@ -163,7 +173,9 @@ void elev_set_door_open_lamp(int value) {
         }
         break;
     case ET_Simulation:
+        pthread_mutex_lock(&sockmtx);
         send(sockfd, (char[4]) {4, value}, 4, 0);
+        pthread_mutex_unlock(&sockmtx);
         break;
     }
 }
@@ -179,7 +191,9 @@ void elev_set_stop_lamp(int value) {
         }
         break;
     case ET_Simulation:
+        pthread_mutex_lock(&sockmtx);
         send(sockfd, (char[4]) {5, value}, 4, 0);
+        pthread_mutex_unlock(&sockmtx);
         break;
     }
 }
@@ -197,9 +211,11 @@ int elev_get_button_signal(elev_button_type_t button, int floor) {
 
         return (io_read_bit(button_channel_matrix[floor][button]));
     case ET_Simulation:
+        pthread_mutex_lock(&sockmtx);
         send(sockfd, (char[4]) {6, button, floor}, 4, 0);
         char buf[4];
         recv(sockfd, buf, 4, 0);
+        pthread_mutex_unlock(&sockmtx);
         return buf[1];
     }
     return 0;
@@ -221,9 +237,11 @@ int elev_get_floor_sensor_signal(void) {
             return -1;
         }
     case ET_Simulation:
+        pthread_mutex_lock(&sockmtx);
         send(sockfd, (char[4]) {7}, 4, 0);
-        unsigned char buf[4];
+        char buf[4];
         recv(sockfd, buf, 4, 0);
+        pthread_mutex_unlock(&sockmtx);
         return buf[1] ? buf[2] : -1;
     }
     return 0;
@@ -235,9 +253,11 @@ int elev_get_stop_signal(void) {
     case ET_Comedi:
         return io_read_bit(STOP);
     case ET_Simulation:
+        pthread_mutex_lock(&sockmtx);
         send(sockfd, (char[4]) {8}, 4, 0);
         char buf[4];
         recv(sockfd, buf, 4, 0);
+        pthread_mutex_unlock(&sockmtx);
         return buf[1];
     }
     return 0;
@@ -249,9 +269,11 @@ int elev_get_obstruction_signal(void) {
     case ET_Comedi:
         return io_read_bit(OBSTRUCTION);
     case ET_Simulation:
+        pthread_mutex_lock(&sockmtx);
         send(sockfd, (char[4]) {9}, 4, 0);
         char buf[4];
         recv(sockfd, buf, 4, 0);
+        pthread_mutex_unlock(&sockmtx);
         return buf[1];
     }
     return 0;
