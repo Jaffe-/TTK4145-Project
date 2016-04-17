@@ -19,13 +19,11 @@ void PhysicalFSM::change_state(const StateID& new_state)
   if (new_state == STOPPED) {
     LOG_DEBUG("Changed state to STOPPED");
     elev_set_motor_direction(DIRN_STOP);
-    state.door_opened_time = std::chrono::system_clock::now();
-    state.door_open = true;
+    open_door();
 
     for (int i = 0; i < 2; i++) {
       if (state.orders[state.current_floor][i]) {
-	auto event = FSMOrderCompleteEvent(state.current_floor, i);
-        logic_queue.push(event);
+	logic_queue.push(FSMOrderCompleteEvent(state.current_floor, i));
       }
     }
     clear_orders(state.current_floor);
@@ -43,6 +41,7 @@ void PhysicalFSM::change_state(const StateID& new_state)
   }
 
   state.state_id = new_state;
+  send_state();
 }
 
 void PhysicalFSM::update_lights()
@@ -54,21 +53,10 @@ void PhysicalFSM::update_lights()
   }
 }
 
-void PhysicalFSM::notify(const ExternalLightOnEvent& event)
-{
-  elev_set_button_lamp(static_cast<elev_button_type_t>(event.type), event.floor, 1);
-}
 
-void PhysicalFSM::notify(const ExternalLightOffEvent& event)
-{
-  elev_set_button_lamp(static_cast<elev_button_type_t>(event.type), event.floor, 0);
-}
 
-void PhysicalFSM::notify(const ExternalButtonEvent&)
-{
-}
+/* --- Events received from inside the driver --- */
 
-/* This is only received from the poller */
 void PhysicalFSM::notify(const InternalButtonEvent& event)
 {
   insert_order(event.floor, 2);
@@ -89,7 +77,14 @@ void PhysicalFSM::notify(const FloorSignalEvent& event)
   depart_time = std::chrono::system_clock::now();
 }
 
-/* This is received from the dispatch logic module */
+void PhysicalFSM::notify(const ExternalButtonEvent&)
+{
+}
+
+
+
+/* --- Events received from dispatch logic --- */
+
 void PhysicalFSM::notify(const OrderUpdateEvent& event)
 {
   LOG_DEBUG("New order: go to floor " << event.floor
@@ -108,6 +103,18 @@ void PhysicalFSM::notify(const OrderUpdateEvent& event)
   send_state();
 }
 
+void PhysicalFSM::notify(const ExternalLightOnEvent& event)
+{
+  elev_set_button_lamp(static_cast<elev_button_type_t>(event.type), event.floor, 1);
+}
+
+void PhysicalFSM::notify(const ExternalLightOffEvent& event)
+{
+  elev_set_button_lamp(static_cast<elev_button_type_t>(event.type), event.floor, 0);
+}
+
+
+
 void PhysicalFSM::run()
 {
   if (state.state_id == STOPPED) {
@@ -122,23 +129,19 @@ void PhysicalFSM::run()
       if (state.direction == Direction::UP) {
 	if (floors_above()) {
 	  change_state(MOVING);
-	  send_state();
 	}
 	else if (floors_below()) {
 	  state.direction = Direction::DOWN;
 	  change_state(MOVING);
-	  send_state();
 	}
       }
       else if (state.direction == Direction::DOWN) {
 	if (floors_below()) {
 	  change_state(MOVING);
-	  send_state();
 	}
 	else if (floors_above()) {
 	  state.direction = Direction::UP;
 	  change_state(MOVING);
-	  send_state();
 	}
       }
     }
