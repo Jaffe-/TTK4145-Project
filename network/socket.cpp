@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <algorithm>
+#include <exception>
 
 Socket::Socket(const std::string& port) : port(port)
 {
@@ -40,6 +41,11 @@ Socket::Socket(const std::string& port) : port(port)
     LOG_ERROR("getifaddrs() failed");
     return;
   };
+
+  if (own_ips.empty()) {
+    LOG_ERROR("No network interfaces found");
+    throw std::exception();
+  }
 
   LOG_DEBUG("IPs of own interfaces: " << own_ips);
 

@@ -47,7 +47,7 @@ void DispatchLogic::choose_elevator(const std::string& order_id, int floor, Butt
   LOG_DEBUG("Order " << order_id << ": " << min_ip << " is chosen (" << min << " steps)");
 
   auto order = OrderInfo { floor, static_cast<int>(type), min_ip };
-  add_order(order_id, order);  
+  add_order(order_id, order);
   network.event_queue.push(NetworkMessageEvent<NewOrderEvent>
 			   ("all", NewOrderEvent { order_id, order }));
 

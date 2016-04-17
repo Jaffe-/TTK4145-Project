@@ -4,7 +4,7 @@
 #include <thread>
 
 int main(int argc, char** argv)
-{  
+{
   std::cout << "******************************************************" << std::endl
 	    << "*                                                    *" << std::endl
 	    << "*         Voll Electronics UltraElevator4000         *" << std::endl
@@ -28,7 +28,12 @@ int main(int argc, char** argv)
 
   LOG_DEBUG("Log is initialized");
 
-  DispatchLogic dispatch_logic(cmd_options.has("simulated"), cmd_options["port"]);
+  try {
+    DispatchLogic dispatch_logic(cmd_options.has("simulated"), cmd_options["port"]);
 
-  dispatch_logic.run();
+    dispatch_logic.run();
+  }
+  catch (...) {
+    std::cout << "Initialization failed." << std::endl;
+  }
 }
