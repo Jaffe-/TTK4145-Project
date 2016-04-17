@@ -13,14 +13,14 @@ public:
   DispatchLogic(bool use_simulator, const std::string& port);
 
   void notify(const ExternalButtonEvent& event);
-  void notify(const StateUpdateEvent& event);
-  void notify(const NetworkMessageEvent<StateUpdateEvent>& event);
+  void notify(const FSMOrderCompleteEvent& event);
   void notify(const NetworkMessageEvent<NewOrderEvent>& event);
+  void notify(const NetworkMessageEvent<OrderCompleteEvent>& event);
   void notify(const LostConnectionEvent& event);
   void notify(const NewConnectionEvent&);
   void notify(const NetworkMessageEvent<UpdateRequestEvent>& event);
-  void notify(const FSMOrderCompleteEvent& event);
-  void notify(const NetworkMessageEvent<OrderCompleteEvent>& event);
+  void notify(const StateUpdateEvent& event);
+  void notify(const NetworkMessageEvent<StateUpdateEvent>& event);
   void notify(const NetworkMessageEvent<OrderMapUpdateEvent>& event);
 
   void run();
@@ -60,6 +60,7 @@ private:
 
   void choose_elevator(const std::string& id, int floor, ButtonType type);
   void remove_elevator(const std::string& ip);
+  void add_order(const std::string& id, const OrderInfo& info);
   bool order_exists(int floor, int type);
   void backup_orders();
   bool restore_orders();

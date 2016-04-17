@@ -41,24 +41,30 @@ void DispatchLogic::choose_elevator(const std::string& order_id, int floor, Butt
 
   // We found no elevator to take the order
   if (min == INT_MAX) {
+    return;
   }
 
   LOG_DEBUG("Order " << order_id << ": " << min_ip << " is chosen (" << min << " steps)");
-  driver.event_queue.push(ExternalLightOnEvent(floor, type));
 
-  if (min_ip == network.own_ip()) {
-    LOG_DEBUG("Order " << order_id << ": this elevator takes the order");
-    driver.event_queue.push(OrderUpdateEvent(floor, static_cast<int>(type)));
-  }
-
-  orders[order_id].owner = min_ip;
-
+  auto order = OrderInfo { floor, static_cast<int>(type), min_ip };
+  add_order(order_id, order);  
   network.event_queue.push(NetworkMessageEvent<NewOrderEvent>
-			   ("all", NewOrderEvent { order_id, orders[order_id] }));
+			   ("all", NewOrderEvent { order_id, order }));
 
   LOG(4, "Order map now contains: ");
   for (auto& pair : orders) {
     LOG(4, pair.first << ": floor=" << pair.second.floor << " type=" << pair.second.type << " owner=" << pair.second.owner);
+  }
+}
+
+void DispatchLogic::add_order(const std::string& id, const OrderInfo& info)
+{
+  orders[id] = info;
+
+  driver.event_queue.push(ExternalLightOnEvent(info.floor, static_cast<ButtonType>(info.type)));
+  if (info.owner == network.own_ip()) {
+    LOG_DEBUG("Order " << id << ": this elevator takes the order");
+    driver.event_queue.push(OrderUpdateEvent(info.floor, info.type));
   }
 }
 
@@ -84,16 +90,8 @@ void DispatchLogic::notify(const ExternalButtonEvent& event)
    order map. */
 void DispatchLogic::notify(const NetworkMessageEvent<NewOrderEvent>& event)
 {
+  add_order(event.data.id, event.data.info);
   LOG_DEBUG("New order " << event.data.id << ": taken by " << event.data.info.owner);
-  driver.event_queue.push(ExternalLightOnEvent
-			  (event.data.info.floor, static_cast<ButtonType>(event.data.info.type)));
-
-  if (event.data.info.owner == network.own_ip()) {
-    LOG_DEBUG("Order " << event.data.id << ": I am the owner");
-    driver.event_queue.push(OrderUpdateEvent(event.data.info.floor, event.data.info.type));
-  }
-
-  orders[event.data.id] = event.data.info;
 }
 
 /* When the FSM tells us that it has completed an order, we remove it from the
